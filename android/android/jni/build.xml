@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module" basedir="." default="release">
+    <!-- import ant-contrib jar -->
+    <taskdef resource="net/sf/antcontrib/antlib.xml" />
+
+    <!-- properties -->
+    <property name="out.dir" value="${basedir}/../../libs" />
+    <property name="lib.dir" value="${basedir}/../libs" />
+    <property name="obj.dir" value="${basedir}/../obj" />
+    <property name="ndk.args" value="-B" />
+    <property name="ndk.abi" value="armeabi-v7a,arm64-v8a,x86,x86_64" />
+
+    <!-- target -debug-flags -->
+    <target name="-debug-flags">
+        <property name="ndk.debug" value="1" />
+        <echo level="info">ndk-build ${ndk.args} NDK_DEBUG=${ndk.debug}</echo>
+    </target>
+
+    <!-- target -release-flags -->
+    <target name="-release-flags">
+        <property name="ndk.debug" value="0" />
+        <echo level="info">ndk-build ${ndk.args} NDK_DEBUG=${ndk.debug}</echo>
+    </target>
+
+    <!-- target -compile -->
+    <target name="-compile">
+        <!-- compile c++ files -->
+        <exec executable="cmd.exe">
+            <arg line="/C ndk-build ${ndk.args} NDK_DEBUG=${ndk.debug}" />
+        </exec>
+
+        <!-- copy the so files -->
+        <copy todir="${out.dir}" overwrite="true">
+            <fileset dir="${lib.dir}" />
+        </copy>
+
+        <!-- copy the archive files -->
+        <for list="${ndk.abi}" param="abi">
+            <sequential>
+                <copy todir="${out.dir}/@{abi}" overwrite="true">
+                    <fileset dir="${obj.dir}/local/@{abi}">
+                        <include name="lib*_static.a" />
+                    </fileset>
+
+                    <!-- rename the libxxx_static.a to libxxx.a -->
+                    <globmapper from="lib*_static.a" to="lib*.a" />
+                </copy>
+            </sequential>
+        </for>
+    </target>
+
+    <!-- target -post-compile -->
+    <target name="-post-compile">
+        <echo level="info">Deletes temp files...</echo>
+        <delete dir="${obj.dir}"/>
+        <delete dir="${lib.dir}"/>
+    </target>
+
+    <!-- target clean -->
+    <target name="clean">
+        <echo level="info">Deletes output files...</echo>
+        <delete dir="${obj.dir}" />
+        <delete dir="${lib.dir}" />
+        <delete includeemptydirs="true">
+            <fileset dir="${out.dir}" excludes="*.mk" />
+        </delete>
+    </target>
+
+    <!-- target debug -->
+    <target name="debug" depends="clean, -debug-flags, -compile, -post-compile">
+        <echo level="info">Builds the modules in debug mode.</echo>
+        <echo level="info">Install: ${out.dir}</echo>
+    </target>
+
+    <!-- target release -->
+    <target name="release" depends="clean, -release-flags, -compile, -post-compile">
+        <echo level="info">Builds the modules in release mode.</echo>
+        <echo level="info">Install: ${out.dir}</echo>
+    </target>
+</project>

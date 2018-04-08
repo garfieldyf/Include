@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="copyright" basedir="." default="release">
+    <!-- import ant-contrib jar -->
+    <taskdef resource="net/sf/antcontrib/antlib.xml" />
+
+    <!-- properties -->
+    <tstamp>
+        <format property="result" pattern="yyyy" />
+    </tstamp>
+
+    <math result="original" operand1="${result}" operation="-" operand2="1" datatype="int" />
+
+    <!-- target release -->
+    <target name="release">
+        <!-- replace the copyright -->
+        <echo level="info">Replace: ${original} to ${result}</echo>
+        <replace dir="${basedir}" includes="**/*.h **/*.inl **/*.cpp" encoding="UTF-8">
+            <replacefilter token="Copyright(c) ${original}, Garfield. All rights reserved." value="Copyright(c) ${result}, Garfield. All rights reserved." />
+        </replace>
+    </target>
+</project>

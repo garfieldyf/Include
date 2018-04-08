@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="recyclerview" basedir="." default="release">
+    <!-- properties -->
+    <property name="version" value="25.3.1" />
+    <property name="out.dir" value="${basedir}/out" />
+    <property name="src.dir" value="${out.dir}/src" />
+
+    <property name="api.level" value="20" />
+    <property name="sdk.dir" value="D:\Google\android-sdk-windows" />
+    <property name="android.jar.path" value="${sdk.dir}/platforms/android-${api.level}/android.jar" />
+    <property name="support.v4.jar.path" value="${sdk.dir}/extras/android/support/v7/appcompat/libs/android-support-v4.jar" />
+
+    <!-- target -debug-flags -->
+    <target name="-debug-flags">
+        <property name="java.debug" value="true" />
+        <property name="class.dir" value="${out.dir}/src" />
+        <property name="out.file.name" value="${basedir}/debug/recyclerview-v7.jar" />
+        <echo level="info">debug=${java.debug}</echo>
+    </target>
+
+    <!-- target -release-flags -->
+    <target name="-release-flags">
+        <property name="java.debug" value="false" />
+        <property name="class.dir" value="${out.dir}/classes" />
+        <property name="out.file.name" value="${basedir}/release/recyclerview-v7.jar" />
+        <echo level="info">debug=${java.debug}</echo>
+    </target>
+
+    <!-- target -pre-compile -->
+    <target name="-pre-compile">
+        <!-- copy the java files -->
+        <copy todir="${src.dir}" overwrite="true">
+            <fileset dir="${basedir}/src" />
+        </copy>
+    </target>
+
+    <!-- target -compile -->
+    <target name="-compile">
+        <!-- compile java files -->
+        <mkdir dir="${class.dir}" />
+        <javac srcdir="${src.dir}" destdir="${class.dir}" debug="${java.debug}" source="1.7" target="1.7" includeantruntime="false" classpath="${android.jar.path};${support.v4.jar.path}" />
+
+        <!-- build jar file -->
+        <jar destfile="${out.file.name}" basedir="${class.dir}" />
+    </target>
+
+    <!-- target -post-compile -->
+    <target name="-post-compile">
+        <echo level="info">Deletes temp files...</echo>
+        <delete dir="${out.dir}"/>
+    </target>
+
+    <!-- target -clean -->
+    <target name="-clean">
+        <echo level="info">Deletes output files...</echo>
+        <delete dir="${out.dir}"/>
+        <delete file="${out.file.name}"/>
+    </target>
+
+    <!-- target clean -->
+    <target name="clean">
+        <echo level="info">Deletes output files...</echo>
+        <delete dir="${out.dir}"/>
+        <delete dir="${basedir}/debug"/>
+        <delete dir="${basedir}/release"/>
+    </target>
+
+    <!-- target debug -->
+    <target name="debug" depends="-debug-flags, -clean, -pre-compile, -compile, -post-compile">
+        <echo level="info">Builds the recyclerview package in debug mode.</echo>
+        <echo level="info">Install: ${out.file.name}</echo>
+    </target>
+
+    <!-- target release -->
+    <target name="release" depends="-release-flags, -clean, -pre-compile, -compile, -post-compile">
+        <echo level="info">Builds the recyclerview package in release mode.</echo>
+        <echo level="info">Install: ${out.file.name}</echo>
+    </target>
+</project>
