@@ -245,19 +245,19 @@ __INLINE__ jmethodID jclass_t::getStaticMethodID(const char* methodName, const c
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the basic_jstring_t class
+// Implementation of the basic_jstring class
 //
 
 template <typename _Ty, uint32_t t_length>
-__INLINE__ basic_jstring_t<_Ty, t_length>::basic_jstring_t(uint32_t len)
-    : length(len)
+__INLINE__ basic_jstring<_Ty, t_length>::basic_jstring(uint32_t size)
+    : length(size)
 {
-    cstr = (len >= t_length ? (_Ty*)::malloc((len + 1) * sizeof(_Ty)) : mstr);
+    cstr = (size >= t_length ? (_Ty*)::malloc((size + 1) * sizeof(_Ty)) : mstr);
     assert(cstr);
 }
 
 template <typename _Ty, uint32_t t_length>
-__INLINE__ basic_jstring_t<_Ty, t_length>::~basic_jstring_t()
+__INLINE__ basic_jstring<_Ty, t_length>::~basic_jstring()
 {
     if (cstr != mstr)
     {
@@ -274,13 +274,13 @@ __INLINE__ basic_jstring_t<_Ty, t_length>::~basic_jstring_t()
 }
 
 template <typename _Ty, uint32_t t_length>
-__INLINE__ const _Ty* basic_jstring_t<_Ty, t_length>::str() const
+__INLINE__ const _Ty* basic_jstring<_Ty, t_length>::str() const
 {
     return cstr;
 }
 
 template <typename _Ty, uint32_t t_length>
-__INLINE__ basic_jstring_t<_Ty, t_length>::operator const _Ty*() const
+__INLINE__ basic_jstring<_Ty, t_length>::operator const _Ty*() const
 {
     return cstr;
 }
@@ -292,7 +292,7 @@ __INLINE__ basic_jstring_t<_Ty, t_length>::operator const _Ty*() const
 
 template <uint32_t t_length>
 __INLINE__ _jstring_t<t_length>::_jstring_t(JNIEnv* env, jstring str)
-    : basic_jstring_t<char, t_length>(env->GetStringUTFLength(str))
+    : _Mybase(env->GetStringUTFLength(str))
 {
     assert(env);
     assert(str);
@@ -308,7 +308,7 @@ __INLINE__ _jstring_t<t_length>::_jstring_t(JNIEnv* env, jstring str)
 
 template <uint32_t t_length>
 __INLINE__ _jwstring_t<t_length>::_jwstring_t(JNIEnv* env, jstring str)
-    : basic_jstring_t<jchar, t_length>(env->GetStringLength(str))
+    : _Mybase(env->GetStringLength(str))
 {
     assert(env);
     assert(str);

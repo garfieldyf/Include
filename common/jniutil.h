@@ -124,18 +124,18 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the basic_jstring_t class
+// Interface of the basic_jstring class
 //
 
 template <typename _Ty, uint32_t t_length>
-class ATL_NO_VTABLE basic_jstring_t
+class ATL_NO_VTABLE basic_jstring
 {
-    DECLARE_NONCOPYABLE(basic_jstring_t);
+    DECLARE_NONCOPYABLE(basic_jstring);
 
 // Constructors/Destructor
 protected:
-    basic_jstring_t(uint32_t len);
-    ~basic_jstring_t();
+    basic_jstring(uint32_t size);
+    ~basic_jstring();
 
 // Operations
 public:
@@ -158,8 +158,11 @@ protected:
 //
 
 template <uint32_t t_length = MAX_PATH>
-class _jstring_t : public basic_jstring_t<char, t_length>
+class _jstring_t : public basic_jstring<char, t_length>
 {
+public:
+    typedef basic_jstring<char, t_length> _Mybase;
+
 // Constructors
 public:
     _jstring_t(JNIEnv* env, jstring str);
@@ -171,9 +174,12 @@ public:
 //
 
 template <uint32_t t_length = MAX_PATH>
-class _jwstring_t : public basic_jstring_t<jchar, t_length>
+class _jwstring_t : public basic_jstring<jchar, t_length>
 {
-// Constructors/Destructor
+public:
+    typedef basic_jstring<jchar, t_length> _Mybase;
+
+// Constructors
 public:
     _jwstring_t(JNIEnv* _env, jstring _str);
 };
