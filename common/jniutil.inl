@@ -267,7 +267,7 @@ __INLINE__ basic_jstring<_Ty, t_length>::~basic_jstring()
 #ifndef NDEBUG
     else
     {
-        LOGD("Release string characters : %s(%u)\n", cstr, length);
+        LOGD("Release STACK string characters : %s(%u)\n", cstr, length);
         ::memset(mstr, 0xCCCCCCCC, sizeof(mstr));
     }
 #endif  // NDEBUG
@@ -358,7 +358,7 @@ __INLINE__ _jarray_t<_Traits, t_length>::~_jarray_t()
 #ifndef NDEBUG
     else
     {
-        LOGD("Release array elements [ length = %u ]\n", length);
+        LOGD("Release STACK array elements [ length = %u ]\n", length);
         ::memset(marray, 0xCCCCCCCC, sizeof(marray));
     }
 #endif  // NDEBUG
