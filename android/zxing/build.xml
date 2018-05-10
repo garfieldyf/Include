@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="zxing" basedir="." default="release">
     <!-- properties -->
+    <property name="author" value="Garfield" />
     <property name="version" value="3.3.0" />
     <property name="out.dir" value="${basedir}/out" />
     <property name="src.dir" value="${out.dir}/src" />
@@ -52,10 +53,15 @@
     <target name="-compile">
         <!-- compile java files -->
         <mkdir dir="${class.dir}" />
-        <javac srcdir="${src.dir}" destdir="${class.dir}" debug="${java.debug}" source="1.7" target="1.7" includeantruntime="false" />
+        <javac srcdir="${src.dir}" destdir="${class.dir}" debug="${java.debug}" source="1.7" target="1.7" includeAntRuntime="false" includeJavaRuntime="false" />
 
         <!-- build jar file -->
-        <jar destfile="${out.file.name}" basedir="${class.dir}" />
+        <jar destfile="${out.file.name}" basedir="${class.dir}">
+            <manifest>
+                <attribute name="Built-By" value="${author}" />
+                <attribute name="Version" value="${version}" />
+            </manifest>
+        </jar>
     </target>
 
     <!-- target -post-compile -->
