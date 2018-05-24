@@ -3,7 +3,7 @@
     <!-- properties -->
     <property name="out.dir" value="${basedir}/out" />
     <property name="src.dir" value="${out.dir}/src" />
-    <property name="class.dir" value="${out.dir}/src" />
+    <property name="class.dir" value="${out.dir}/classes" />
     <property name="out.file.name" value="${basedir}/android-sdk-internal.jar" />
 
     <property name="api.level" value="22" />

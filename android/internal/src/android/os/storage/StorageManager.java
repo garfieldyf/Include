@@ -17,16 +17,10 @@
 package android.os.storage;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
-import java.util.concurrent.atomic.AtomicInteger;
-import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.os.RemoteException;
-import android.util.Log;
 
 /**
  * StorageManager is the interface to the systems storage service. The storage
@@ -45,139 +39,10 @@ import android.util.Log;
  * {@link android.content.Context#getSystemService(java.lang.String)} with an
  * argument of {@link android.content.Context#STORAGE_SERVICE}.
  */
-@SuppressLint("NewApi")
 public class StorageManager {
-    private static final String TAG = "StorageManager";
-
-    private final ContentResolver mResolver;
-
-    /*
-     * The looper target for callbacks
-     */
-    private final Looper mTgtLooper;
-
-    /*
-     * Next available nonce
-     */
-    final private AtomicInteger mNextNonce = new AtomicInteger(0);
-
-    private int getNextNonce() {
-        return mNextNonce.getAndIncrement();
-    }
-
-    /**
-     * Private class containing sender and receiver code for StorageEvents.
-     */
-    private class ObbListenerDelegate {
-        private final WeakReference<OnObbStateChangeListener> mObbEventListenerRef;
-        private final Handler mHandler;
-
-        private final int nonce;
-
-        ObbListenerDelegate(OnObbStateChangeListener listener) {
-            nonce = getNextNonce();
-            mObbEventListenerRef = new WeakReference<OnObbStateChangeListener>(listener);
-            mHandler = new Handler(mTgtLooper) {
-                @Override
-                public void handleMessage(Message msg) {
-                    final OnObbStateChangeListener changeListener = getListener();
-                    if (changeListener == null) {
-                        return;
-                    }
-
-                    StorageEvent e = (StorageEvent) msg.obj;
-
-                    if (msg.what == StorageEvent.EVENT_OBB_STATE_CHANGED) {
-                        ObbStateChangedStorageEvent ev = (ObbStateChangedStorageEvent) e;
-                        changeListener.onObbStateChange(ev.path, ev.state);
-                    } else {
-                        Log.e(TAG, "Unsupported event " + msg.what);
-                    }
-                }
-            };
-        }
-
-        OnObbStateChangeListener getListener() {
-            if (mObbEventListenerRef == null) {
-                return null;
-            }
-            return mObbEventListenerRef.get();
-        }
-
-        void sendObbStateChanged(String path, int state) {
-            ObbStateChangedStorageEvent e = new ObbStateChangedStorageEvent(path, state);
-            mHandler.sendMessage(e.getMessage());
-        }
-    }
-
-    /**
-     * Message sent during an OBB status change event.
-     */
-    private class ObbStateChangedStorageEvent extends StorageEvent {
-        public final String path;
-
-        public final int state;
-
-        public ObbStateChangedStorageEvent(String path, int state) {
-            super(EVENT_OBB_STATE_CHANGED);
-            this.path = path;
-            this.state = state;
-        }
-    }
-
-    /**
-     * Private base class for messages sent between the callback thread
-     * and the target looper handler.
-     */
-    private class StorageEvent {
-        static final int EVENT_UMS_CONNECTION_CHANGED = 1;
-        static final int EVENT_STORAGE_STATE_CHANGED = 2;
-        static final int EVENT_OBB_STATE_CHANGED = 3;
-
-        private Message mMessage;
-
-        public StorageEvent(int what) {
-            mMessage = Message.obtain();
-            mMessage.what = what;
-            mMessage.obj = this;
-        }
-
-        public Message getMessage() {
-            return mMessage;
-        }
-    }
-
-    /**
-     * Message sent on a USB mass storage connection change.
-     */
-    private class UmsConnectionChangedStorageEvent extends StorageEvent {
-        public boolean available;
-
-        public UmsConnectionChangedStorageEvent(boolean a) {
-            super(EVENT_UMS_CONNECTION_CHANGED);
-            available = a;
-        }
-    }
-
-    /**
-     * Message sent on volume state change.
-     */
-    private class StorageStateChangedStorageEvent extends StorageEvent {
-        public String path;
-        public String oldState;
-        public String newState;
-
-        public StorageStateChangedStorageEvent(String p, String oldS, String newS) {
-            super(EVENT_STORAGE_STATE_CHANGED);
-            path = p;
-            oldState = oldS;
-            newState = newS;
-        }
-    }
-
     /** {@hide} */
     public static StorageManager from(Context context) {
-        return (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -189,10 +54,11 @@ public class StorageManager {
      * <p>Applications can get instance of this class by calling
      * {@link android.content.Context#getSystemService(java.lang.String)} with an argument
      * of {@link android.content.Context#STORAGE_SERVICE}.
+     *
+     * @hide
      */
     public StorageManager(ContentResolver resolver, Looper tgtLooper) throws RemoteException {
-        mResolver = resolver;
-        mTgtLooper = tgtLooper;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -203,6 +69,7 @@ public class StorageManager {
      * @hide
      */
     public void registerListener(StorageEventListener listener) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -213,6 +80,7 @@ public class StorageManager {
      * @hide
      */
     public void unregisterListener(StorageEventListener listener) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -221,6 +89,7 @@ public class StorageManager {
      * @hide
      */
     public void enableUsbMassStorage() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -229,6 +98,7 @@ public class StorageManager {
      * @hide
      */
     public void disableUsbMassStorage() {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -238,7 +108,7 @@ public class StorageManager {
      * @hide
      */
     public boolean isUsbMassStorageConnected() {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -248,7 +118,7 @@ public class StorageManager {
      * @hide
      */
     public boolean isUsbMassStorageEnabled() {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -273,7 +143,7 @@ public class StorageManager {
      * @return whether the mount call was successfully queued or not
      */
     public boolean mountObb(String rawPath, String key, OnObbStateChangeListener listener) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -297,7 +167,7 @@ public class StorageManager {
      * @return whether the unmount call was successfully queued or not
      */
     public boolean unmountObb(String rawPath, boolean force, OnObbStateChangeListener listener) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -307,7 +177,7 @@ public class StorageManager {
      * @return true if OBB is mounted; false if not mounted or on error
      */
     public boolean isObbMounted(String rawPath) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -320,7 +190,7 @@ public class StorageManager {
      *         not mounted or exception encountered trying to read status
      */
     public String getMountedObbPath(String rawPath) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -328,7 +198,7 @@ public class StorageManager {
      * @hide
      */
     public String getVolumeState(String mountPoint) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -336,7 +206,7 @@ public class StorageManager {
      * @hide
      */
     public StorageVolume[] getVolumeList() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -344,35 +214,18 @@ public class StorageManager {
      * @hide
      */
     public String[] getVolumePaths() {
-        StorageVolume[] volumes = getVolumeList();
-        if (volumes == null) return null;
-        int count = volumes.length;
-        String[] paths = new String[count];
-        for (int i = 0; i < count; i++) {
-            paths[i] = volumes[i].getPath();
-        }
-        return paths;
+        throw new UnsupportedOperationException();
     }
 
     /** {@hide} */
     public StorageVolume getPrimaryVolume() {
-        return getPrimaryVolume(getVolumeList());
+        throw new UnsupportedOperationException();
     }
 
     /** {@hide} */
     public static StorageVolume getPrimaryVolume(StorageVolume[] volumes) {
-        for (StorageVolume volume : volumes) {
-            if (volume.isPrimary()) {
-                return volume;
-            }
-        }
-        Log.w(TAG, "No primary storage defined");
-        return null;
+        throw new UnsupportedOperationException();
     }
-
-    private static final int DEFAULT_THRESHOLD_PERCENTAGE = 0;
-    private static final long DEFAULT_THRESHOLD_MAX_BYTES = 0;
-    private static final long DEFAULT_FULL_THRESHOLD_BYTES = 0;
 
     /**
      * Return the number of available bytes until the given path is considered
@@ -381,7 +234,7 @@ public class StorageManager {
      * @hide
      */
     public long getStorageBytesUntilLow(File path) {
-        return path.getUsableSpace() - getStorageFullBytes(path);
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -391,7 +244,7 @@ public class StorageManager {
      * @hide
      */
     public long getStorageLowBytes(File path) {
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -401,7 +254,7 @@ public class StorageManager {
      * @hide
      */
     public long getStorageFullBytes(File path) {
-        return 0;
+        throw new UnsupportedOperationException();
     }
 
     /// Consts to match the password types in cryptfs.h

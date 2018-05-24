@@ -31,26 +31,6 @@ import android.os.UserHandle;
  */
 @SuppressLint("NewApi")
 public class StorageVolume implements Parcelable {
-
-    // TODO: switch to more durable token
-    private int mStorageId;
-
-    private final File mPath;
-    private final int mDescriptionId;
-    private final boolean mPrimary;
-    private final boolean mRemovable;
-    private final boolean mEmulated;
-    private final int mMtpReserveSpace;
-    private final boolean mAllowMassStorage;
-    /** Maximum file size for the storage, or zero for no limit */
-    private final long mMaxFileSize;
-    /** When set, indicates exclusive ownership of this volume */
-    private final UserHandle mOwner;
-
-    private String mUuid;
-    private String mUserLabel;
-    private String mState;
-
     // StorageVolume extra for ACTION_MEDIA_REMOVED, ACTION_MEDIA_UNMOUNTED, ACTION_MEDIA_CHECKING,
     // ACTION_MEDIA_NOFS, ACTION_MEDIA_MOUNTED, ACTION_MEDIA_SHARED, ACTION_MEDIA_UNSHARED,
     // ACTION_MEDIA_BAD_REMOVAL, ACTION_MEDIA_UNMOUNTABLE and ACTION_MEDIA_EJECT broadcasts.
@@ -59,37 +39,11 @@ public class StorageVolume implements Parcelable {
     public StorageVolume(File path, int descriptionId, boolean primary, boolean removable,
             boolean emulated, int mtpReserveSpace, boolean allowMassStorage, long maxFileSize,
             UserHandle owner) {
-        mPath = path;
-        mDescriptionId = descriptionId;
-        mPrimary = primary;
-        mRemovable = removable;
-        mEmulated = emulated;
-        mMtpReserveSpace = mtpReserveSpace;
-        mAllowMassStorage = allowMassStorage;
-        mMaxFileSize = maxFileSize;
-        mOwner = owner;
-    }
-
-    private StorageVolume(Parcel in) {
-        mStorageId = in.readInt();
-        mPath = new File(in.readString());
-        mDescriptionId = in.readInt();
-        mPrimary = in.readInt() != 0;
-        mRemovable = in.readInt() != 0;
-        mEmulated = in.readInt() != 0;
-        mMtpReserveSpace = in.readInt();
-        mAllowMassStorage = in.readInt() != 0;
-        mMaxFileSize = in.readLong();
-        mOwner = in.readParcelable(null);
-        mUuid = in.readString();
-        mUserLabel = in.readString();
-        mState = in.readString();
+        throw new UnsupportedOperationException();
     }
 
     public static StorageVolume fromTemplate(StorageVolume template, File path, UserHandle owner) {
-        return new StorageVolume(path, template.mDescriptionId, template.mPrimary,
-                template.mRemovable, template.mEmulated, template.mMtpReserveSpace,
-                template.mAllowMassStorage, template.mMaxFileSize, owner);
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -98,11 +52,11 @@ public class StorageVolume implements Parcelable {
      * @return the mount path
      */
     public String getPath() {
-        return mPath.toString();
+        throw new UnsupportedOperationException();
     }
 
     public File getPathFile() {
-        return mPath;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -111,15 +65,15 @@ public class StorageVolume implements Parcelable {
      * @return the volume description
      */
     public String getDescription(Context context) {
-        return context.getResources().getString(mDescriptionId);
+        throw new UnsupportedOperationException();
     }
 
     public int getDescriptionId() {
-        return mDescriptionId;
+        throw new UnsupportedOperationException();
     }
 
     public boolean isPrimary() {
-        return mPrimary;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -128,7 +82,7 @@ public class StorageVolume implements Parcelable {
      * @return is removable
      */
     public boolean isRemovable() {
-        return mRemovable;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -137,7 +91,7 @@ public class StorageVolume implements Parcelable {
      * @return is removable
      */
     public boolean isEmulated() {
-        return mEmulated;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -147,16 +101,14 @@ public class StorageVolume implements Parcelable {
      * @return MTP storage ID
      */
     public int getStorageId() {
-        return mStorageId;
+        throw new UnsupportedOperationException();
     }
 
     /**
      * Do not call this unless you are MountService
      */
     public void setStorageId(int index) {
-        // storage ID is 0x00010001 for primary storage,
-        // then 0x00020001, 0x00030001, etc. for secondary storages
-        mStorageId = ((index + 1) << 16) + 1;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -172,7 +124,7 @@ public class StorageVolume implements Parcelable {
      * @return MTP reserve space
      */
     public int getMtpReserveSpace() {
-        return mMtpReserveSpace;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -181,7 +133,7 @@ public class StorageVolume implements Parcelable {
      * @return whether mass storage is allowed
      */
     public boolean allowMassStorage() {
-        return mAllowMassStorage;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -190,19 +142,19 @@ public class StorageVolume implements Parcelable {
      * @return maximum file size
      */
     public long getMaxFileSize() {
-        return mMaxFileSize;
+        throw new UnsupportedOperationException();
     }
 
     public UserHandle getOwner() {
-        return mOwner;
+        throw new UnsupportedOperationException();
     }
 
     public void setUuid(String uuid) {
-        mUuid = uuid;
+        throw new UnsupportedOperationException();
     }
 
     public String getUuid() {
-        return mUuid;
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -210,60 +162,49 @@ public class StorageVolume implements Parcelable {
      * parse or UUID is unknown.
      */
     public int getFatVolumeId() {
-        if (mUuid == null || mUuid.length() != 9) {
-            return -1;
-        }
-        try {
-            return Integer.parseInt(mUuid.replace("-", ""), 16);
-        } catch (NumberFormatException e) {
-            return -1;
-        }
+        throw new UnsupportedOperationException();
     }
 
     public void setUserLabel(String userLabel) {
-        mUserLabel = userLabel;
+        throw new UnsupportedOperationException();
     }
 
     public String getUserLabel() {
-        return mUserLabel;
+        throw new UnsupportedOperationException();
     }
 
     public void setState(String state) {
-        mState = state;
+        throw new UnsupportedOperationException();
     }
 
     public String getState() {
-        return mState;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof StorageVolume && mPath != null) {
-            StorageVolume volume = (StorageVolume)obj;
-            return (mPath.equals(volume.mPath));
-        }
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public int hashCode() {
-        return mPath.hashCode();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public String toString() {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     public static final Creator<StorageVolume> CREATOR = new Creator<StorageVolume>() {
         @Override
         public StorageVolume createFromParcel(Parcel in) {
-            return new StorageVolume(in);
+            throw new UnsupportedOperationException();
         }
 
         @Override
         public StorageVolume[] newArray(int size) {
-            return new StorageVolume[size];
+            throw new UnsupportedOperationException();
         }
     };
 
@@ -274,18 +215,6 @@ public class StorageVolume implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int flags) {
-        parcel.writeInt(mStorageId);
-        parcel.writeString(mPath.toString());
-        parcel.writeInt(mDescriptionId);
-        parcel.writeInt(mPrimary ? 1 : 0);
-        parcel.writeInt(mRemovable ? 1 : 0);
-        parcel.writeInt(mEmulated ? 1 : 0);
-        parcel.writeInt(mMtpReserveSpace);
-        parcel.writeInt(mAllowMassStorage ? 1 : 0);
-        parcel.writeLong(mMaxFileSize);
-        parcel.writeParcelable(mOwner, flags);
-        parcel.writeString(mUuid);
-        parcel.writeString(mUserLabel);
-        parcel.writeString(mState);
+        throw new UnsupportedOperationException();
     }
 }
