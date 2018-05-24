@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="android-internal" basedir="." default="release">
+    <!-- properties -->
+    <property name="out.dir" value="${basedir}/out" />
+    <property name="src.dir" value="${out.dir}/src" />
+    <property name="class.dir" value="${out.dir}/src" />
+    <property name="out.file.name" value="${basedir}/android-sdk-internal.jar" />
+
+    <property name="api.level" value="22" />
+    <property name="sdk.dir" value="D:\Google\android-sdk-windows" />
+    <property name="android.jar.path" value="${sdk.dir}/platforms/android-${api.level}/android.jar" />
+
+    <!-- target -pre-compile -->
+    <target name="-pre-compile">
+        <!-- copy the java files -->
+        <copy todir="${src.dir}" overwrite="true">
+            <fileset dir="${basedir}/src" />
+        </copy>
+    </target>
+
+    <!-- target -compile -->
+    <target name="-compile">
+        <!-- compile java files -->
+        <mkdir dir="${class.dir}" />
+        <javac srcdir="${src.dir}" destdir="${class.dir}" source="1.7" target="1.7" includeAntRuntime="false" includeJavaRuntime="false" classpath="${android.jar.path}" />
+
+        <!-- build jar file -->
+        <jar destfile="${out.file.name}" basedir="${class.dir}" />
+    </target>
+
+    <!-- target -post-compile -->
+    <target name="-post-compile">
+        <echo level="info">Deletes temp files...</echo>
+        <delete dir="${out.dir}"/>
+    </target>
+
+    <!-- target -clean -->
+    <target name="-clean">
+        <echo level="info">Deletes output files...</echo>
+        <delete dir="${out.dir}"/>
+        <delete file="${out.file.name}"/>
+    </target>
+
+    <!-- target clean -->
+    <target name="clean">
+        <echo level="info">Deletes output files...</echo>
+        <delete file="${out.file.name}"/>
+    </target>
+
+    <!-- target release -->
+    <target name="release" depends="-clean, -pre-compile, -compile, -post-compile">
+        <echo level="info">Builds the android-internal package in release mode.</echo>
+        <echo level="info">Install: ${out.file.name}</echo>
+    </target>
+</project>
