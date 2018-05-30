@@ -154,9 +154,7 @@ public:
 public:
     int open(const char* path);
     int open(int fd);
-
     int read(struct dirent*& entry) const;
-    int read(struct dirent& entry, struct dirent*& result) const;
 
 // Data members
 public:

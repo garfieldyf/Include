@@ -1121,10 +1121,12 @@ DGifSlurp(GifFileType *GifFile)
                   return GIF_ERROR;
               }
               ImageSize = sp->ImageDesc.Width * sp->ImageDesc.Height;
-
+            /**
+              Disable the gcc compiler warning: comparison 'size_t' (aka 'unsigned int') > 4294967295 is always false [-Wtautological-constant-compare]
               if (ImageSize > (SIZE_MAX / sizeof(GifPixelType))) {
                   return GIF_ERROR;
               }
+            */
               sp->RasterBits = (unsigned char *)malloc(ImageSize *
                       sizeof(GifPixelType));
 

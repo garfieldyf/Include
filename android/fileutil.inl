@@ -232,20 +232,6 @@ __INLINE__ int Directory<_Filter>::read(struct dirent*& entry) const
     return errno;
 }
 
-template <typename _Filter>
-__INLINE__ int Directory<_Filter>::read(struct dirent& entry, struct dirent*& result) const
-{
-    assert(!isEmpty());
-
-    int errnum;
-    do
-    {
-        errnum = __android_check_error(::readdir_r(mDir, &entry, &result), "Couldn't read directory");
-    } while (errnum == 0 && result != NULL && !filter(result));
-
-    return errnum;
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Implementation of the FileScanner class
