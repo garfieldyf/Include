@@ -1,6 +1,6 @@
-# AUTO-GENERATED FILE. DO NOT MODIFY.
 # This is a configuration file for ProGuard.
 # http://proguard.sourceforge.net/index.html#manual/usage.html
+# AUTO-GENERATED FILE. DO NOT MODIFY.
 
 # When layoutManager xml attribute is used, RecyclerView inflates
 # LayoutManagers's constructors using reflection.
