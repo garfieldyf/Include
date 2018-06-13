@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="recyclerview" basedir="." default="release">
+<project name="recyclerview" basedir="." default="all">
     <!-- properties -->
     <property name="author" value="Garfield" />
     <property name="version" value="25.3.1" />
@@ -17,6 +17,7 @@
         <property name="java.debug" value="true" />
         <property name="class.dir" value="${out.dir}/src" />
         <property name="out.file.name" value="${basedir}/debug/recyclerview-v7.jar" />
+        <echo level="info">Builds the recyclerview package in DEBUG mode.</echo>
         <echo level="info">debug=${java.debug}</echo>
     </target>
 
@@ -25,6 +26,7 @@
         <property name="java.debug" value="false" />
         <property name="class.dir" value="${out.dir}/classes" />
         <property name="out.file.name" value="${basedir}/release/recyclerview-v7.jar" />
+        <echo level="info">Builds the recyclerview package in RELEASE mode.</echo>
         <echo level="info">debug=${java.debug}</echo>
     </target>
 
@@ -76,13 +78,17 @@
 
     <!-- target debug -->
     <target name="debug" depends="-debug-flags, -clean, -pre-compile, -compile, -post-compile">
-        <echo level="info">Builds the recyclerview package in DEBUG mode.</echo>
         <echo level="info">Install: ${out.file.name}</echo>
     </target>
 
     <!-- target release -->
     <target name="release" depends="-release-flags, -clean, -pre-compile, -compile, -post-compile">
-        <echo level="info">Builds the recyclerview package in RELEASE mode.</echo>
         <echo level="info">Install: ${out.file.name}</echo>
+    </target>
+
+    <!-- target all -->
+    <target name="all">
+        <antcall target="debug" />
+        <antcall target="release" />
     </target>
 </project>
