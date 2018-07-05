@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="zxing" basedir="." default="all">
-    <!-- properties -->
-    <property name="author" value="Garfield" />
-    <property name="version" value="3.3.3" />
-    <property name="out.dir" value="${basedir}/out" />
-    <property name="src.dir" value="${out.dir}/src" />
-
+<project name="zxing" basedir="." default="release">
     <!-- zxing.jar -->
     <property name="project.name" value="zxing" />
     <property name="java.package" value="com.google.zxing" />
@@ -20,23 +14,13 @@
     <property name="jar.file.name" value="android-barcode.jar" />
     -->
 
-    <!-- target -debug-flags -->
-    <target name="-debug-flags">
-        <property name="java.debug" value="true" />
-        <property name="class.dir" value="${out.dir}/src" />
-        <property name="out.file.name" value="${basedir}/debug/${jar.file.name}" />
-        <echo level="info">Builds the ${project.name} package in DEBUG mode.</echo>
-        <echo level="info">debug=${java.debug}</echo>
-    </target>
-
-    <!-- target -release-flags -->
-    <target name="-release-flags">
-        <property name="java.debug" value="false" />
-        <property name="class.dir" value="${out.dir}/classes" />
-        <property name="out.file.name" value="${basedir}/release/${jar.file.name}" />
-        <echo level="info">Builds the ${project.name} package in RELEASE mode.</echo>
-        <echo level="info">debug=${java.debug}</echo>
-    </target>
+    <!-- properties -->
+    <property name="author" value="Garfield" />
+    <property name="version" value="3.3.3" />
+    <property name="out.dir" value="${basedir}/out" />
+    <property name="src.dir" value="${out.dir}/src" />
+    <property name="class.dir" value="${out.dir}/src" />
+    <property name="out.file.name" value="${basedir}/${jar.file.name}" />
 
     <!-- target -pre-compile -->
     <target name="-pre-compile">
@@ -55,7 +39,7 @@
     <target name="-compile">
         <!-- compile java files -->
         <mkdir dir="${class.dir}" />
-        <javac srcdir="${src.dir}" destdir="${class.dir}" debug="${java.debug}" source="1.7" target="1.7" includeAntRuntime="false" includeJavaRuntime="false" />
+        <javac srcdir="${src.dir}" destdir="${class.dir}" debug="true" source="1.7" target="1.7" includeAntRuntime="false" includeJavaRuntime="false" />
 
         <!-- build jar file -->
         <jar destfile="${out.file.name}" basedir="${class.dir}">
@@ -79,27 +63,9 @@
         <delete file="${out.file.name}"/>
     </target>
 
-    <!-- target clean -->
-    <target name="clean">
-        <echo level="info">Deletes output files...</echo>
-        <delete dir="${out.dir}"/>
-        <delete dir="${basedir}/debug"/>
-        <delete dir="${basedir}/release"/>
-    </target>
-
-    <!-- target debug -->
-    <target name="debug" depends="-debug-flags, -clean, -pre-compile, -compile, -post-compile">
-        <echo level="info">Install: ${out.file.name}</echo>
-    </target>
-
     <!-- target release -->
-    <target name="release" depends="-release-flags, -clean, -pre-compile, -compile, -post-compile">
+    <target name="release" depends="-clean, -pre-compile, -compile, -post-compile">
+        <echo level="info">Builds the ${project.name} package in RELEASE mode.</echo>
         <echo level="info">Install: ${out.file.name}</echo>
-    </target>
-
-    <!-- target all -->
-    <target name="all">
-        <antcall target="debug" />
-        <antcall target="release" />
     </target>
 </project>

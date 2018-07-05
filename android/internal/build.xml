@@ -41,12 +41,6 @@
         <delete file="${out.file.name}"/>
     </target>
 
-    <!-- target clean -->
-    <target name="clean">
-        <echo level="info">Deletes output files...</echo>
-        <delete file="${out.file.name}"/>
-    </target>
-
     <!-- target release -->
     <target name="release" depends="-clean, -pre-compile, -compile, -post-compile">
         <echo level="info">Builds the android internal package in RELEASE mode.</echo>
