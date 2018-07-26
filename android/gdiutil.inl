@@ -282,34 +282,34 @@ __INLINE__ const Point& Rect::bottomRight() const
 //
 
 __INLINE__ Color::Color(uint32_t color/* = TRANSPARENT*/)
-    : argb(color)
+    : rgba(color)
 {
 }
 
 __INLINE__ Color::Color(const Color& that)
-    : argb(that.argb)
+    : rgba(that.rgba)
 {
 }
 
 __INLINE__ Color::Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a/* = 0xFF*/)
-    : blue(b), green(g), red(r), alpha(a)
+    : red(r), green(g), blue(b), alpha(a)
 {
 }
 
 __INLINE__ Color::operator uint32_t() const
 {
-    return argb;
+    return rgba;
 }
 
 __INLINE__ Color& Color::operator=(uint32_t color)
 {
-    argb = color;
+    rgba = color;
     return *this;
 }
 
 __INLINE__ Color& Color::operator=(const Color& that)
 {
-    argb = that.argb;
+    rgba = that.rgba;
     return *this;
 }
 
@@ -320,9 +320,9 @@ __INLINE__ uint16_t Color::toRGB565() const
 
 __INLINE__ void Color::swap(Color& color)
 {
-    uint32_t c = argb;
-    argb = color.argb;
-    color.argb = c;
+    uint32_t c = rgba;
+    rgba = color.rgba;
+    color.rgba = c;
 }
 
 __INLINE__ void Color::setRGB(uint8_t r, uint8_t g, uint8_t b)
@@ -345,15 +345,15 @@ __INLINE__ Color Color::fromRGB565(uint16_t color)
     return Color(((color & 0xF800) >> 11) << 3, ((color & 0x7E0) >> 5) << 2, (color & 0x1F) << 3);
 }
 
-__INLINE__ uint16_t Color::toRGB565(uint32_t red, uint32_t green, uint32_t blue)
+__INLINE__ uint16_t Color::toRGB565(uint32_t r, uint32_t g, uint32_t b)
 {
-    return (uint16_t)(((red >> 3) << 11) | ((green >> 2) << 5) | (blue >> 3));
+    return (uint16_t)(((r << 8) & 0xF800) | ((g << 3) & 0x7E0) | ((b >> 3) & 0x1F));
 }
 
 #ifndef NDEBUG
 __INLINE__ void Color::dump() const
 {
-    LOGI("Color = %u(0x%08x) [ alpha = %u(0x%02x), red = %u(0x%02x), green = %u(0x%02x), blue = %u(0x%02x) ]\n", argb, argb, alpha, alpha, red, red, green, green, blue, blue);
+    LOGI("Color = %u(0x%08x) [ red = %u(0x%02x), green = %u(0x%02x), blue = %u(0x%02x), alpha = %u(0x%02x) ]\n", rgba, rgba, red, red, green, green, blue, blue, alpha, alpha);
 }
 #endif  // NDEBUG
 
@@ -484,10 +484,10 @@ __INLINE__ uint32_t GIFImage::getBackgroundColor() const
     if (mGIF->SColorMap != NULL)
     {
         const GifColorType& c = mGIF->SColorMap->Colors[mGIF->SBackGroundColor];
-        color.set(c.Blue, c.Green, c.Red);
+        color.set(c.Red, c.Green, c.Blue);
     }
 
-    return color.argb;
+    return color.rgba;
 }
 
 __INLINE__ int32_t GIFImage::getFrameCount() const
@@ -600,7 +600,7 @@ __INLINE__ void GIFImage::drawLine(uint32_t* canvas, const GifByteType* src, con
         if (*src != transparentColor)
         {
             const GifColorType& c = colorMap->Colors[*src];
-            ((Color*)canvas)->set(c.Blue, c.Green, c.Red);
+            ((Color*)canvas)->set(c.Red, c.Green, c.Blue);
         }
     }
 }

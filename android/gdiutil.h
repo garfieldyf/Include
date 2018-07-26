@@ -135,11 +135,11 @@ public:
         GRAY        = 0xFF888888,
         LIGHTGRAY   = 0xFFCCCCCC,
         WHITE       = 0xFFFFFFFF,
-        RED         = 0xFFFF0000,
+        RED         = 0xFF0000FF,
         GREEN       = 0xFF00FF00,
-        BLUE        = 0xFF0000FF,
-        YELLOW      = 0xFFFFFF00,
-        CYAN        = 0xFF00FFFF,
+        BLUE        = 0xFFFF0000,
+        YELLOW      = 0xFF00FFFF,
+        CYAN        = 0xFFFFFF00,
         MAGENTA     = 0xFFFF00FF,
         TRANSPARENT = 0x00000000,
     };
@@ -163,7 +163,7 @@ public:
     void set(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 0xFF);
 
     static Color fromRGB565(uint16_t color);
-    static uint16_t toRGB565(uint32_t red, uint32_t green, uint32_t blue);
+    static uint16_t toRGB565(uint32_t r, uint32_t g, uint32_t b);
 
 #ifndef NDEBUG
     void dump() const;
@@ -172,11 +172,11 @@ public:
 // Data members
 public:
     union {
-        uint32_t argb;
+        uint32_t rgba;
         struct {
-            uint8_t blue;
-            uint8_t green;
             uint8_t red;
+            uint8_t green;
+            uint8_t blue;
             uint8_t alpha;
         };
     };
