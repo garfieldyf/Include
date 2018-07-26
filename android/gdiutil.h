@@ -198,7 +198,7 @@ public:
 
 // Operations
 public:
-    int lockPixels(void*& addrPtr) const;
+    int lockPixels(void*& addrPtr);
 
 // Attributes
 public:
@@ -207,6 +207,7 @@ public:
 // Data members
 public:
     JNIEnv* env;
+    int lockRes;
     jobject bitmap;
 };
 

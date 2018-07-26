@@ -363,7 +363,7 @@ __INLINE__ void Color::dump() const
 //
 
 __INLINE__ Bitmap::Bitmap(JNIEnv* _env, jobject _bitmap)
-    : env(_env), bitmap(_bitmap)
+    : env(_env), lockRes(ANDROID_BITMAP_RESULT_BAD_PARAMETER), bitmap(_bitmap)
 {
     assert(env);
     assert(bitmap);
@@ -371,22 +371,26 @@ __INLINE__ Bitmap::Bitmap(JNIEnv* _env, jobject _bitmap)
 
 __INLINE__ Bitmap::~Bitmap()
 {
-#ifndef NDEBUG
-    const int result = ::AndroidBitmap_unlockPixels(env, bitmap);
-    __check_error(result != ANDROID_BITMAP_RESULT_SUCCESS, "Couldn't unlock pixels, error = %d\n", result);
-#else
-    ::AndroidBitmap_unlockPixels(env, bitmap);
-#endif  // NDEBUG
+    if (lockRes == ANDROID_BITMAP_RESULT_SUCCESS)
+    {
+        LOGD("unlockPixels - %p", bitmap);
+    #ifndef NDEBUG
+        const int result = ::AndroidBitmap_unlockPixels(env, bitmap);
+        __check_error(result != ANDROID_BITMAP_RESULT_SUCCESS, "Couldn't unlock pixels, error = %d\n", result);
+    #else
+        ::AndroidBitmap_unlockPixels(env, bitmap);
+    #endif  // NDEBUG
+    }
 }
 
-__INLINE__ int Bitmap::lockPixels(void*& addrPtr) const
+__INLINE__ int Bitmap::lockPixels(void*& addrPtr)
 {
     assert(env);
     assert(bitmap);
 
-    const int result = ::AndroidBitmap_lockPixels(env, bitmap, &addrPtr);
-    __check_error(result != ANDROID_BITMAP_RESULT_SUCCESS, "Couldn't lock pixels, error = %d\n", result);
-    return result;
+    lockRes = ::AndroidBitmap_lockPixels(env, bitmap, &addrPtr);
+    __check_error(lockRes != ANDROID_BITMAP_RESULT_SUCCESS, "Couldn't lock pixels, error = %d\n", lockRes);
+    return lockRes;
 }
 
 __INLINE__ int Bitmap::getBitmapInfo(AndroidBitmapInfo& info) const
@@ -451,7 +455,7 @@ __INLINE__ void GIFImage::dump() const
     assert(mGIF);
 
     char colorMap[MAX_PATH];
-    LOGI("GIF Info [ mGIF = %p ]\n{\n  Base Info [ SWidth = %d, SHeight = %d, ImageCount = %d, SBackGroundColor = %d, SColorResolution = %d, SColorMap = %s, SavedImages = %p ]\n", mGIF, mGIF->SWidth, mGIF->SHeight, mGIF->ImageCount, mGIF->SBackGroundColor, mGIF->SColorResolution, formatColorMap(mGIF->SColorMap, colorMap), mGIF->SavedImages);
+    LOGI("GIF Info [ mGIF = %p ]\n{\n  Base Info [ SWidth = %d, SHeight = %d, ImageCount = %d, SBackGroundColor = %d(0x%08x), SColorResolution = %d, SColorMap = %s, SavedImages = %p ]\n", mGIF, mGIF->SWidth, mGIF->SHeight, mGIF->ImageCount, mGIF->SBackGroundColor, getBackgroundColor(), mGIF->SColorResolution, formatColorMap(mGIF->SColorMap, colorMap), mGIF->SavedImages);
     for (int32_t i = 0; i < mGIF->ImageCount; ++i)
     {
         GraphicsControlBlock gcb;
