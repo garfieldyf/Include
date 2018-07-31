@@ -340,6 +340,13 @@ __INLINE__ void Color::set(uint8_t r, uint8_t g, uint8_t b, uint8_t a/* = 0xFF*/
     alpha = a;
 }
 
+__INLINE__ Color Color::fromARGB(uint32_t argb)
+{
+    Color color(argb);
+    __swap(color.red, color.blue);
+    return color;
+}
+
 __INLINE__ Color Color::fromRGB565(uint16_t color)
 {
     return Color(((color & 0xF800) >> 11) << 3, ((color & 0x7E0) >> 5) << 2, (color & 0x1F) << 3);

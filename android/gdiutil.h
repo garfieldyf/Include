@@ -9,7 +9,7 @@
 #ifndef __GDIUTIL_H__
 #define __GDIUTIL_H__
 
-#include "platform.h"
+#include "miscutil.h"
 #include <android/bitmap.h>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -162,6 +162,7 @@ public:
     void setRGB(uint8_t r, uint8_t g, uint8_t b);
     void set(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 0xFF);
 
+    static Color fromARGB(uint32_t argb);
     static Color fromRGB565(uint16_t color);
     static uint16_t toRGB565(uint32_t r, uint32_t g, uint32_t b);
 
