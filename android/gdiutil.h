@@ -173,6 +173,7 @@ public:
 // Data members
 public:
     union {
+        // RGBA color [ byteOrder = LITTLE_ENDIAN; color bits = AABBGGRR ]
         uint32_t rgba;
         struct {
             uint8_t red;
