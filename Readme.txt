@@ -38,3 +38,18 @@ openssl pkcs8 -in platform.pk8 -inform DER -outform PEM -out platform.priv.pem -
 openssl pkcs12 -export -in platform.x509.pem -inkey platform.priv.pem -out platform.pk12 -name androiddebugkey
 password: android
 /D/Java/jdk1.8.0_51/bin/keytool -importkeystore -deststorepass android -destkeypass android -destkeystore debug.keystore -srckeystore platform.pk12 -srcstoretype PKCS12 -srcstorepass android -alias androiddebugkey
+
+Build C++ Header
+Location : D:\Java\jdk1.8.0_51\bin\javah.exe
+Working Directoty : ${project_loc}
+Arguments : -classpath D:\Google\android-sdk-windows\platforms\android-22\android.jar;${project_loc}\bin\classes -jni ${java_type_name}
+
+Build Java Decompile
+Location : D:\Java\jdk1.8.0_51\bin\javap.exe
+Working Directoty : ${project_loc}\bin\classes
+Arguments : -p -s -c -classpath D:\Google\android-sdk-windows\platforms\android-22\android.jar;${project_loc}\bin\classes ${java_type_name}
+
+Build Java Signature
+Location : D:\Java\jdk1.8.0_51\bin\javap.exe
+Working Directoty : ${project_loc}\bin\classes
+Arguments : -p -s -classpath D:\Google\android-sdk-windows\platforms\android-22\android.jar;${project_loc}\bin\classes ${java_type_name}
