@@ -58,6 +58,21 @@ STDCEXPORT void Android_blurBitmap(void* pixels, uint32_t width, uint32_t height
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Implementation of the Android_binaryBitmap
+//
+
+STDCEXPORT void Android_binaryBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t gray)
+{
+    assert(pixels);
+
+    if (!gray)
+        Android_grayBitmap(pixels, width, height);
+
+    const uint8_t threshold = __NS::computeThreshold((__NS::Color*)pixels, width * height);
+    __NS::handleBitmap((__NS::Color*)pixels, width, height, [threshold](__NS::Color& color) { color = (color.green >= threshold ? __NS::Color::WHITE : __NS::Color::BLACK); });
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Implementation of the Android_mirrorBitmap
 //
 

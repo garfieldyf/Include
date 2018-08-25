@@ -59,6 +59,46 @@ __STATIC_INLINE__ int32_t clamp(int32_t current, int32_t offset, int32_t length)
     return (index < 0 ? -current : (index >= length ? length - current - 1 : offset));
 }
 
+__STATIC_INLINE__ uint8_t computeThreshold(Color* colors, uint32_t count)
+{
+    // Calculate histogram data.
+    uint32_t histData[256] = { 0 };
+    for (uint32_t i = 0; i < count; ++i)
+        histData[colors[i].green]++;
+
+    float sum = 0;
+    for (uint32_t i = 0; i < 256; ++i)
+        sum += (float)(i * histData[i]);
+
+    float sumB = 0, betweenMax = 0;
+    uint32_t threshold = 0, wB = 0, wF = 0;
+
+    for (uint32_t i = 0; i < 256; ++i)
+    {
+        wB += histData[i];              // Weight Background
+        if (wB == 0) continue;
+
+        wF = count - wB;                // Weight Foreground
+        if (wF == 0) break;
+
+        sumB += (float)(i * histData[i]);
+        const float mB = sumB / wB;             // Mean Background
+        const float mF = (sum - sumB) / wF;     // Mean Foreground
+
+        // Calculate Between Class Variance
+        const float between = (float)wB * (float)wF * (mB - mF) * (mB - mF);
+
+        // Check if new maximum found
+        if (between > betweenMax)
+        {
+            threshold  = i;
+            betweenMax = between;
+        }
+    }
+
+    return threshold;
+}
+
 template <typename THandler>
 __STATIC_INLINE__ void handleBitmap(Color* colors, uint32_t width, uint32_t height, THandler handler)
 {
