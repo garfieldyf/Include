@@ -61,19 +61,20 @@ __STATIC_INLINE__ int32_t clamp(int32_t current, int32_t offset, int32_t length)
 
 __STATIC_INLINE__ uint8_t computeThreshold(Color* colors, uint32_t count)
 {
+    // Otsu Threshold algorithm - http://www.labbookpages.co.uk
     // Calculate histogram data.
     uint32_t histData[256] = { 0 };
     for (uint32_t i = 0; i < count; ++i)
         histData[colors[i].green]++;
 
     float sum = 0;
-    for (uint32_t i = 0; i < 256; ++i)
-        sum += (float)(i * histData[i]);
+    for (uint32_t i = 0; i < _countof(histData); ++i)
+        sum += i * histData[i];
 
-    float sumB = 0, betweenMax = 0;
+    float sumB = 0, maxBetween = 0;
     uint32_t threshold = 0, wB = 0, wF = 0;
 
-    for (uint32_t i = 0; i < 256; ++i)
+    for (uint32_t i = 0; i < _countof(histData); ++i)
     {
         wB += histData[i];              // Weight Background
         if (wB == 0) continue;
@@ -81,7 +82,7 @@ __STATIC_INLINE__ uint8_t computeThreshold(Color* colors, uint32_t count)
         wF = count - wB;                // Weight Foreground
         if (wF == 0) break;
 
-        sumB += (float)(i * histData[i]);
+        sumB += i * histData[i];
         const float mB = sumB / wB;             // Mean Background
         const float mF = (sum - sumB) / wF;     // Mean Foreground
 
@@ -89,10 +90,10 @@ __STATIC_INLINE__ uint8_t computeThreshold(Color* colors, uint32_t count)
         const float between = (float)wB * (float)wF * (mB - mF) * (mB - mF);
 
         // Check if new maximum found
-        if (between > betweenMax)
+        if (between > maxBetween)
         {
             threshold  = i;
-            betweenMax = between;
+            maxBetween = between;
         }
     }
 
