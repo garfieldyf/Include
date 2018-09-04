@@ -36,7 +36,10 @@ struct _jtype##ArrayTraits \
 template <uint32_t t_length = 128> \
 struct _jtype##Array_t : public _jarray_t<_jtype##ArrayTraits, t_length> \
 { \
-    _jtype##Array_t(JNIEnv* env, _jtype##Array array) : _jarray_t<_jtype##ArrayTraits, t_length>(env, array) { } \
+    _jtype##Array_t(JNIEnv* env, _jtype##Array array) \
+        : _jarray_t<_jtype##ArrayTraits, t_length>(env, array) { } \
+    void copyTo(JNIEnv* env, _jtype##Array outArray) const \
+        { env->Set##_jname##ArrayRegion(outArray, 0, this->length, this->array()); } \
 }
 
 namespace JNI {
@@ -365,7 +368,19 @@ __INLINE__ _jarray_t<_Traits, t_length>::~_jarray_t()
 }
 
 template <typename _Traits, uint32_t t_length>
-__INLINE__ typename _jarray_t<_Traits, t_length>::value_type _jarray_t<_Traits, t_length>::at(uint32_t index) const
+__INLINE__ typename _jarray_t<_Traits, t_length>::value_type* _jarray_t<_Traits, t_length>::array()
+{
+    return carray;
+}
+
+template <typename _Traits, uint32_t t_length>
+__INLINE__ const typename _jarray_t<_Traits, t_length>::value_type* _jarray_t<_Traits, t_length>::array() const
+{
+    return carray;
+}
+
+template <typename _Traits, uint32_t t_length>
+__INLINE__ typename _jarray_t<_Traits, t_length>::value_type& _jarray_t<_Traits, t_length>::operator[](uint32_t index)
 {
     assert(carray);
     assert(index < length);
@@ -380,12 +395,6 @@ __INLINE__ typename _jarray_t<_Traits, t_length>::value_type _jarray_t<_Traits, 
     assert(index < length);
 
     return carray[index];
-}
-
-template <typename _Traits, uint32_t t_length>
-__INLINE__ const typename _jarray_t<_Traits, t_length>::value_type* _jarray_t<_Traits, t_length>::array() const
-{
-    return carray;
 }
 
 }  // namespace JNI

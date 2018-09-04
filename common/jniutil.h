@@ -232,13 +232,15 @@ public:
 
 // Operations
 public:
-    value_type at(uint32_t index) const;
+    value_type* array();
+    const value_type* array() const;
+
+    value_type& operator[](uint32_t index);
     value_type operator[](uint32_t index) const;
 
 // Attributes
 public:
     const uint32_t length;
-    const value_type* array() const;
 
 // Data members
 private:
