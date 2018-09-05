@@ -25,8 +25,7 @@
 struct _jtype##ArrayTraits \
 { \
     typedef _jtype value_type; \
-    static _jtype* copy(JNIEnv* env, jarray array, uint32_t length, _jtype* buf, uint32_t t_length) \
-    { \
+    static _jtype* copy(JNIEnv* env, jarray array, uint32_t length, _jtype* buf, uint32_t t_length) { \
         assert(env); assert(buf); assert(array); \
         _jtype* result = (length > t_length ? (_jtype*)::malloc(length * sizeof(_jtype)) : buf); \
         env->Get##_jname##ArrayRegion(static_cast<_jtype##Array>(array), 0, length, result); \
@@ -38,8 +37,10 @@ struct _jtype##Array_t : public _jarray_t<_jtype##ArrayTraits, t_length> \
 { \
     _jtype##Array_t(JNIEnv* env, _jtype##Array array) \
         : _jarray_t<_jtype##ArrayTraits, t_length>(env, array) { } \
-    void copyTo(JNIEnv* env, _jtype##Array outArray) const \
-        { env->Set##_jname##ArrayRegion(outArray, 0, this->length, this->array()); } \
+    void copyTo(JNIEnv* env, _jtype##Array outArray) const { \
+        assert(env); assert(outArray); assert(env->GetArrayLength(outArray) >= this->length); \
+        env->Set##_jname##ArrayRegion(outArray, 0, this->length, this->array()); \
+    } \
 }
 
 namespace JNI {
@@ -59,61 +60,42 @@ DECLARE_ARRAY(jboolean, Boolean);   // jbooleanArray_t<t_length>
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the jlock_t class
+// Implementation of the jmutex_t class
 //
 
-__INLINE__ jlock_t::jlock_t(JNIEnv* _env, jobject _lock)
-    : env(_env), lock(_lock)
+__INLINE__ jmutex_t::jmutex_t(JNIEnv* _env, jobject _lock)
+    : status(_env->MonitorEnter(_lock)), env(_env), lock(_lock)
 {
     assert(env);
     assert(lock);
 
 #ifndef NDEBUG
-    jint status = env->MonitorEnter(lock);
     if (status != JNI_OK)
         LOGE("Couldn't lock object (object = %p, error = %d)\n", lock, status);
-#else
-    env->MonitorEnter(lock);
 #endif  // NDEBUG
 }
 
-__INLINE__ jlock_t::~jlock_t()
+__INLINE__ jmutex_t::~jmutex_t()
+{
+    unlock();
+}
+
+__INLINE__ void jmutex_t::unlock()
 {
     assert(env);
     assert(lock);
 
-#ifndef NDEBUG
-    jint status = env->MonitorExit(lock);
-    if (status != JNI_OK)
-        LOGE("Couldn't unlock object (object = %p, error = %d)\n", lock, status);
-#else
-    env->MonitorExit(lock);
-#endif  // NDEBUG
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the jweak_t class
-//
-
-__INLINE__ jweak_t::jweak_t(JNIEnv* _env, jobject object)
-    : env(_env), objRef(_env->NewWeakGlobalRef(object))
-{
-    assert(env);
-    assert(object);
-    assert(objRef);
-}
-
-__INLINE__ jweak_t::~jweak_t()
-{
-    assert(objRef);
-    env->DeleteWeakGlobalRef(objRef);
-}
-
-__INLINE__ jobject jweak_t::get() const
-{
-    assert(objRef);
-    return env->NewLocalRef(objRef);
+    if (status == JNI_OK)
+    {
+        status = JNI_ERR;
+    #ifndef NDEBUG
+        jint result = env->MonitorExit(lock);
+        if (result != JNI_OK)
+            LOGE("Couldn't unlock object (object = %p, error = %d)\n", lock, result);
+    #else
+        env->MonitorExit(lock);
+    #endif  // NDEBUG
+    }
 }
 
 

@@ -19,8 +19,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Classes in this file:
 //
-// jlock_t
-// jweak_t
+// jmutex_t
 // jclass_t
 // jstring_t
 // jwstring_t
@@ -42,46 +41,27 @@
 namespace JNI {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the jlock_t class
+// Interface of the jmutex_t class
 //
 
-class jlock_t
+class jmutex_t
 {
-    DECLARE_NONCOPYABLE(jlock_t);
+    DECLARE_NONCOPYABLE(jmutex_t);
 
 // Constructors/Destructor
 public:
-    jlock_t(JNIEnv* _env, jobject _lock);
-    ~jlock_t();
-
-// Data members
-private:
-    JNIEnv* env;
-    jobject lock;
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the jweak_t class
-//
-
-class jweak_t
-{
-    DECLARE_NONCOPYABLE(jweak_t);
-
-// Constructors/Destructor
-public:
-    jweak_t(JNIEnv* _env, jobject object);
-    ~jweak_t();
+    jmutex_t(JNIEnv* _env, jobject _lock);
+    ~jmutex_t();
 
 // Operations
 public:
-    jobject get() const;
+    void unlock();
 
 // Data members
 private:
+    jint status;
     JNIEnv* env;
-    jweak objRef;
+    jobject lock;
 };
 
 
