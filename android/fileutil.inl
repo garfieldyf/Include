@@ -376,103 +376,16 @@ __INLINE__ bool AssetDir::isEmpty() const
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the AssetFileHandle class
-//
-
-__INLINE__ AssetFileHandle::AssetFileHandle(void* asset/* = NULL*/)
-    : mAAsset(asset), mAsset(asset != NULL ? reinterpret_cast<AAsset*>(&mAAsset) : NULL)
-{
-}
-
-__INLINE__ jbyteArray AssetFileHandle::read(JNIEnv* env) const
-{
-    assert(env);
-    assert(!isEmpty());
-
-    jbyteArray result = NULL;
-    if (const void* buffer = getBuffer())
-    {
-        const off_t length = getLength();
-        if ((result = env->NewByteArray(length)) != NULL)
-            env->SetByteArrayRegion(result, 0, length, (const jbyte*)buffer);
-    }
-
-    return result;
-}
-
-__INLINE__ int AssetFileHandle::read(void* buf, size_t size) const
-{
-    assert(buf);
-    assert(!isEmpty());
-
-    return ::AAsset_read(mAsset, buf, size);
-}
-
-__INLINE__ AssetFileHandle::operator AAsset*() const
-{
-    return mAsset;
-}
-
-__INLINE__ const void* AssetFileHandle::getBuffer() const
-{
-    assert(!isEmpty());
-
-    const void* buffer = ::AAsset_getBuffer(mAsset);
-    __check_error(buffer == NULL, "Couldn't get asset file buffer\n");
-    return buffer;
-}
-
-__INLINE__ off_t AssetFileHandle::seek(off_t offset, int origin/* = SEEK_SET*/) const
-{
-    assert(!isEmpty());
-    return ::AAsset_seek(mAsset, offset, origin);
-}
-
-__INLINE__ bool AssetFileHandle::isEmpty() const
-{
-    return (mAsset == NULL);
-}
-
-__INLINE__ int AssetFileHandle::isAllocated() const
-{
-    assert(!isEmpty());
-    return ::AAsset_isAllocated(mAsset);
-}
-
-__INLINE__ off_t AssetFileHandle::getLength() const
-{
-    assert(!isEmpty());
-    return ::AAsset_getLength(mAsset);
-}
-
-__INLINE__ off_t AssetFileHandle::getRemainingLength() const
-{
-    assert(!isEmpty());
-    return ::AAsset_getRemainingLength(mAsset);
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
 // Implementation of the AssetFile class
 //
-
 __INLINE__ AssetFile::AssetFile()
+    : mAsset(NULL)
 {
 }
 
 __INLINE__ AssetFile::~AssetFile()
 {
     close();
-}
-
-__INLINE__ void AssetFile::close()
-{
-    if (mAsset != NULL)
-    {
-        ::AAsset_close(mAsset);
-        LOGI("The asset file was closed (mAsset = %p)\n", mAsset);
-        mAsset = NULL;
-    }
 }
 
 __INLINE__ AAsset* AssetFile::open(JNIEnv* env, jobject assetManager, const char* filename, int mode/* = AASSET_MODE_STREAMING*/)
@@ -506,6 +419,83 @@ __INLINE__ AAsset* AssetFile::open(AAssetManager* am, const char* filename, int 
     mAsset = ::AAssetManager_open(am, filename, mode);
     __check_error(mAsset == NULL, "Couldn't open asset file - '%s'\n", filename);
     return mAsset;
+}
+
+__INLINE__ void AssetFile::close()
+{
+    if (mAsset != NULL)
+    {
+        ::AAsset_close(mAsset);
+        LOGI("The asset file was closed (mAsset = %p)\n", mAsset);
+        mAsset = NULL;
+    }
+}
+
+__INLINE__ AssetFile::operator AAsset*() const
+{
+    return mAsset;
+}
+
+__INLINE__ jbyteArray AssetFile::read(JNIEnv* env) const
+{
+    assert(env);
+    assert(!isEmpty());
+
+    jbyteArray result = NULL;
+    if (const void* buffer = getBuffer())
+    {
+        const off_t length = getLength();
+        if ((result = env->NewByteArray(length)) != NULL)
+            env->SetByteArrayRegion(result, 0, length, (const jbyte*)buffer);
+    }
+
+    return result;
+}
+
+__INLINE__ int AssetFile::read(void* buf, size_t size) const
+{
+    assert(buf);
+    assert(!isEmpty());
+
+    return ::AAsset_read(mAsset, buf, size);
+}
+
+__INLINE__ const void* AssetFile::getBuffer() const
+{
+    assert(!isEmpty());
+
+    const void* buffer = ::AAsset_getBuffer(mAsset);
+    __check_error(buffer == NULL, "Couldn't get asset file buffer\n");
+    return buffer;
+}
+
+__INLINE__ off_t AssetFile::seek(off_t offset, int origin/* = SEEK_SET*/) const
+{
+    assert(!isEmpty());
+    return ::AAsset_seek(mAsset, offset, origin);
+}
+
+__INLINE__ bool AssetFile::isEmpty() const
+{
+    return (mAsset == NULL);
+}
+
+__INLINE__ int AssetFile::isAllocated() const
+{
+    assert(!isEmpty());
+    return ::AAsset_isAllocated(mAsset);
+}
+
+__INLINE__ off_t AssetFile::getLength() const
+{
+    assert(!isEmpty());
+    return ::AAsset_getLength(mAsset);
+}
+
+__INLINE__ off_t AssetFile::getRemainingLength() const
+{
+    assert(!isEmpty());
+    return ::AAsset_getRemainingLength(mAsset);
 }
 #endif  // ANDROID_ASSET_MANAGER_JNI_H
 

@@ -21,7 +21,6 @@
 // FileScanner
 // AssetDir
 // AssetFile
-// AssetFileHandle
 //
 // Global functions in this file:
 //
@@ -230,23 +229,29 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the AssetFileHandle class
+// Interface of the AssetFile class
 //
 
-class AssetFileHandle
+class AssetFile
 {
-    DECLARE_NONCOPYABLE(AssetFileHandle);
+    DECLARE_NONCOPYABLE(AssetFile);
 
-// Constructors
+// Constructors/Destructor
 public:
-    explicit AssetFileHandle(void* asset = NULL);
+    AssetFile();
+    ~AssetFile();
 
 // Operations
 public:
+    AAsset* open(JNIEnv* env, jobject assetManager, const char* filename, int mode = AASSET_MODE_STREAMING);
+    AAsset* open(AAssetManager* am, const char* filename, int mode = AASSET_MODE_STREAMING);
+
+    void close();
+    operator AAsset*() const;
+
     jbyteArray read(JNIEnv* env) const;
     int read(void* buf, size_t size) const;
 
-    operator AAsset*() const;
     const void* getBuffer() const;
     off_t seek(off_t offset, int origin = SEEK_SET) const;
 
@@ -258,35 +263,9 @@ public:
     off_t getLength() const;
     off_t getRemainingLength() const;
 
-// Implementation
-private:
-    struct Asset {
-        void* mAsset;
-        Asset(void* asset) : mAsset(asset) {}
-    } mAAsset;
-
 // Data members
-protected:
+private:
     AAsset* mAsset;
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the AssetFile class
-//
-
-class AssetFile : public AssetFileHandle
-{
-// Constructors/Destructor
-public:
-    AssetFile();
-    ~AssetFile();
-
-// Operations
-public:
-    void close();
-    AAsset* open(JNIEnv* env, jobject assetManager, const char* filename, int mode = AASSET_MODE_STREAMING);
-    AAsset* open(AAssetManager* am, const char* filename, int mode = AASSET_MODE_STREAMING);
 };
 #endif  // ANDROID_ASSET_MANAGER_JNI_H
 

@@ -209,7 +209,7 @@ public:
 // Data members
 public:
     JNIEnv* env;
-    int lockRes;
+    int lockResult;
     jobject bitmap;
 };
 
