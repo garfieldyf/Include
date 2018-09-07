@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <android/log.h>
 #include <android/api-level.h>
+#include <sys/system_properties.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Macros in this file:
@@ -258,6 +259,12 @@ static inline void CDECL __android_assert(const char* file, int line, const char
 ///////////////////////////////////////////////////////////////////////////////
 // Global functions in this file:
 //
+
+__STATIC_INLINE__ int __android_sdk_version()
+{
+    char version[PROP_VALUE_MAX + 1];
+    return (::__system_property_get("ro.build.version.sdk", version) > 0 ? ::strtol(version, NULL, 10) : -1);
+}
 
 static inline const char* __android_build_tag(const char* func, char (&tag)[MAX_PATH])
 {
