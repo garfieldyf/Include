@@ -445,13 +445,9 @@ __INLINE__ void ThreadAttr::dump() const
 
 __INLINE__ int ThreadAttr::getScope() const
 {
-#ifdef __LP64__
     int scope = -1;
     verify(::pthread_attr_getscope(this, &scope), 0);
     return scope;
-#else
-    return ::pthread_attr_getscope(this);
-#endif  // __LP64__
 }
 
 __INLINE__ int ThreadAttr::setScope(int scope)
