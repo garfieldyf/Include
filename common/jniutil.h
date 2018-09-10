@@ -114,7 +114,7 @@ class ATL_NO_VTABLE basic_jstring
 
 // Constructors/Destructor
 protected:
-    basic_jstring(uint32_t size);
+    basic_jstring(uint32_t len);
     ~basic_jstring();
 
 // Operations
@@ -212,8 +212,8 @@ public:
 
 // Operations
 public:
-    value_type* array();
-    const value_type* array() const;
+    value_type* data();
+    const value_type* data() const;
 
     value_type& operator[](uint32_t index);
     value_type operator[](uint32_t index) const;
@@ -224,8 +224,8 @@ public:
 
 // Data members
 private:
-    value_type* carray;
-    value_type marray[t_length];
+    value_type* cdata;
+    value_type mdata[t_length];
 };
 
 

@@ -39,7 +39,7 @@ struct _jtype##Array_t : public _jarray_t<_jtype##ArrayTraits, t_length> \
         : _jarray_t<_jtype##ArrayTraits, t_length>(env, array) { } \
     void copyTo(JNIEnv* env, _jtype##Array outArray) const { \
         assert(env); assert(outArray); assert(env->GetArrayLength(outArray) >= this->length); \
-        env->Set##_jname##ArrayRegion(outArray, 0, this->length, this->array()); \
+        env->Set##_jname##ArrayRegion(outArray, 0, this->length, this->data()); \
     } \
 }
 
@@ -234,10 +234,10 @@ __INLINE__ jmethodID jclass_t::getStaticMethodID(const char* methodName, const c
 //
 
 template <typename _Ty, uint32_t t_length>
-__INLINE__ basic_jstring<_Ty, t_length>::basic_jstring(uint32_t size)
-    : length(size)
+__INLINE__ basic_jstring<_Ty, t_length>::basic_jstring(uint32_t len)
+    : length(len)
 {
-    cstr = (size >= t_length ? (_Ty*)::malloc((size + 1) * sizeof(_Ty)) : mstr);
+    cstr = (len >= t_length ? (_Ty*)::malloc((len + 1) * sizeof(_Ty)) : mstr);
     assert(cstr);
 }
 
@@ -328,55 +328,55 @@ template <typename _Traits, uint32_t t_length>
 __INLINE__ _jarray_t<_Traits, t_length>::_jarray_t(JNIEnv* env, jarray array)
     : length(env->GetArrayLength(array))
 {
-    carray = _Traits::copy(env, array, length, marray, t_length);
-    assert(carray);
+    cdata = _Traits::copy(env, array, length, mdata, t_length);
+    assert(cdata);
 }
 
 template <typename _Traits, uint32_t t_length>
 __INLINE__ _jarray_t<_Traits, t_length>::~_jarray_t()
 {
-    if (carray != marray)
+    if (cdata != mdata)
     {
         LOGW("Release HEAP array elements [ length = %u ]\n", length);
-        ::free(carray);
+        ::free(cdata);
     }
 #ifndef NDEBUG
     else
     {
         LOGD("Release STACK array elements [ length = %u ]\n", length);
-        ::memset(marray, 0xCCCCCCCC, sizeof(marray));
+        ::memset(mdata, 0xCCCCCCCC, sizeof(mdata));
     }
 #endif  // NDEBUG
 }
 
 template <typename _Traits, uint32_t t_length>
-__INLINE__ typename _jarray_t<_Traits, t_length>::value_type* _jarray_t<_Traits, t_length>::array()
+__INLINE__ typename _jarray_t<_Traits, t_length>::value_type* _jarray_t<_Traits, t_length>::data()
 {
-    return carray;
+    return cdata;
 }
 
 template <typename _Traits, uint32_t t_length>
-__INLINE__ const typename _jarray_t<_Traits, t_length>::value_type* _jarray_t<_Traits, t_length>::array() const
+__INLINE__ const typename _jarray_t<_Traits, t_length>::value_type* _jarray_t<_Traits, t_length>::data() const
 {
-    return carray;
+    return cdata;
 }
 
 template <typename _Traits, uint32_t t_length>
 __INLINE__ typename _jarray_t<_Traits, t_length>::value_type& _jarray_t<_Traits, t_length>::operator[](uint32_t index)
 {
-    assert(carray);
+    assert(cdata);
     assert(index < length);
 
-    return carray[index];
+    return cdata[index];
 }
 
 template <typename _Traits, uint32_t t_length>
 __INLINE__ typename _jarray_t<_Traits, t_length>::value_type _jarray_t<_Traits, t_length>::operator[](uint32_t index) const
 {
-    assert(carray);
+    assert(cdata);
     assert(index < length);
 
-    return carray[index];
+    return cdata[index];
 }
 
 }  // namespace JNI
