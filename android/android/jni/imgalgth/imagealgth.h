@@ -59,14 +59,9 @@ __STATIC_INLINE__ int32_t clamp(int32_t current, int32_t offset, int32_t length)
     return (index < 0 ? -current : (index >= length ? length - current - 1 : offset));
 }
 
-__STATIC_INLINE__ uint8_t computeThreshold(Color* colors, uint32_t count)
+__STATIC_INLINE__ uint8_t computeThreshold(uint32_t (&histData)[256], uint32_t count)
 {
     // Otsu Threshold algorithm - http://www.labbookpages.co.uk
-    // Calculate histogram data.
-    uint32_t histData[256] = { 0 };
-    for (uint32_t i = 0; i < count; ++i)
-        histData[colors[i].green]++;
-
     float sum = 0;
     for (uint32_t i = 0; i < _countof(histData); ++i)
         sum += i * histData[i];

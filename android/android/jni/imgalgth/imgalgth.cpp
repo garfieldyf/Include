@@ -68,7 +68,18 @@ STDCEXPORT void Android_binaryBitmap(void* pixels, uint32_t width, uint32_t heig
     if (!gray)
         Android_grayBitmap(pixels, width, height);
 
-    const uint8_t threshold = __NS::computeThreshold((__NS::Color*)pixels, width * height);
+    const __NS::Color* colors = (__NS::Color*)pixels;
+    const uint32_t count = width * height;
+
+    // Calculate histogram data.
+    uint32_t histData[256] = { 0 };
+    for (uint32_t i = 0; i < count; ++i)
+        histData[colors[i].green]++;
+
+    // Calculate threshold.
+    const uint8_t threshold = __NS::computeThreshold(histData, count);
+
+    // Calculate binary colors
     __NS::handleBitmap((__NS::Color*)pixels, width, height, [threshold](__NS::Color& color) { color = (color.green >= threshold ? __NS::Color::WHITE : __NS::Color::BLACK); });
 }
 
