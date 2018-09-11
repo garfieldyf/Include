@@ -367,7 +367,7 @@ __INLINE__ int _Blocking_deque<_Ty, _Container>::pop_front(reference _Val, unsig
         _Cont.pop_front();
 
         // Set the event to signaled, if container is not empty.
-        if (_Cont.size() != 0)
+        if (!_Cont.empty())
             ATLVERIFY(_Event.Set());
     }
 #endif  // _ATL_NEW_BLOCKING_DEQUE
@@ -421,7 +421,7 @@ __INLINE__ int _Blocking_deque<_Ty, _Container>::pop_back(reference _Val, unsign
         _Cont.pop_back();
 
         // Set the event to signaled, if container is not empty.
-        if (_Cont.size() != 0)
+        if (!_Cont.empty())
             ATLVERIFY(_Event.Set());
     }
 #endif  // _ATL_NEW_BLOCKING_DEQUE
