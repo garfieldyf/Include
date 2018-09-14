@@ -110,11 +110,14 @@ __INLINE__ jclass_t::jclass_t(JNIEnv* _env, jobject object)
     assert(object);
 
 #ifndef NDEBUG
-    ::__strncpy(className, "unknown class", _countof(className));
     if (clazz == NULL)
     {
         LOGE("Unable to get object class - %p\n", object);
         assert(clazz);
+    }
+    else
+    {
+        LOGI("The object %p className - '%s'\n", object, ::__android_class_name(_env, object, className));
     }
 #endif  // NDEBUG
 }

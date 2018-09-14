@@ -308,6 +308,20 @@ static inline int CDECL __android_log_error(int errnum, const char* func, const 
     return errnum;
 }
 
+static inline const char* __android_class_name(JNIEnv* env, jobject object, char (&buffer)[MAX_PATH])
+{
+    // Equivalent to java object.getClass().getName()
+    jobject clazz = env->CallObjectMethod(object, env->GetMethodID(env->GetObjectClass(object), "getClass", "()Ljava/lang/Class;"));
+    jstring className = (jstring)env->CallObjectMethod(clazz, env->GetMethodID(env->GetObjectClass(clazz), "getName", "()Ljava/lang/String;"));
+
+    // Copy the class name to buffer
+    const jsize length = env->GetStringUTFLength(className);
+    env->GetStringUTFRegion(className, 0, env->GetStringLength(className), buffer);
+    buffer[length] = '\0';
+
+    return buffer;
+}
+
 static inline void CDECL __android_assert(const char* file, int line, const char* func, const char* format, ...)
 {
     va_list args;
