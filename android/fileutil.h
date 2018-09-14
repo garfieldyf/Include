@@ -110,22 +110,31 @@ __STATIC_INLINE__ int defaultFilter(const struct dirent* entry)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the DirectoryBase class
+// Interface of the Directory class
 //
 
-class ATL_NO_VTABLE DirectoryBase
+class Directory
 {
-    DECLARE_NONCOPYABLE(DirectoryBase);
+    DECLARE_NONCOPYABLE(Directory);
 
 // Constructors/Destructor
 public:
-    DirectoryBase();
-    ~DirectoryBase();
+    Directory();
+    ~Directory();
 
 // Operations
 public:
+    int open(const char* path);
+    int open(int fd);
+
     void close();
     void rewind() const;
+
+    // _Filter prototype
+    // 1. int filter(const struct dirent* entry);
+    // 2. [](const struct dirent* entry) -> int { ... }
+    template <typename _Filter>
+    int read(struct dirent*& entry, _Filter filter) const;
 
 // Attributes
 public:
@@ -133,32 +142,8 @@ public:
     FileHandle getFile() const;
 
 // Data members
-protected:
+private:
     DIR* mDir;
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the Directory class
-//
-
-template <typename _Filter = int (*)(const struct dirent*) >
-class Directory : public DirectoryBase
-{
-// Constructors
-public:
-    Directory();
-    explicit Directory(_Filter _filter);
-
-// Operations
-public:
-    int open(const char* path);
-    int open(int fd);
-    int read(struct dirent*& entry) const;
-
-// Data members
-public:
-    _Filter filter;
 };
 
 
@@ -350,14 +335,14 @@ static inline int deleteFiles(const char* path)
 {
     assert(path);
 
-    Directory<> dir(defaultFilter);
+    Directory dir;
     int errnum = dir.open(path);
     if (errnum == 0)
     {
         char tempPath[MAX_PATH];
         const int length = ::snprintf(tempPath, _countof(tempPath), "%s/", path);
 
-        for (struct dirent* entry; (errnum = dir.read(entry)) == 0 && entry != NULL; )
+        for (struct dirent* entry; (errnum = dir.read(entry, defaultFilter)) == 0 && entry != NULL; )
         {
             // Delete sub directory.
             ::strlcpy(tempPath + length, entry->d_name, _countof(tempPath) - length);

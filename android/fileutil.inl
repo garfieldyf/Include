@@ -139,63 +139,20 @@ __INLINE__ void File::close()
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the DirectoryBase class
+// Implementation of the Directory class
 //
 
-__INLINE__ DirectoryBase::DirectoryBase()
+__INLINE__ Directory::Directory()
     : mDir(NULL)
 {
 }
 
-__INLINE__ DirectoryBase::~DirectoryBase()
+__INLINE__ Directory::~Directory()
 {
     close();
 }
 
-__INLINE__ void DirectoryBase::close()
-{
-    if (mDir != NULL && ::closedir(mDir) == 0)
-    {
-        LOGI("The directory was closed (mDir = %p)\n", mDir);
-        mDir = NULL;
-    }
-}
-
-__INLINE__ void DirectoryBase::rewind() const
-{
-    assert(!isEmpty());
-    ::rewinddir(mDir);
-}
-
-__INLINE__ bool DirectoryBase::isEmpty() const
-{
-    return (mDir == NULL);
-}
-
-__INLINE__ FileHandle DirectoryBase::getFile() const
-{
-    assert(!isEmpty());
-    return FileHandle(::dirfd(mDir));
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the Directory class
-//
-
-template <typename _Filter>
-__INLINE__ Directory<_Filter>::Directory()
-{
-}
-
-template <typename _Filter>
-__INLINE__ Directory<_Filter>::Directory(_Filter _filter)
-    : filter(_filter)
-{
-}
-
-template <typename _Filter>
-__INLINE__ int Directory<_Filter>::open(const char* path)
+__INLINE__ int Directory::open(const char* path)
 {
     assert(path);
     assert(isEmpty());
@@ -204,8 +161,7 @@ __INLINE__ int Directory<_Filter>::open(const char* path)
     return (mDir != NULL ? 0 : __android_check_error(errno, "Couldn't open directory - '%s'", path));
 }
 
-template <typename _Filter>
-__INLINE__ int Directory<_Filter>::open(int fd)
+__INLINE__ int Directory::open(int fd)
 {
     assert(isEmpty());
     assert(fd != INVALID_FD);
@@ -214,8 +170,17 @@ __INLINE__ int Directory<_Filter>::open(int fd)
     return (mDir != NULL ? 0 : __android_check_error(errno, "Couldn't open directory (file descriptor = %d)", fd));
 }
 
+__INLINE__ void Directory::close()
+{
+    if (mDir != NULL && ::closedir(mDir) == 0)
+    {
+        LOGI("The directory was closed (mDir = %p)\n", mDir);
+        mDir = NULL;
+    }
+}
+
 template <typename _Filter>
-__INLINE__ int Directory<_Filter>::read(struct dirent*& entry) const
+__INLINE__ int Directory::read(struct dirent*& entry, _Filter filter) const
 {
     assert(!isEmpty());
 
@@ -230,6 +195,23 @@ __INLINE__ int Directory<_Filter>::read(struct dirent*& entry) const
 #endif  // NDEBUG
 
     return errno;
+}
+
+__INLINE__ void Directory::rewind() const
+{
+    assert(!isEmpty());
+    ::rewinddir(mDir);
+}
+
+__INLINE__ bool Directory::isEmpty() const
+{
+    return (mDir == NULL);
+}
+
+__INLINE__ FileHandle Directory::getFile() const
+{
+    assert(!isEmpty());
+    return FileHandle(::dirfd(mDir));
 }
 
 

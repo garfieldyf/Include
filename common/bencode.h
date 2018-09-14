@@ -210,7 +210,9 @@ public:
     const bencode_object* get(uint32_t index) const;
     template <typename _Ty> bool get(uint32_t index, _Ty& value) const;
 
-    // enumProc prototype : bool enumProc(const bencode_string* str, void* userData);
+    // enumProc prototype
+    // 1. bool enumProc(const bencode_string* str, void* userData);
+    // 2. [](const bencode_string* str, void* userData) -> bool { ... }
     template <typename _Pred>
     uint32_t enum_strings(_Pred enumProc, void* userData = NULL) const;
 
