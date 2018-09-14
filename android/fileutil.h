@@ -22,6 +22,8 @@
 // AssetDir
 // AssetFile
 // AssetFileHandle
+// DefaultFilter
+// IgnoreHiddenFilter
 //
 // Global functions in this file:
 //
@@ -32,11 +34,19 @@
 // fileStatus()
 // deleteFile()
 // deleteFiles()
-// emptyFilter()
-// defaultFilter()
 // createDirectory()
+// defaultFilter()
+// ignoreHiddenFilter()
 
 __BEGIN_NAMESPACE
+
+///////////////////////////////////////////////////////////////////////////////
+// Forward declarations
+//
+
+__STATIC_INLINE__ int defaultFilter(const struct dirent* entry);
+__STATIC_INLINE__ int ignoreHiddenFilter(const struct dirent* entry);
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Interface of the FileHandle class
@@ -94,33 +104,39 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Scan directory filter functions
+// Interface of the DefaultFilter class
 //
 
-__STATIC_INLINE__ int emptyFilter(const struct dirent* /*entry*/)
+struct DefaultFilter
 {
-    return 1;
-}
-
-__STATIC_INLINE__ int defaultFilter(const struct dirent* entry)
-{
-    // Ignored the entry '.' and '..' representing the current and parent directory.
-    return !(entry->d_name[0] == '.' && (entry->d_name[1] == '\0' || (entry->d_name[1] == '.' && entry->d_name[2] == '\0')));
-}
+    int operator()(const struct dirent* entry) const
+        { return defaultFilter(entry); }
+};
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the Directory class
+// Interface of the IgnoreHiddenFilter class
 //
 
-class Directory
+struct IgnoreHiddenFilter
 {
-    DECLARE_NONCOPYABLE(Directory);
+    int operator()(const struct dirent* entry) const
+        { return ignoreHiddenFilter(entry); }
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the DirectoryBase class
+//
+
+class ATL_NO_VTABLE DirectoryBase
+{
+    DECLARE_NONCOPYABLE(DirectoryBase);
 
 // Constructors/Destructor
 public:
-    Directory();
-    ~Directory();
+    DirectoryBase();
+    ~DirectoryBase();
 
 // Operations
 public:
@@ -130,20 +146,36 @@ public:
     void close();
     void rewind() const;
 
-    // _Filter prototype
-    // 1. int filter(const struct dirent* entry);
-    // 2. [](const struct dirent* entry) -> int { ... }
-    template <typename _Filter>
-    int read(struct dirent*& entry, _Filter filter) const;
-
 // Attributes
 public:
     bool isEmpty() const;
     FileHandle getFile() const;
 
 // Data members
-private:
+protected:
     DIR* mDir;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the Directory class
+//
+
+template <typename _Filter = int (*)(const struct dirent*)>
+class Directory : public DirectoryBase
+{
+// Constructors
+public:
+    Directory();
+    explicit Directory(_Filter _filter);
+
+// Operations
+public:
+    int read(struct dirent*& entry) const;
+
+// Data members
+public:
+    _Filter filter;
 };
 
 
@@ -335,14 +367,14 @@ static inline int deleteFiles(const char* path)
 {
     assert(path);
 
-    Directory dir;
+    Directory<DefaultFilter> dir;
     int errnum = dir.open(path);
     if (errnum == 0)
     {
         char tempPath[MAX_PATH];
         const int length = ::snprintf(tempPath, _countof(tempPath), "%s/", path);
 
-        for (struct dirent* entry; (errnum = dir.read(entry, defaultFilter)) == 0 && entry != NULL; )
+        for (struct dirent* entry; (errnum = dir.read(entry)) == 0 && entry != NULL; )
         {
             // Delete sub directory.
             ::strlcpy(tempPath + length, entry->d_name, _countof(tempPath) - length);
@@ -364,6 +396,18 @@ __STATIC_INLINE__ int deleteFiles(const char* path, bool deleteSelf)
 
     const int errnum = deleteFiles(path);
     return (errnum == 0 && deleteSelf ? deleteFile(path) : errnum);
+}
+
+__STATIC_INLINE__ int defaultFilter(const struct dirent* entry)
+{
+    // Ignores the entry '.' and '..' representing the current and parent directory.
+    return !(entry->d_name[0] == '.' && (entry->d_name[1] == '\0' || (entry->d_name[1] == '.' && entry->d_name[2] == '\0')));
+}
+
+__STATIC_INLINE__ int ignoreHiddenFilter(const struct dirent* entry)
+{
+    // Ignores the hidden files (start with '.').
+    return (entry->d_name[0] != '.');
 }
 
 __STATIC_INLINE__ int createDirectory(const char* path, uint32_t length, mode_t mode = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)

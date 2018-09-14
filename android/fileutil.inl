@@ -139,20 +139,20 @@ __INLINE__ void File::close()
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the Directory class
+// Implementation of the DirectoryBase class
 //
 
-__INLINE__ Directory::Directory()
+__INLINE__ DirectoryBase::DirectoryBase()
     : mDir(NULL)
 {
 }
 
-__INLINE__ Directory::~Directory()
+__INLINE__ DirectoryBase::~DirectoryBase()
 {
     close();
 }
 
-__INLINE__ int Directory::open(const char* path)
+__INLINE__ int DirectoryBase::open(const char* path)
 {
     assert(path);
     assert(isEmpty());
@@ -161,7 +161,7 @@ __INLINE__ int Directory::open(const char* path)
     return (mDir != NULL ? 0 : __verify(errno, "Couldn't open directory - '%s'", path));
 }
 
-__INLINE__ int Directory::open(int fd)
+__INLINE__ int DirectoryBase::open(int fd)
 {
     assert(isEmpty());
     assert(fd != INVALID_FD);
@@ -170,7 +170,7 @@ __INLINE__ int Directory::open(int fd)
     return (mDir != NULL ? 0 : __verify(errno, "Couldn't open directory (file descriptor = %d)", fd));
 }
 
-__INLINE__ void Directory::close()
+__INLINE__ void DirectoryBase::close()
 {
     if (mDir != NULL && ::closedir(mDir) == 0)
     {
@@ -179,8 +179,41 @@ __INLINE__ void Directory::close()
     }
 }
 
+__INLINE__ void DirectoryBase::rewind() const
+{
+    assert(!isEmpty());
+    ::rewinddir(mDir);
+}
+
+__INLINE__ bool DirectoryBase::isEmpty() const
+{
+    return (mDir == NULL);
+}
+
+__INLINE__ FileHandle DirectoryBase::getFile() const
+{
+    assert(!isEmpty());
+    return FileHandle(::dirfd(mDir));
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the Directory class
+//
+
 template <typename _Filter>
-__INLINE__ int Directory::read(struct dirent*& entry, _Filter filter) const
+__INLINE__ Directory<_Filter>::Directory()
+{
+}
+
+template <typename _Filter>
+__INLINE__ Directory<_Filter>::Directory(_Filter _filter)
+    : filter(_filter)
+{
+}
+
+template <typename _Filter>
+__INLINE__ int Directory<_Filter>::read(struct dirent*& entry) const
 {
     assert(!isEmpty());
 
@@ -191,23 +224,6 @@ __INLINE__ int Directory::read(struct dirent*& entry, _Filter filter) const
     } while (entry != NULL && !filter(entry));
 
     return __verify(errno, "Couldn't read directory");
-}
-
-__INLINE__ void Directory::rewind() const
-{
-    assert(!isEmpty());
-    ::rewinddir(mDir);
-}
-
-__INLINE__ bool Directory::isEmpty() const
-{
-    return (mDir == NULL);
-}
-
-__INLINE__ FileHandle Directory::getFile() const
-{
-    assert(!isEmpty());
-    return FileHandle(::dirfd(mDir));
 }
 
 
