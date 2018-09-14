@@ -382,7 +382,7 @@ public:
 
 __STATIC_INLINE__ int initOnce(pthread_once_t& control, void (*initialize)())
 {
-    return __android_check_error(::pthread_once(&control, initialize), "Call pthread_once failed");
+    return __verify(::pthread_once(&control, initialize), "Call pthread_once failed");
 }
 
 __STATIC_INLINE__ int getThreadId()
@@ -395,7 +395,7 @@ __STATIC_INLINE__ int getThreadPriority(int tid)
 #ifndef NDEBUG
     errno = 0;
     const int priority = ::getpriority(PRIO_PROCESS, tid);
-    __android_check_error(errno, "Couldn't get thread priority (tid = %d)", tid);
+    __verify(errno, "Couldn't get thread priority (tid = %d)", tid);
     return priority;
 #else
     return ::getpriority(PRIO_PROCESS, tid);
@@ -409,7 +409,7 @@ __STATIC_INLINE__ int getThreadPriority()
 
 __STATIC_INLINE__ int setThreadPriority(int tid, int priority)
 {
-    return __android_check_error(::setpriority(PRIO_PROCESS, tid, priority), "Couldn't set thread priority (tid = %d, priority = %d)", tid, priority);
+    return __verify(::setpriority(PRIO_PROCESS, tid, priority), "Couldn't set thread priority (tid = %d, priority = %d)", tid, priority);
 }
 
 __STATIC_INLINE__ int setThreadPriority(int priority)

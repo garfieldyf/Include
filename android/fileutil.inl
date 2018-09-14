@@ -67,7 +67,7 @@ __INLINE__ ssize_t FileHandle::write(const void* buf, size_t size, off64_t offse
 __INLINE__ int FileHandle::truncate(off64_t length) const
 {
     assert(!isEmpty());
-    return __android_check_error((::ftruncate64(fd, length) == 0 ? 0 : errno), "Couldn't truncate file (length = " _PRId64 ")", length);
+    return __verify((::ftruncate64(fd, length) == 0 ? 0 : errno), "Couldn't truncate file (length = " _PRId64 ")", length);
 }
 
 __INLINE__ off64_t FileHandle::seek(off64_t offset, int origin/* = SEEK_SET*/) const
@@ -82,7 +82,7 @@ __INLINE__ off64_t FileHandle::seek(off64_t offset, int origin/* = SEEK_SET*/) c
 __INLINE__ int FileHandle::stat(struct stat& buf) const
 {
     assert(!isEmpty());
-    return __android_check_error((::fstat(fd, &buf) == 0 ? 0 : errno), "Couldn't get file status");
+    return __verify((::fstat(fd, &buf) == 0 ? 0 : errno), "Couldn't get file status");
 }
 
 __INLINE__ int FileHandle::stat(const char* filename, struct stat& buf, int flags/* = AT_SYMLINK_NOFOLLOW*/) const
@@ -90,7 +90,7 @@ __INLINE__ int FileHandle::stat(const char* filename, struct stat& buf, int flag
     assert(filename);
     assert(!isEmpty());
 
-    return __android_check_error((::fstatat(fd, filename, &buf, flags) == 0 ? 0 : errno), "Couldn't get file - '%s' status", filename);
+    return __verify((::fstatat(fd, filename, &buf, flags) == 0 ? 0 : errno), "Couldn't get file - '%s' status", filename);
 }
 
 __INLINE__ bool FileHandle::isEmpty() const
@@ -125,7 +125,7 @@ __INLINE__ int File::open(const char* filename, int flags/* = O_CREAT | O_WRONLY
     assert(filename);
     assert(isEmpty());
 
-    return __android_check_error(((fd = ::open(filename, flags, mode)) != INVALID_FD ? 0 : errno), "Couldn't open file - '%s'", filename);
+    return __verify(((fd = ::open(filename, flags, mode)) != INVALID_FD ? 0 : errno), "Couldn't open file - '%s'", filename);
 }
 
 __INLINE__ void File::close()
@@ -158,7 +158,7 @@ __INLINE__ int Directory::open(const char* path)
     assert(isEmpty());
 
     mDir = ::opendir(path);
-    return (mDir != NULL ? 0 : __android_check_error(errno, "Couldn't open directory - '%s'", path));
+    return (mDir != NULL ? 0 : __verify(errno, "Couldn't open directory - '%s'", path));
 }
 
 __INLINE__ int Directory::open(int fd)
@@ -167,7 +167,7 @@ __INLINE__ int Directory::open(int fd)
     assert(fd != INVALID_FD);
 
     mDir = ::fdopendir(fd);
-    return (mDir != NULL ? 0 : __android_check_error(errno, "Couldn't open directory (file descriptor = %d)", fd));
+    return (mDir != NULL ? 0 : __verify(errno, "Couldn't open directory (file descriptor = %d)", fd));
 }
 
 __INLINE__ void Directory::close()
@@ -190,11 +190,7 @@ __INLINE__ int Directory::read(struct dirent*& entry, _Filter filter) const
         entry = ::readdir(mDir);
     } while (entry != NULL && !filter(entry));
 
-#ifndef NDEBUG
-    __android_check_error(errno, "Couldn't read directory");
-#endif  // NDEBUG
-
-    return errno;
+    return __verify(errno, "Couldn't read directory");
 }
 
 __INLINE__ void Directory::rewind() const
@@ -234,7 +230,7 @@ __INLINE__ int FileScanner::scan(const char* path, int (*filter)(const struct di
     assert(path);
     assert(isEmpty());
 
-    return ((size = ::scandir(path, &namelist, filter, compar)) < 0 ? __android_check_error(errno, "Couldn't scan directory - '%s'", path) : 0);
+    return ((size = ::scandir(path, &namelist, filter, compar)) < 0 ? __verify(errno, "Couldn't scan directory - '%s'", path) : 0);
 }
 
 __INLINE__ void FileScanner::destroy()

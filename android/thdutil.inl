@@ -39,14 +39,14 @@ __INLINE__ void* ThreadBase::Thread_run()
 __INLINE__ int ThreadBase::Thread_setName(const char* name) const
 {
     assert(Thread_isAlive());
-    return __android_check_error(::pthread_setname_np(id, name), "Couldn't set thread name (id = 0x%08lx, name = %s)", id, name);
+    return __verify(::pthread_setname_np(id, name), "Couldn't set thread name (id = 0x%08lx, name = %s)", id, name);
 }
 #endif  // (__ANDROID_API__ >= 9)
 
 __INLINE__ int ThreadBase::Thread_join(void** retval/* = NULL*/) const
 {
     assert_log(::pthread_self() != id, "Thread_join() can NOT call on self thread\n");
-    return __android_check_error((Thread_isAlive() ? ::pthread_join(id, retval) : 0), "The thread (id = 0x%08lx) join failed", id);
+    return __verify((Thread_isAlive() ? ::pthread_join(id, retval) : 0), "The thread (id = 0x%08lx) join failed", id);
 }
 
 __INLINE__ bool ThreadBase::Thread_isAlive() const
@@ -57,7 +57,7 @@ __INLINE__ bool ThreadBase::Thread_isAlive() const
 __INLINE__ int ThreadBase::Thread_getCpuClockId(clockid_t& clockid) const
 {
     assert(Thread_isAlive());
-    return __android_check_error(::pthread_getcpuclockid(id, &clockid), "Couldn't get cpu clock id (id = 0x%08lx)", id);
+    return __verify(::pthread_getcpuclockid(id, &clockid), "Couldn't get cpu clock id (id = 0x%08lx)", id);
 }
 
 __INLINE__ int ThreadBase::Thread_getPriority() const
@@ -73,13 +73,13 @@ __INLINE__ int ThreadBase::Thread_setPriority(int priority) const
 __INLINE__ int ThreadBase::Thread_setSchedParam(int poilcy, const sched_param& param)
 {
     assert(Thread_isAlive());
-    return __android_check_error(::pthread_setschedparam(id, poilcy, &param), "Couldn't set sched param (id = 0x%08lx, poilcy = %d, priority = %d)", id, poilcy, param.sched_priority);
+    return __verify(::pthread_setschedparam(id, poilcy, &param), "Couldn't set sched param (id = 0x%08lx, poilcy = %d, priority = %d)", id, poilcy, param.sched_priority);
 }
 
 __INLINE__ int ThreadBase::Thread_getSchedParam(int& poilcy, sched_param& param) const
 {
     assert(Thread_isAlive());
-    return __android_check_error(::pthread_getschedparam(id, &poilcy, &param), "Couldn't get sched param (id = 0x%08lx)", id);
+    return __verify(::pthread_getschedparam(id, &poilcy, &param), "Couldn't get sched param (id = 0x%08lx)", id);
 }
 
 
@@ -96,7 +96,7 @@ template <typename T>
 __INLINE__ int ThreadImpl<T>::Thread_create(const pthread_attr_t* attr/* = NULL*/)
 {
     assert(!Thread_isAlive());
-    return __android_check_error(::pthread_create(&id, attr, T::Thread_proc, static_cast<T*>(this)), "Couldn't create thread");
+    return __verify(::pthread_create(&id, attr, T::Thread_proc, static_cast<T*>(this)), "Couldn't create thread");
 }
 
 template <typename T>

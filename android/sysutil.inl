@@ -39,15 +39,15 @@ __INLINE__ Mutex::~Mutex()
 __INLINE__ int Mutex::lock(unsigned timeout/* = INFINITE*/)
 {
 #ifdef __LP64__
-    return (timeout == INFINITE ? __android_check_error(::pthread_mutex_lock(this), "Couldn't lock mutex") : ::pthread_mutex_timedlock(this, timespec_t::toTimespec(timeout)));
+    return (timeout == INFINITE ? __verify(::pthread_mutex_lock(this), "Couldn't lock mutex") : ::pthread_mutex_timedlock(this, timespec_t::toTimespec(timeout)));
 #else
-    return (timeout == INFINITE ? __android_check_error(::pthread_mutex_lock(this), "Couldn't lock mutex") : ::pthread_mutex_lock_timeout_np(this, timeout));
+    return (timeout == INFINITE ? __verify(::pthread_mutex_lock(this), "Couldn't lock mutex") : ::pthread_mutex_lock_timeout_np(this, timeout));
 #endif  // __LP64__
 }
 
 __INLINE__ int Mutex::unlock()
 {
-    return __android_check_error(::pthread_mutex_unlock(this), "Couldn't unlock mutex");
+    return __verify(::pthread_mutex_unlock(this), "Couldn't unlock mutex");
 }
 
 __INLINE__ int Mutex::tryLock()
@@ -111,7 +111,7 @@ __INLINE__ int RWLock::readLock(const timespec& abstime)
 
 __INLINE__ int RWLock::readLock(unsigned timeout/* = INFINITE*/)
 {
-    return (timeout == INFINITE ? __android_check_error(::pthread_rwlock_rdlock(this), "Couldn't lock to read") : ::pthread_rwlock_timedrdlock(this, timespec_t::toTimespec(timeout)));
+    return (timeout == INFINITE ? __verify(::pthread_rwlock_rdlock(this), "Couldn't lock to read") : ::pthread_rwlock_timedrdlock(this, timespec_t::toTimespec(timeout)));
 }
 
 __INLINE__ int RWLock::writeLock(const timespec& abstime)
@@ -121,12 +121,12 @@ __INLINE__ int RWLock::writeLock(const timespec& abstime)
 
 __INLINE__ int RWLock::writeLock(unsigned timeout/* = INFINITE*/)
 {
-    return (timeout == INFINITE ? __android_check_error(::pthread_rwlock_wrlock(this), "Couldn't lock to write") : ::pthread_rwlock_timedwrlock(this, timespec_t::toTimespec(timeout)));
+    return (timeout == INFINITE ? __verify(::pthread_rwlock_wrlock(this), "Couldn't lock to write") : ::pthread_rwlock_timedwrlock(this, timespec_t::toTimespec(timeout)));
 }
 
 __INLINE__ int RWLock::unlock()
 {
-    return __android_check_error(::pthread_rwlock_unlock(this), "Couldn't unlock RWLock");
+    return __verify(::pthread_rwlock_unlock(this), "Couldn't unlock RWLock");
 }
 
 __INLINE__ int RWLock::tryReadLock()
@@ -221,20 +221,20 @@ __INLINE__ Condition::operator const pthread_cond_t*() const
 
 __INLINE__ int Condition::notify()
 {
-    return __android_check_error(::pthread_cond_signal(this), "Condition couldn't notify");
+    return __verify(::pthread_cond_signal(this), "Condition couldn't notify");
 }
 
 __INLINE__ int Condition::notifyAll()
 {
-    return __android_check_error(::pthread_cond_broadcast(this), "Condition couldn't notify all");
+    return __verify(::pthread_cond_broadcast(this), "Condition couldn't notify all");
 }
 
 __INLINE__ int Condition::wait(pthread_mutex_t& mutex, unsigned timeout/* = INFINITE*/)
 {
 #ifdef __LP64__
-    return (timeout == INFINITE ? __android_check_error(::pthread_cond_wait(this, &mutex), "Couldn't wait condition") : ::pthread_cond_timedwait(this, &mutex, timespec_t::toTimespec(timeout)));
+    return (timeout == INFINITE ? __verify(::pthread_cond_wait(this, &mutex), "Couldn't wait condition") : ::pthread_cond_timedwait(this, &mutex, timespec_t::toTimespec(timeout)));
 #else
-    return (timeout == INFINITE ? __android_check_error(::pthread_cond_wait(this, &mutex), "Couldn't wait condition") : ::pthread_cond_timeout_np(this, &mutex, timeout));
+    return (timeout == INFINITE ? __verify(::pthread_cond_wait(this, &mutex), "Couldn't wait condition") : ::pthread_cond_timeout_np(this, &mutex, timeout));
 #endif  // __LP64__
 }
 
@@ -275,12 +275,12 @@ __INLINE__ void CondAttr::dump() const
 
 __INLINE__ int CondAttr::setShared(int pshared)
 {
-    return __android_check_error(::pthread_condattr_setpshared(&mAttr, pshared), "Couldn't set condition pshared (pshared = %d)", pshared);
+    return __verify(::pthread_condattr_setpshared(&mAttr, pshared), "Couldn't set condition pshared (pshared = %d)", pshared);
 }
 
 __INLINE__ int CondAttr::getShared(int& pshared) const
 {
-    return __android_check_error(::pthread_condattr_getpshared(&mAttr, &pshared), "Couldn't get condition pshared");
+    return __verify(::pthread_condattr_getpshared(&mAttr, &pshared), "Couldn't get condition pshared");
 }
 
 
@@ -323,22 +323,22 @@ __INLINE__ void MutexAttr::dump() const
 
 __INLINE__ int MutexAttr::setType(int type)
 {
-    return __android_check_error(::pthread_mutexattr_settype(&mAttr, type), "Couldn't set mutex type (type = %d)", type);
+    return __verify(::pthread_mutexattr_settype(&mAttr, type), "Couldn't set mutex type (type = %d)", type);
 }
 
 __INLINE__ int MutexAttr::getType(int& type) const
 {
-    return __android_check_error(::pthread_mutexattr_gettype(&mAttr, &type), "Couldn't get mutex type");
+    return __verify(::pthread_mutexattr_gettype(&mAttr, &type), "Couldn't get mutex type");
 }
 
 __INLINE__ int MutexAttr::setShared(int pshared)
 {
-    return __android_check_error(::pthread_mutexattr_setpshared(&mAttr, pshared), "Couldn't set mutex pshared (pshared = %d)", pshared);
+    return __verify(::pthread_mutexattr_setpshared(&mAttr, pshared), "Couldn't set mutex pshared (pshared = %d)", pshared);
 }
 
 __INLINE__ int MutexAttr::getShared(int& pshared) const
 {
-    return __android_check_error(::pthread_mutexattr_getpshared(&mAttr, &pshared), "Couldn't get mutex pshared");
+    return __verify(::pthread_mutexattr_getpshared(&mAttr, &pshared), "Couldn't get mutex pshared");
 }
 
 
@@ -380,12 +380,12 @@ __INLINE__ void RWLockAttr::dump() const
 
 __INLINE__ int RWLockAttr::setShared(int pshared)
 {
-    return __android_check_error(::pthread_rwlockattr_setpshared(&mAttr, pshared), "Couldn't set RWLock pshared (pshared = %d)", pshared);
+    return __verify(::pthread_rwlockattr_setpshared(&mAttr, pshared), "Couldn't set RWLock pshared (pshared = %d)", pshared);
 }
 
 __INLINE__ int RWLockAttr::getShared(int& pshared) const
 {
-    return __android_check_error(::pthread_rwlockattr_getpshared(&mAttr, &pshared), "Couldn't get RWLock pshared");
+    return __verify(::pthread_rwlockattr_getpshared(&mAttr, &pshared), "Couldn't get RWLock pshared");
 }
 #endif  // (__ANDROID_API__ >= 9)
 
@@ -422,7 +422,7 @@ __INLINE__ ThreadAttr::operator const pthread_attr_t*() const
 
 __INLINE__ int ThreadAttr::get(pthread_t tid)
 {
-    return __android_check_error(::pthread_getattr_np(tid, this), "Couldn't get thread (tid = 0x%08lx) attr", tid);
+    return __verify(::pthread_getattr_np(tid, this), "Couldn't get thread (tid = 0x%08lx) attr", tid);
 }
 
 #ifndef NDEBUG
@@ -452,67 +452,67 @@ __INLINE__ int ThreadAttr::getScope() const
 
 __INLINE__ int ThreadAttr::setScope(int scope)
 {
-    return __android_check_error(::pthread_attr_setscope(this, scope), "Couldn't set thread scope (scope = %d)", scope);
+    return __verify(::pthread_attr_setscope(this, scope), "Couldn't set thread scope (scope = %d)", scope);
 }
 
 __INLINE__ int ThreadAttr::setGuardSize(size_t size)
 {
-    return __android_check_error(::pthread_attr_setguardsize(this, size), "Couldn't set thread guard size (size = " _PRId ")", size);
+    return __verify(::pthread_attr_setguardsize(this, size), "Couldn't set thread guard size (size = " _PRId ")", size);
 }
 
 __INLINE__ int ThreadAttr::getGuardSize(size_t& size) const
 {
-    return __android_check_error(::pthread_attr_getguardsize(this, &size), "Couldn't get thread guard size");
+    return __verify(::pthread_attr_getguardsize(this, &size), "Couldn't get thread guard size");
 }
 
 __INLINE__ int ThreadAttr::setDetachState(int state)
 {
-    return __android_check_error(::pthread_attr_setdetachstate(this, state), "Couldn't set thread detach state (state = %d)", state);
+    return __verify(::pthread_attr_setdetachstate(this, state), "Couldn't set thread detach state (state = %d)", state);
 }
 
 __INLINE__ int ThreadAttr::getDetachState(int& state) const
 {
-    return __android_check_error(::pthread_attr_getdetachstate(this, &state), "Couldn't get thread detach state");
+    return __verify(::pthread_attr_getdetachstate(this, &state), "Couldn't get thread detach state");
 }
 
 __INLINE__ int ThreadAttr::setSchedPolicy(int policy)
 {
-    return __android_check_error(::pthread_attr_setschedpolicy(this, policy), "Couldn't set thread schedpolicy (policy = %d)", policy);
+    return __verify(::pthread_attr_setschedpolicy(this, policy), "Couldn't set thread schedpolicy (policy = %d)", policy);
 }
 
 __INLINE__ int ThreadAttr::getSchedPolicy(int& policy) const
 {
-    return __android_check_error(::pthread_attr_getschedpolicy(this, &policy), "Couldn't get thread schedpolicy");
+    return __verify(::pthread_attr_getschedpolicy(this, &policy), "Couldn't get thread schedpolicy");
 }
 
 __INLINE__ int ThreadAttr::setSchedParam(const sched_param& param)
 {
-    return __android_check_error(::pthread_attr_setschedparam(this, &param), "Couldn't set thread sched param");
+    return __verify(::pthread_attr_setschedparam(this, &param), "Couldn't set thread sched param");
 }
 
 __INLINE__ int ThreadAttr::getSchedParam(sched_param& param) const
 {
-    return __android_check_error(::pthread_attr_getschedparam(this, &param), "Couldn't get thread sched param");
+    return __verify(::pthread_attr_getschedparam(this, &param), "Couldn't get thread sched param");
 }
 
 __INLINE__ int ThreadAttr::setStackSize(size_t size)
 {
-    return __android_check_error(::pthread_attr_setstacksize(this, size), "Couldn't set thread stack size (size = " _PRId ")", size);
+    return __verify(::pthread_attr_setstacksize(this, size), "Couldn't set thread stack size (size = " _PRId ")", size);
 }
 
 __INLINE__ int ThreadAttr::getStackSize(size_t& size) const
 {
-    return __android_check_error(::pthread_attr_getstacksize(this, &size), "Couldn't get thread stack size");
+    return __verify(::pthread_attr_getstacksize(this, &size), "Couldn't get thread stack size");
 }
 
 __INLINE__ int ThreadAttr::setStack(void* addr, size_t size)
 {
-    return __android_check_error(::pthread_attr_setstack(this, addr, size), "Couldn't set thread stack info (addr = %p, size = " _PRId ")", addr, size);
+    return __verify(::pthread_attr_setstack(this, addr, size), "Couldn't set thread stack info (addr = %p, size = " _PRId ")", addr, size);
 }
 
 __INLINE__ int ThreadAttr::getStack(void*& addr, size_t& size) const
 {
-    return __android_check_error(::pthread_attr_getstack(this, &addr, &size), "Couldn't get thread stack info");
+    return __verify(::pthread_attr_getstack(this, &addr, &size), "Couldn't get thread stack info");
 }
 
 
@@ -532,7 +532,7 @@ __INLINE__ ThreadKeyBase::~ThreadKeyBase()
 
 __INLINE__ int ThreadKeyBase::create(void (*destroy)(void*)/* = NULL*/)
 {
-    return __android_check_error(::pthread_key_create(&mKey, destroy), "Couldn't create thread-local storage key");
+    return __verify(::pthread_key_create(&mKey, destroy), "Couldn't create thread-local storage key");
 }
 
 __INLINE__ void ThreadKeyBase::destroy()
@@ -558,7 +558,7 @@ __INLINE__ _Ty ThreadKey<_Ty>::getValue() const
 template <typename _Ty>
 __INLINE__ int ThreadKey<_Ty>::setValue(const _Ty value) const
 {
-    return __android_check_error(::pthread_setspecific(mKey, (const void*)value), "Couldn't set thread-local storage value");
+    return __verify(::pthread_setspecific(mKey, (const void*)value), "Couldn't set thread-local storage value");
 }
 
 __END_NAMESPACE

@@ -61,6 +61,14 @@
 #endif
 #endif
 
+#ifndef __verify
+#ifndef NDEBUG
+#define __verify(errnum, ...)                   __android_log_error((errnum), __func__, __VA_ARGS__)
+#else
+#define __verify(errnum, ...)                   (errnum)
+#endif
+#endif
+
 #ifndef assert_log
 #ifndef NDEBUG
 #define assert_log(expr, ...)                   if (!(expr)) __android_assert(::strrchr(__FILE__, '/') + 1, __LINE__, __func__, __VA_ARGS__)
@@ -82,14 +90,6 @@
 #define __check_error2(expr, ...)               if (expr) __android_log_error(errno, __func__, __VA_ARGS__)
 #else
 #define __check_error2(expr, ...)               ((void)0)
-#endif
-#endif
-
-#ifndef __android_check_error
-#ifndef NDEBUG
-#define __android_check_error(errnum, ...)      __android_log_error((errnum), __func__, __VA_ARGS__)
-#else
-#define __android_check_error(errnum, ...)      (errnum)
 #endif
 #endif
 

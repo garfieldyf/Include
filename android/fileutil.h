@@ -311,7 +311,7 @@ __STATIC_INLINE__ int fileAccess(const char* path, int mode)
 #ifndef NDEBUG
     const int errnum = (::access(path, mode) == 0 ? 0 : errno);
     if (errnum != 0 && mode != F_OK)
-        __android_check_error(errnum, "Couldn't access file '%s' mode = %d", path, mode);
+        __verify(errnum, "Couldn't access file '%s' mode = %d", path, mode);
 
     return errnum;
 #else
@@ -322,13 +322,13 @@ __STATIC_INLINE__ int fileAccess(const char* path, int mode)
 __STATIC_INLINE__ int fileStatus(const char* path, struct stat& buf)
 {
     assert(path);
-    return __android_check_error((::lstat(path, &buf) == 0 ? 0 : errno), "Couldn't get file '%s' status", path);
+    return __verify((::lstat(path, &buf) == 0 ? 0 : errno), "Couldn't get file '%s' status", path);
 }
 
 __STATIC_INLINE__ int deleteFile(const char* path)
 {
     assert(path);
-    return __android_check_error((::remove(path) == 0 ? 0 : errno), "Couldn't delete '%s'", path);
+    return __verify((::remove(path) == 0 ? 0 : errno), "Couldn't delete '%s'", path);
 }
 
 static inline int deleteFiles(const char* path)
@@ -389,7 +389,7 @@ __STATIC_INLINE__ int createDirectory(const char* path, uint32_t length, mode_t 
                 // Creates the sub directory, if not exists.
                 if (::access(tempPath, F_OK) != 0 && ::mkdir(tempPath, mode) != 0)
                 {
-                    errnum = __android_check_error(errno, "Couldn't create '%.*s' directory", length, path);
+                    errnum = __verify(errno, "Couldn't create '%.*s' directory", length, path);
                     break;
                 }
 
