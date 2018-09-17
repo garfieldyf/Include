@@ -14,7 +14,7 @@ __BEGIN_DECLS
 STDCEXPORT void Android_grayBitmap(void* pixels, uint32_t width, uint32_t height)
 {
     assert(pixels);
-    __NS::handleBitmap((__NS::Color*)pixels, width, height, [](__NS::Color& color) { color.red = color.green = color.blue = (uint8_t)(0.299f * color.red + 0.587f * color.green + 0.114f * color.blue); });
+    __NS::handleBitmap((__NS::Color*)pixels, width * height, [](__NS::Color& color) { color.red = color.green = color.blue = (uint8_t)(0.299f * color.red + 0.587f * color.green + 0.114f * color.blue); });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@ STDCEXPORT void Android_grayBitmap(void* pixels, uint32_t width, uint32_t height
 STDCEXPORT void Android_inverseBitmap(void* pixels, uint32_t width, uint32_t height)
 {
     assert(pixels);
-    __NS::handleBitmap((__NS::Color*)pixels, width, height, [](__NS::Color& color) { color.setRGB(255 - color.red, 255 - color.green, 255 - color.blue); });
+    __NS::handleBitmap((__NS::Color*)pixels, width * height, [](__NS::Color& color) { color.setRGB(255 - color.red, 255 - color.green, 255 - color.blue); });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -80,7 +80,7 @@ STDCEXPORT void Android_binaryBitmap(void* pixels, uint32_t width, uint32_t heig
     const uint8_t threshold = __NS::computeThreshold(histData, count);
 
     // Calculate binary colors
-    __NS::handleBitmap((__NS::Color*)pixels, width, height, [threshold](__NS::Color& color) { color = (color.green >= threshold ? __NS::Color::WHITE : __NS::Color::BLACK); });
+    __NS::handleBitmap((__NS::Color*)pixels, count, [threshold](__NS::Color& color) { color = (color.green >= threshold ? __NS::Color::WHITE : __NS::Color::BLACK); });
 }
 
 ///////////////////////////////////////////////////////////////////////////////

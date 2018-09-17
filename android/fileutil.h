@@ -406,7 +406,7 @@ __STATIC_INLINE__ int defaultFilter(const struct dirent* entry)
 
 __STATIC_INLINE__ int ignoreHiddenFilter(const struct dirent* entry)
 {
-    // Ignores the hidden files (start with '.').
+    // Ignores the hidden files (start with '.', including '.' and '..').
     return (entry->d_name[0] != '.');
 }
 

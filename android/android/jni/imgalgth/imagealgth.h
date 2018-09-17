@@ -96,18 +96,12 @@ __STATIC_INLINE__ uint8_t computeThreshold(uint32_t (&histData)[256], uint32_t c
 }
 
 template <typename THandler>
-__STATIC_INLINE__ void handleBitmap(Color* colors, uint32_t width, uint32_t height, THandler handler)
+__STATIC_INLINE__ void handleBitmap(Color* colors, uint32_t count, THandler handler)
 {
     assert(colors);
 
-    for (uint32_t i = 0; i < height; ++i)
-    {
-        for (uint32_t j = 0; j < width; ++j)
-            handler(colors[j]);
-
-        // Move to next line.
-        colors += width;
-    }
+    for (uint32_t i = 0; i < count; ++i)
+        handler(colors[i]);
 }
 
 __STATIC_INLINE__ void blurBitmap(Color* colors, ColorF* colorsF, int32_t width, int32_t height, int32_t radius, float* matrix)
