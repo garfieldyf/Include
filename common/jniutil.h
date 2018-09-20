@@ -24,14 +24,14 @@
 // jstring_t
 // jwstring_t
 // jstringRef
-// jintArray_t<t_length>
-// jbyteArray_t<t_length>
-// jcharArray_t<t_length>
-// jlongArray_t<t_length>
-// jshortArray_t<t_length>
-// jfloatArray_t<t_length>
-// jdoubleArray_t<t_length>
-// jbooleanArray_t<t_length>
+// jintArray_t
+// jbyteArray_t
+// jcharArray_t
+// jlongArray_t
+// jshortArray_t
+// jfloatArray_t
+// jdoubleArray_t
+// jbooleanArray_t
 //
 // Global functions in this file:
 //
@@ -93,7 +93,7 @@ public:
     jmethodID getStaticMethodID(const char* methodName, const char* signature) const;
 
 // Data members
-public:
+private:
     JNIEnv* env;
     jclass clazz;
 
@@ -194,38 +194,37 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the _jarray_t class
+// Interface of the jarray_t class
 //
 
-template <typename _Traits, uint32_t t_length>
-class _jarray_t
+template <typename _Ty>
+class jarray_t
 {
-    DECLARE_NONCOPYABLE(_jarray_t);
+    DECLARE_NONCOPYABLE(jarray_t);
 
+// Constructors
 public:
-    typedef typename _Traits::value_type value_type;
-
-// Constructors/Destructor
-public:
-    _jarray_t(JNIEnv* env, jarray array);
-    ~_jarray_t();
+    jarray_t(_Ty* _data, jsize len);
 
 // Operations
 public:
-    value_type* data();
-    const value_type* data() const;
+    _Ty* data();
+    const _Ty* data() const;
 
-    value_type& operator[](uint32_t index);
-    value_type operator[](uint32_t index) const;
+    _Ty& operator[](jsize index);
+    _Ty operator[](jsize index) const;
+
+#ifndef NDEBUG
+    void dump() const;
+#endif
 
 // Attributes
 public:
-    const uint32_t length;
+    const jsize length;
 
 // Data members
 private:
-    value_type* cdata;
-    value_type mdata[t_length];
+    _Ty* mdata;
 };
 
 

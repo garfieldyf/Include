@@ -207,7 +207,7 @@ public:
     int getBitmapInfo(AndroidBitmapInfo& info) const;
 
 // Data members
-public:
+private:
     JNIEnv* env;
     int lockResult;
     jobject bitmap;

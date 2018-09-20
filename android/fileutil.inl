@@ -190,7 +190,12 @@ __INLINE__ bool DirectoryBase::isEmpty() const
     return (mDir == NULL);
 }
 
-__INLINE__ FileHandle DirectoryBase::getFile() const
+__INLINE__ DIR* DirectoryBase::getDir() const
+{
+    return mDir;
+}
+
+__INLINE__ FileHandle DirectoryBase::getDirFile() const
 {
     assert(!isEmpty());
     return FileHandle(::dirfd(mDir));

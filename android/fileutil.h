@@ -149,7 +149,8 @@ public:
 // Attributes
 public:
     bool isEmpty() const;
-    FileHandle getFile() const;
+    DIR* getDir() const;
+    FileHandle getDirFile() const;
 
 // Data members
 protected:
