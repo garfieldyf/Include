@@ -1,4 +1,4 @@
-## GIF lib
+﻿## GIF lib
 src : http://sourceforge.net/projects/giflib/
 doc : http://giflib.sourceforge.net/gif_lib.html
 
@@ -33,6 +33,7 @@ https://lanhuapp.com
 ## android ROM
 android SDK : https://developer.android.google.cn/
 mount -o remount /system
+mount -o rw,remount /system
 adb shell dumpsys meminfo -a tv.fun.children
 D:\Google\android-sdk-windows\platform-tools\hprof-conv E:\hprof\com.tencent.test.hprof E:\hprof\com.tencent.test.android.hprof
 
