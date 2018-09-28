@@ -1,38 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="zxing" basedir="." default="release">
-    <!-- zxing.jar -->
-    <property name="project.name" value="zxing" />
-    <property name="java.package" value="com.google.zxing" />
-    <property name="java.package.path" value="com/google/zxing" />
-    <property name="jar.file.name" value="zxing.jar" />
-
-    <!-- barcode.jar -->
-    <!--
-    <property name="project.name" value="barcode" />
-    <property name="java.package" value="android.barcode" />
-    <property name="java.package.path" value="android/barcode" />
-    <property name="jar.file.name" value="android-barcode.jar" />
-    -->
-
     <!-- properties -->
     <property name="author" value="Garfield" />
     <property name="version" value="3.3.3" />
     <property name="out.dir" value="${basedir}/out" />
     <property name="src.dir" value="${out.dir}/src" />
-    <property name="class.dir" value="${out.dir}/src" />
-    <property name="out.file.name" value="${basedir}/${jar.file.name}" />
+    <property name="class.dir" value="${out.dir}/classes" />
+    <property name="out.file.name" value="${basedir}/zxing.jar" />
+    <property name="source.file.name" value="${basedir}/zxing-sources.jar" />
 
     <!-- target -pre-compile -->
     <target name="-pre-compile">
         <!-- copy the java files -->
-        <copy todir="${src.dir}/${java.package.path}" overwrite="true">
-            <fileset dir="${basedir}/src/com/google/zxing" />
+        <copy todir="${src.dir}" overwrite="true">
+            <fileset dir="${basedir}/src" />
         </copy>
-
-        <!-- replace the package name -->
-        <replace dir="${src.dir}/${java.package.path}" includes="**/*.java" encoding="UTF-8">
-            <replacefilter token="com.google.zxing" value="${java.package}" />
-        </replace>
     </target>
 
     <!-- target -compile -->
@@ -43,6 +25,14 @@
 
         <!-- build jar file -->
         <jar destfile="${out.file.name}" basedir="${class.dir}">
+            <manifest>
+                <attribute name="Built-By" value="${author}" />
+                <attribute name="Version" value="${version}" />
+            </manifest>
+        </jar>
+
+        <!-- build source jar file -->
+        <jar destfile="${source.file.name}" basedir="${src.dir}">
             <manifest>
                 <attribute name="Built-By" value="${author}" />
                 <attribute name="Version" value="${version}" />
@@ -61,11 +51,12 @@
         <echo level="info">Deletes output files...</echo>
         <delete dir="${out.dir}"/>
         <delete file="${out.file.name}"/>
+        <delete file="${source.file.name}"/>
     </target>
 
     <!-- target release -->
     <target name="release" depends="-clean, -pre-compile, -compile, -post-compile">
-        <echo level="info">Builds the ${project.name} package in RELEASE mode.</echo>
+        <echo level="info">Builds the zxing package in RELEASE mode.</echo>
         <echo level="info">Install: ${out.file.name}</echo>
     </target>
 </project>
