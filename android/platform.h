@@ -263,7 +263,7 @@ static inline void CDECL __android_assert(const char* file, int line, const char
 __STATIC_INLINE__ int __android_sdk_version()
 {
     char version[PROP_VALUE_MAX + 1];
-    return (::__system_property_get("ro.build.version.sdk", version) > 0 ? ::strtol(version, NULL, 10) : -1);
+    return (::__system_property_get("ro.build.version.sdk", version) > 0 ? ::strtol(version, NULL, 10) : 0);
 }
 
 static inline const char* __android_build_tag(const char* func, char (&tag)[MAX_PATH])
