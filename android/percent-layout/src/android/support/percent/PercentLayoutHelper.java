@@ -145,7 +145,7 @@ public class PercentLayoutHelper {
             AttributeSet attrs) {
         PercentLayoutInfo info = null;
         TypedArray array = context.obtainStyledAttributes(attrs, PERCENT_LAYOUT_ATTRS);
-        float value = array.getFraction(0 /* R.styleable.PercentLayout_Layout_layout_widthPercent */, 1, 1, -1f);
+        float value = array.getFraction(0 /* R.styleable.PercentLayout_layout_widthPercent */, 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent width: " + value);
@@ -153,7 +153,7 @@ public class PercentLayoutHelper {
             info = info != null ? info : new PercentLayoutInfo();
             info.widthPercent = value;
         }
-        value = array.getFraction(1 /* R.styleable.PercentLayout_Layout_layout_heightPercent */, 1, 1, -1f);
+        value = array.getFraction(1 /* R.styleable.PercentLayout_layout_heightPercent */, 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent height: " + value);
@@ -161,7 +161,7 @@ public class PercentLayoutHelper {
             info = info != null ? info : new PercentLayoutInfo();
             info.heightPercent = value;
         }
-        value = array.getFraction(2 /* R.styleable.PercentLayout_Layout_layout_marginPercent */, 1, 1, -1f);
+        value = array.getFraction(2 /* R.styleable.PercentLayout_layout_marginPercent */, 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent margin: " + value);
@@ -172,7 +172,7 @@ public class PercentLayoutHelper {
             info.rightMarginPercent = value;
             info.bottomMarginPercent = value;
         }
-        value = array.getFraction(3 /* R.styleable.PercentLayout_Layout_layout_marginLeftPercent */, 1, 1, -1f);
+        value = array.getFraction(3 /* R.styleable.PercentLayout_layout_marginLeftPercent */, 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent left margin: " + value);
@@ -180,7 +180,7 @@ public class PercentLayoutHelper {
             info = info != null ? info : new PercentLayoutInfo();
             info.leftMarginPercent = value;
         }
-        value = array.getFraction(4 /* R.styleable.PercentLayout_Layout_layout_marginTopPercent */, 1, 1, -1f);
+        value = array.getFraction(4 /* R.styleable.PercentLayout_layout_marginTopPercent */, 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent top margin: " + value);
@@ -188,7 +188,7 @@ public class PercentLayoutHelper {
             info = info != null ? info : new PercentLayoutInfo();
             info.topMarginPercent = value;
         }
-        value = array.getFraction(5 /* R.styleable.PercentLayout_Layout_layout_marginRightPercent */, 1, 1, -1f);
+        value = array.getFraction(5 /* R.styleable.PercentLayout_layout_marginRightPercent */, 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent right margin: " + value);
@@ -196,7 +196,7 @@ public class PercentLayoutHelper {
             info = info != null ? info : new PercentLayoutInfo();
             info.rightMarginPercent = value;
         }
-        value = array.getFraction(6 /* R.styleable.PercentLayout_Layout_layout_marginBottomPercent */, 1, 1, -1f);
+        value = array.getFraction(6 /* R.styleable.PercentLayout_layout_marginBottomPercent */, 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent bottom margin: " + value);
@@ -204,7 +204,7 @@ public class PercentLayoutHelper {
             info = info != null ? info : new PercentLayoutInfo();
             info.bottomMarginPercent = value;
         }
-        value = array.getFraction(7 /* R.styleable.PercentLayout_Layout_layout_marginStartPercent */, 1, 1, -1f);
+        value = array.getFraction(7 /* R.styleable.PercentLayout_layout_marginStartPercent */, 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent start margin: " + value);
@@ -212,7 +212,7 @@ public class PercentLayoutHelper {
             info = info != null ? info : new PercentLayoutInfo();
             info.startMarginPercent = value;
         }
-        value = array.getFraction(8 /* R.styleable.PercentLayout_Layout_layout_marginEndPercent */, 1, 1, -1f);
+        value = array.getFraction(8 /* R.styleable.PercentLayout_layout_marginEndPercent */, 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent end margin: " + value);
@@ -221,7 +221,7 @@ public class PercentLayoutHelper {
             info.endMarginPercent = value;
         }
 
-        value = array.getFraction(9 /* R.styleable.PercentLayout_Layout_layout_aspectRatio */, 1, 1, -1f);
+        value = array.getFraction(9 /* R.styleable.PercentLayout_layout_aspectRatio */, 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "aspect ratio: " + value);
@@ -572,7 +572,7 @@ public class PercentLayoutHelper {
      * <tr><td><tt>layout_marginEndPercent</tt></td><td>fraction</td><td>8</td></tr>
      * <tr><td><tt>layout_aspectRatio</tt></td><td>fraction</td><td>9</td></tr>
      * </table></p>
-     * @param attrs The <tt>R.styleable.PercentLayout_Layout</tt> styleable, as generated by the aapt tool.
+     * @param attrs The <tt>R.styleable.PercentLayout</tt> styleable, as generated by the aapt tool.
      */
     public static void initAttrs(int[] attrs) {
         PERCENT_LAYOUT_ATTRS = attrs;
