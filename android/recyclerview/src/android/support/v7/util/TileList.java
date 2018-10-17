@@ -89,6 +89,7 @@ class TileList<T> {
         public int mItemCount;
         Tile<T> mNext;  // Used only for pooling recycled tiles.
 
+        @SuppressWarnings("unchecked")
         public Tile(Class<T> klass, int size) {
             //noinspection unchecked
             mItems = (T[]) Array.newInstance(klass, size);

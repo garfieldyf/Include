@@ -244,7 +244,6 @@ public abstract class SnapHelper extends RecyclerView.OnFlingListener {
      * @return the output coordinates the put the result into. out[0] is the distance
      * on horizontal axis and out[1] is the distance on vertical axis.
      */
-    @SuppressWarnings("WeakerAccess")
     @Nullable
     public abstract int[] calculateDistanceToFinalSnap(@NonNull LayoutManager layoutManager,
             @NonNull View targetView);
@@ -264,7 +263,6 @@ public abstract class SnapHelper extends RecyclerView.OnFlingListener {
      *
      * @return the target view to which to snap on fling or end of scroll
      */
-    @SuppressWarnings("WeakerAccess")
     @Nullable
     public abstract View findSnapView(LayoutManager layoutManager);
 

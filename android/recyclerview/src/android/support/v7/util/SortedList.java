@@ -33,7 +33,7 @@ import java.util.Comparator;
  * <p>
  * You can control the order of items and change notifications via the {@link Callback} parameter.
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class SortedList<T> {
 
     /**

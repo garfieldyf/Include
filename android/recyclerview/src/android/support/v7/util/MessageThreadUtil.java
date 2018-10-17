@@ -58,6 +58,7 @@ class MessageThreadUtil<T> implements ThreadUtil<T> {
 
             private Runnable mMainThreadRunnable = new Runnable() {
                 @Override
+                @SuppressWarnings("unchecked")
                 public void run() {
                     SyncQueueItem msg = mQueue.next();
                     while (msg != null) {
@@ -134,6 +135,7 @@ class MessageThreadUtil<T> implements ThreadUtil<T> {
 
             private Runnable mBackgroundRunnable = new Runnable() {
                 @Override
+                @SuppressWarnings("unchecked")
                 public void run() {
                     while (true) {
                         SyncQueueItem msg = mQueue.next();
@@ -176,7 +178,7 @@ class MessageThreadUtil<T> implements ThreadUtil<T> {
 
         private static SyncQueueItem sPool;
         private static final Object sPoolLock = new Object();
-        private SyncQueueItem next;
+        /* package */ SyncQueueItem next;
         public int what;
         public int arg1;
         public int arg2;

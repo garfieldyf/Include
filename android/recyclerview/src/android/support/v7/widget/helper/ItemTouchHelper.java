@@ -18,7 +18,6 @@ package android.support.v7.widget.helper;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;
-import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Build;
@@ -1347,7 +1346,6 @@ public class ItemTouchHelper extends RecyclerView.ItemDecoration
      * {@link #onSwiped(ViewHolder, int)}. At this point, you should update your
      * adapter (e.g. remove the item) and call related Adapter#notify event.
      */
-    @SuppressWarnings("UnusedParameters")
     public abstract static class Callback {
 
         public static final int DEFAULT_DRAG_ANIMATION_DURATION = 200;

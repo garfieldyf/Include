@@ -23,6 +23,7 @@ import android.support.v7.widget.RecyclerView;
  * A {@link SortedList.Callback} implementation that can bind a {@link SortedList} to a
  * {@link RecyclerView.Adapter}.
  */
+@SuppressWarnings("rawtypes")
 public abstract class SortedListAdapterCallback<T2> extends SortedList.Callback<T2> {
 
     final RecyclerView.Adapter mAdapter;

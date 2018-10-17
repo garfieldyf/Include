@@ -71,7 +71,6 @@ public class StaggeredGridLayoutManager extends RecyclerView.LayoutManager imple
     /**
      * @deprecated No longer supported.
      */
-    @SuppressWarnings("unused")
     @Deprecated
     public static final int GAP_HANDLING_LAZY = 1;
 
@@ -227,7 +226,6 @@ public class StaggeredGridLayoutManager extends RecyclerView.LayoutManager imple
      * Constructor used when layout manager is set in XML by RecyclerView attribute
      * "layoutManager". Defaults to single column and vertical.
      */
-    @SuppressWarnings("unused")
     public StaggeredGridLayoutManager(Context context, AttributeSet attrs, int defStyleAttr,
             int defStyleRes) {
         Properties properties = getProperties(context, attrs, defStyleAttr, defStyleRes);
@@ -2206,7 +2204,6 @@ public class StaggeredGridLayoutManager extends RecyclerView.LayoutManager imple
         return 0;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public RecyclerView.LayoutParams generateDefaultLayoutParams() {
         if (mOrientation == HORIZONTAL) {
@@ -3123,6 +3120,7 @@ public class StaggeredGridLayoutManager extends RecyclerView.LayoutManager imple
         public SavedState() {
         }
 
+        @SuppressWarnings("unchecked")
         SavedState(Parcel in) {
             mAnchorPosition = in.readInt();
             mVisibleAnchorPosition = in.readInt();

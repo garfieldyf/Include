@@ -655,6 +655,7 @@ public class DiffUtil {
          * @param adapter A RecyclerView adapter which was displaying the old list and will start
          *                displaying the new list.
          */
+        @SuppressWarnings("rawtypes")
         public void dispatchUpdatesTo(final RecyclerView.Adapter adapter) {
             dispatchUpdatesTo(new ListUpdateCallback() {
                 @Override
