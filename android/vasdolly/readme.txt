@@ -1,8 +1,7 @@
-﻿ ### VasDolly命令行
+﻿ VasDolly 命令行
  java -jar vasdolly-channel.jar help
 
  目前支持以下操作：
-
  ### 获取指定APK的签名方式
  java -jar vasdolly-channel.jar get -s /home/user/test.apk
 
@@ -23,3 +22,6 @@
 
  ### 提供了FastMode，生成渠道包时不进行强校验，速度可提升10倍以上
  java -jar vasdolly-channel.jar put -c channel.txt -f /home/user/base.apk /home/user/
+
+ 程序中获取 channel (使用 vasdolly.jar 文件)
+ String channel = ChannelReaderUtil.getChannel(context);
