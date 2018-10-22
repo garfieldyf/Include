@@ -2,7 +2,8 @@
 /android/libs/x86
 /android/libs/x86_64
 /android/libs/arm64-v8a
-/android/internal/android-sdk-internal.jar
-/android/recyclerview/*.jar
+/android/internal/*.jar
 /android/zxing/*.jar
+/android/vasdolly/*.jar
+/android/recyclerview/*.jar
 /android/percent-layout/*.jar

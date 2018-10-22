@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="vasdolly" basedir="." default="release">
+    <!-- properties -->
+    <property name="author" value="leontli" />
+    <property name="version" value="2.0.1" />
+    <property name="out.dir" value="${basedir}/out" />
+    <property name="src.dir" value="${out.dir}/src" />
+    <property name="class.dir" value="${out.dir}/classes" />
+    <property name="out.file.name" value="${basedir}/vasdolly.jar" />
+    <property name="cmd.file.name" value="${basedir}/vasdolly-channel.jar" />
+    <property name="source.file.name" value="${basedir}/vasdolly-sources.jar" />
+
+    <property name="api.level" value="22" />
+    <property name="sdk.version" value="Android 5.1.1 (API ${api.level})" />
+    <property name="sdk.dir" value="D:\Google\android-sdk-windows" />
+    <property name="apksigner.jar.path" value="${sdk.dir}/build-tools/25.0.3/lib/apksigner.jar" />
+    <property name="android.jar.path" value="${sdk.dir}/platforms/android-${api.level}/android.jar" />
+
+    <!-- target -pre-compile -->
+    <target name="-pre-compile">
+        <!-- copy the java files -->
+        <copy todir="${src.dir}" overwrite="true">
+            <fileset dir="${basedir}/src" />
+        </copy>
+    </target>
+
+    <!-- target -compile -->
+    <target name="-compile">
+        <!-- compile java files -->
+        <mkdir dir="${class.dir}" />
+        <javac srcdir="${src.dir}" destdir="${class.dir}" debug="true" encoding="UTF-8" source="1.7" target="1.7" includeAntRuntime="false" includeJavaRuntime="false"
+            classpath="${android.jar.path};${apksigner.jar.path}" />
+
+        <!-- build vasdolly-channel jar file -->
+        <jar destfile="${cmd.file.name}" basedir="${class.dir}">
+			<zipfileset src="${apksigner.jar.path}" />
+            <manifest>
+                <attribute name="Built-By" value="${author}" />
+                <attribute name="Version" value="${version}" />
+                <attribute name="Main-Class" value="com.leon.channel.command.Main" />
+            </manifest>
+        </jar>
+
+        <!-- build vasdolly jar file -->
+        <jar destfile="${out.file.name}">
+            <fileset dir="${class.dir}">
+                <exclude name="com/leon/channel/command/**" />
+                <exclude name="com/leon/channel/verify/**" />
+                <exclude name="com/leon/channel/writer/**" />
+            </fileset>
+
+            <manifest>
+                <attribute name="Built-By" value="${author}" />
+                <attribute name="Version" value="${version}" />
+                <attribute name="SDK-Version" value="${sdk.version}" />
+            </manifest>
+        </jar>
+
+        <!-- build vasdolly-source jar file -->
+        <jar destfile="${source.file.name}">
+            <fileset dir="${src.dir}">
+                <exclude name="com/leon/channel/command/**" />
+                <exclude name="com/leon/channel/verify/**" />
+                <exclude name="com/leon/channel/writer/**" />
+            </fileset>
+
+            <manifest>
+                <attribute name="Built-By" value="${author}" />
+                <attribute name="Version" value="${version}" />
+                <attribute name="SDK-Version" value="${sdk.version}" />
+            </manifest>
+        </jar>
+    </target>
+
+    <!-- target -post-compile -->
+    <target name="-post-compile">
+        <echo level="info">Deletes temp files...</echo>
+        <delete dir="${out.dir}"/>
+    </target>
+
+    <!-- target -clean -->
+    <target name="-clean">
+        <echo level="info">Deletes output files...</echo>
+        <delete dir="${out.dir}"/>
+        <delete file="${cmd.file.name}"/>
+        <delete file="${out.file.name}"/>
+        <delete file="${source.file.name}"/>
+    </target>
+
+    <!-- target release -->
+    <target name="release" depends="-clean, -pre-compile, -compile, -post-compile">
+        <echo level="info">Builds the vasdolly package in RELEASE mode.</echo>
+        <echo level="info">Install: ${out.file.name}</echo>
+        <echo level="info">Install: ${cmd.file.name}</echo>
+    </target>
+</project>
