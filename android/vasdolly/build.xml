@@ -6,9 +6,9 @@
     <property name="out.dir" value="${basedir}/out" />
     <property name="src.dir" value="${out.dir}/src" />
     <property name="class.dir" value="${out.dir}/classes" />
-    <property name="out.file.name" value="${basedir}/vasdolly.jar" />
-    <property name="cmd.file.name" value="${basedir}/vasdolly-channel.jar" />
-    <property name="source.file.name" value="${basedir}/vasdolly-sources.jar" />
+    <property name="out.cmd.file.name" value="${basedir}/vasdolly.jar" />
+    <property name="out.file.name" value="${basedir}/vasdolly-channel.jar" />
+    <property name="source.file.name" value="${basedir}/vasdolly-channel-sources.jar" />
 
     <property name="api.level" value="22" />
     <property name="sdk.version" value="Android 5.1.1 (API ${api.level})" />
@@ -31,9 +31,13 @@
         <javac srcdir="${src.dir}" destdir="${class.dir}" debug="true" encoding="UTF-8" source="1.7" target="1.7" includeAntRuntime="false" includeJavaRuntime="false"
             classpath="${android.jar.path};${apksigner.jar.path}" />
 
-        <!-- build vasdolly-channel jar file -->
-        <jar destfile="${cmd.file.name}" basedir="${class.dir}">
-			<zipfileset src="${apksigner.jar.path}" />
+        <!-- build vasdolly jar file -->
+        <jar destfile="${out.cmd.file.name}">
+            <zipfileset src="${apksigner.jar.path}" excludes="com/android/apksigner/**" />
+            <fileset dir="${class.dir}">
+                <exclude name="com/leon/channel/helper/**" />
+            </fileset>
+
             <manifest>
                 <attribute name="Built-By" value="${author}" />
                 <attribute name="Version" value="${version}" />
@@ -41,12 +45,12 @@
             </manifest>
         </jar>
 
-        <!-- build vasdolly jar file -->
+        <!-- build vasdolly-channel jar file -->
         <jar destfile="${out.file.name}">
             <fileset dir="${class.dir}">
-                <exclude name="com/leon/channel/command/**" />
-                <exclude name="com/leon/channel/verify/**" />
                 <exclude name="com/leon/channel/writer/**" />
+                <exclude name="com/leon/channel/verify/**" />
+                <exclude name="com/leon/channel/command/**" />
             </fileset>
 
             <manifest>
@@ -56,12 +60,12 @@
             </manifest>
         </jar>
 
-        <!-- build vasdolly-source jar file -->
+        <!-- build vasdolly-channel-source jar file -->
         <jar destfile="${source.file.name}">
             <fileset dir="${src.dir}">
-                <exclude name="com/leon/channel/command/**" />
-                <exclude name="com/leon/channel/verify/**" />
                 <exclude name="com/leon/channel/writer/**" />
+                <exclude name="com/leon/channel/verify/**" />
+                <exclude name="com/leon/channel/command/**" />
             </fileset>
 
             <manifest>
@@ -82,15 +86,15 @@
     <target name="-clean">
         <echo level="info">Deletes output files...</echo>
         <delete dir="${out.dir}"/>
-        <delete file="${cmd.file.name}"/>
         <delete file="${out.file.name}"/>
         <delete file="${source.file.name}"/>
+        <delete file="${out.cmd.file.name}"/>
     </target>
 
     <!-- target release -->
     <target name="release" depends="-clean, -pre-compile, -compile, -post-compile">
         <echo level="info">Builds the vasdolly package in RELEASE mode.</echo>
+        <echo level="info">Install: ${out.cmd.file.name}</echo>
         <echo level="info">Install: ${out.file.name}</echo>
-        <echo level="info">Install: ${cmd.file.name}</echo>
     </target>
 </project>
