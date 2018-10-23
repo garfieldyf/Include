@@ -5,20 +5,11 @@ doc : http://giflib.sourceforge.net/gif_lib.html
 ## regex
 doc : http://pubs.opengroup.org/onlinepubs/000095399/functions/regcomp.html
 
-## blur bitmap
-git : https://github.com/kikoso/android-stackblur
-
 ## zxing
 git : https://github.com/zxing/zxing.git
 
-## zxing-cpp
-git : https://github.com/glassechidna/zxing-cpp.git
-
-## android-open-project
-git : https://github.com/Trinea/android-open-project
-
-## android-utilities
-git : https://github.com/garfield-git/android-utilities.git
+## vasdolly
+git : https://github.com/Tencent/VasDolly.git
 
 ## android sdk proxy
 mirrors.opencas.cn
@@ -65,8 +56,8 @@ make update-api
 
 ## /system rw
 mount -o remount /system
+mount -o rw,remount /system
 
 ## Android.mk 引用 library 工程编译
 1.在引入的工程下project.properties文件中是否有这句话  android.library=true 没有就添加。
 2.在自己的工程目录下 project.properties 是否有 android.library.reference.1=../Library/TopAndroid  目录一定要写对
-
