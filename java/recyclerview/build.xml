@@ -11,9 +11,9 @@
 
     <property name="api.level" value="22" />
     <property name="sdk.version" value="Android 5.1.1 (API ${api.level})" />
-    <property name="sdk.dir" value="D:\Google\android-sdk-windows" />
+    <property name="sdk.dir" value="D:/Google/android-sdk-windows" />
     <property name="android.jar.path" value="${sdk.dir}/platforms/android-${api.level}/android.jar" />
-    <property name="support.v4.jar.path" value="${sdk.dir}/sources/support-v4/android-support-v4.jar" />
+    <property name="support.v4.jar.path" value="${basedir}/../support-v4/android-support-v4.jar" />
     <property name="annotations.jar.path" value="${sdk.dir}/extras/android/m2repository/com/android/support/support-annotations/${version}/support-annotations-${version}.jar" />
 
     <!-- target -pre-compile -->
