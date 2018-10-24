@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="android-internal" basedir="." default="release">
     <!-- properties -->
+    <property environment="env" />
     <property name="author" value="Garfield" />
     <property name="out.dir" value="${basedir}/out" />
     <property name="src.dir" value="${out.dir}/src" />
@@ -8,8 +9,8 @@
     <property name="out.file.name" value="${basedir}/android-sdk-internal.jar" />
 
     <property name="api.level" value="22" />
+    <property name="sdk.dir" value="${env.ANDROID_HOME}" />
     <property name="sdk.version" value="Android 5.1.1 (API ${api.level})" />
-    <property name="sdk.dir" value="D:/Google/android-sdk-windows" />
     <property name="android.jar.path" value="${sdk.dir}/platforms/android-${api.level}/android.jar" />
 
     <!-- target -pre-compile -->
