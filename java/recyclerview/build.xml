@@ -13,7 +13,8 @@
     <property name="sdk.version" value="Android 5.1.1 (API ${api.level})" />
     <property name="sdk.dir" value="D:\Google\android-sdk-windows" />
     <property name="android.jar.path" value="${sdk.dir}/platforms/android-${api.level}/android.jar" />
-    <property name="support.v4.jar.path" value="${sdk.dir}/extras/android/support/v7/appcompat/libs/android-support-v4.jar" />
+    <property name="support.v4.jar.path" value="${sdk.dir}/sources/support-v4/android-support-v4.jar" />
+    <property name="annotations.jar.path" value="${sdk.dir}/extras/android/m2repository/com/android/support/support-annotations/${version}/support-annotations-${version}.jar" />
 
     <!-- target -pre-compile -->
     <target name="-pre-compile">
@@ -28,7 +29,7 @@
         <!-- compile java files -->
         <mkdir dir="${class.dir}" />
         <javac srcdir="${src.dir}" destdir="${class.dir}" debug="true" source="1.7" target="1.7" includeAntRuntime="false" includeJavaRuntime="false"
-            classpath="${android.jar.path};${support.v4.jar.path}" />
+            classpath="${android.jar.path};${support.v4.jar.path};${annotations.jar.path}" />
 
         <!-- build jar file -->
         <jar destfile="${out.file.name}" basedir="${class.dir}">
