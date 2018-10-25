@@ -54,6 +54,10 @@ Arguments : -p -s -classpath D:\Google\android-sdk-windows\platforms\android-22\
 lunch aosp_arbutus-userdebug
 make update-api
 
+## dump AndroidManifest.xml
+D:\Google\android-sdk-windows\build-tools\25.0.3\aapt dump badging E:\TVMaster\TVMaster-2.0.0.0-for-dangbei.apk
+D:\Google\android-sdk-windows\build-tools\25.0.3\aapt dump xmltree E:\TVMaster\TVMaster-2.0.0.0-for-dangbei.apk AndroidManifest.xml
+
 ## /system rw
 mount -o remount /system
 mount -o rw,remount /system
