@@ -52,7 +52,7 @@ public final class Code93Reader extends OneDReader {
       0x12E, 0x1D4, 0x1D2, 0x1CA, 0x16E, 0x176, 0x1AE, // - - %
       0x126, 0x1DA, 0x1D6, 0x132, 0x15E, // Control chars? $-*
   };
-  private static final int ASTERISK_ENCODING = CHARACTER_ENCODINGS[47];
+  static final int ASTERISK_ENCODING = CHARACTER_ENCODINGS[47];
 
   private final StringBuilder decodeRowResult;
   private final int[] counters;
@@ -232,11 +232,20 @@ public final class Code93Reader extends OneDReader {
             } else if (next >= 'K' && next <= 'O') {
               // %K to %O map to [ \ ] ^ _
               decodedChar = (char) (next + 16);
-            } else if (next >= 'P' && next <= 'S') {
-              // %P to %S map to { | } ~
+            } else if (next >= 'P' && next <= 'T') {
+              // %P to %T map to { | } ~ DEL
               decodedChar = (char) (next + 43);
-            } else if (next >= 'T' && next <= 'Z') {
-              // %T to %Z all map to DEL (127)
+            } else if (next == 'U') {
+              // %U map to NUL
+              decodedChar = '\0';
+            } else if (next == 'V') {
+              // %V map to @
+              decodedChar = '@';
+            } else if (next == 'W') {
+              // %W map to `
+              decodedChar = '`';
+            } else if (next >= 'X' && next <= 'Z') {
+              // %X to %Z all map to DEL (127)
               decodedChar = 127;
             } else {
               throw FormatException.getFormatInstance();
