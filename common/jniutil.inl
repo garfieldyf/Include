@@ -28,7 +28,8 @@ public: \
         : jarray_t(_env->Get##_jname##ArrayElements(_array, NULL), _env->GetArrayLength(_array)), env(_env), array(_array) \
         { assert(_array); } \
     ~_jtype##Array_t() \
-        { LOGD("Release " #_jtype "Array elements - { data = %p, length = %d }\n", this->data(), this->length); env->Release##_jname##ArrayElements(array, this->data(), 0); } \
+        { LOGD("Release " #_jtype "Array elements - { data = %p, length = %d }\n", this->data(), this->length); \
+          env->Release##_jname##ArrayElements(array, this->data(), 0); } \
 private: \
     JNIEnv* env; \
     _jtype##Array array; \
