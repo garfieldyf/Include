@@ -20,138 +20,6 @@
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the pool class
-//
-
-template <typename _Ty>
-__INLINE__ pool<_Ty>::pool()
-{
-}
-
-template <typename _Ty>
-__INLINE__ pool<_Ty>::~pool()
-{
-    clear();
-}
-
-template <typename _Ty>
-__INLINE__ typename pool<_Ty>::pointer pool<_Ty>::obtain()
-{
-    pointer _Val = NULL;
-    if (_Cont.empty()) {
-        _Val = new _Ty;
-    } else {
-        _Val = _Cont.front();
-        _Cont.pop_front();
-    }
-
-    return _Val;
-}
-
-template <typename _Ty>
-__INLINE__ void pool<_Ty>::clear()
-{
-    for (iterator _First = _Cont.begin(), _Last = _Cont.end(); _First != _Last; ++_First)
-        delete (*_First);
-
-    _Cont.clear();
-}
-
-template <typename _Ty>
-__INLINE__ void pool<_Ty>::recycle(pointer _Val)
-{
-    assert(_Val);
-    _Cont.push_front(_Val);
-}
-
-template <typename _Ty>
-__INLINE__ bool pool<_Ty>::empty() const
-{
-    return _Cont.empty();
-}
-
-template <typename _Ty>
-__INLINE__ typename pool<_Ty>::size_type pool<_Ty>::size() const
-{
-    return _Cont.size();
-}
-
-
-#if defined(__ATLSYNC_H__) || defined(__SYSUTILS_H__)
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the synchronized_pool class
-//
-
-template <typename _Container>
-__INLINE__ synchronized_pool<_Container>::synchronized_pool()
-{
-}
-
-template <typename _Container>
-__INLINE__ typename synchronized_pool<_Container>::pointer synchronized_pool<_Container>::obtain()
-{
-#ifdef WINVER
-    ATL::CCritSecLock lock(_CritSec);
-#else
-    __NS::MutexLock lock(_Mutex);
-#endif  // WINVER
-
-    return _Cont.obtain();
-}
-
-template <typename _Container>
-__INLINE__ void synchronized_pool<_Container>::clear()
-{
-#ifdef WINVER
-    ATL::CCritSecLock lock(_CritSec);
-#else
-    __NS::MutexLock lock(_Mutex);
-#endif  // WINVER
-
-    _Cont.clear();
-}
-
-template <typename _Container>
-__INLINE__ void synchronized_pool<_Container>::recycle(pointer _Val)
-{
-    assert(_Val);
-
-#ifdef WINVER
-    ATL::CCritSecLock lock(_CritSec);
-#else
-    __NS::MutexLock lock(_Mutex);
-#endif  // WINVER
-
-    _Cont.recycle(_Val);
-}
-
-template <typename _Container>
-__INLINE__ bool synchronized_pool<_Container>::empty() const
-{
-#ifdef WINVER
-    ATL::CCritSecLock lock(_CritSec);
-#else
-    __NS::MutexLock lock(_Mutex);
-#endif  // WINVER
-
-    return _Cont.empty();
-}
-
-template <typename _Container>
-__INLINE__ typename synchronized_pool<_Container>::size_type synchronized_pool<_Container>::size() const
-{
-#ifdef WINVER
-    ATL::CCritSecLock lock(_CritSec);
-#else
-    __NS::MutexLock lock(_Mutex);
-#endif  // WINVER
-
-    return _Cont.size();
-}
-#endif  // defined(__ATLSYNC_H__) || defined(__SYSUTILS_H__)
-
-
-///////////////////////////////////////////////////////////////////////////////
 // Implementation of the _Priority_base class
 //
 
@@ -161,7 +29,7 @@ __INLINE__ _Priority_base<_Ty, _Comparator>::_Priority_base()
 }
 
 template <typename _Ty, typename _Comparator>
-__INLINE__ typename _Priority_base<_Ty, _Comparator>::const_iterator _Priority_base<_Ty, _Comparator>::find(const_reference _Val) const
+__INLINE__ typename _Priority_base<_Ty, _Comparator>::const_iterator _Priority_base<_Ty, _Comparator>::find(const value_type& _Val) const
 {
     const_iterator _Last  = this->end();
     const_iterator _Where = std::lower_bound(this->begin(), _Last, _Val, comp);
@@ -170,7 +38,7 @@ __INLINE__ typename _Priority_base<_Ty, _Comparator>::const_iterator _Priority_b
 }
 
 template <typename _Ty, typename _Comparator>
-__INLINE__ typename _Priority_base<_Ty, _Comparator>::iterator _Priority_base<_Ty, _Comparator>::remove(const_reference _Val)
+__INLINE__ typename _Priority_base<_Ty, _Comparator>::iterator _Priority_base<_Ty, _Comparator>::remove(const value_type& _Val)
 {
     iterator _Last  = this->end();
     iterator _Where = std::lower_bound(this->begin(), _Last, _Val, comp);
@@ -179,7 +47,7 @@ __INLINE__ typename _Priority_base<_Ty, _Comparator>::iterator _Priority_base<_T
 }
 
 template <typename _Ty, typename _Comparator>
-__INLINE__ typename _Priority_base<_Ty, _Comparator>::size_type _Priority_base<_Ty, _Comparator>::remove_n(const_reference _Val)
+__INLINE__ typename _Priority_base<_Ty, _Comparator>::size_type _Priority_base<_Ty, _Comparator>::remove_n(const value_type& _Val)
 {
     size_type _Count = 0;
     for (iterator _Where = this->begin(); (_Where = std::lower_bound(_Where, this->end(), _Val, comp)) != this->end() && !comp(_Val, *_Where); )
@@ -199,7 +67,13 @@ __INLINE__ priority_queue<_Ty, _Comparator>::priority_queue()
 }
 
 template <typename _Ty, typename _Comparator>
-__INLINE__ void priority_queue<_Ty, _Comparator>::push(const_reference _Val)
+__INLINE__ void priority_queue<_Ty, _Comparator>::push(const value_type& _Val)
+{
+    insert(std::upper_bound(this->begin(), this->end(), _Val, this->comp), _Val);
+}
+
+template <typename _Ty, typename _Comparator>
+__INLINE__ void priority_queue<_Ty, _Comparator>::push(value_type&& _Val)
 {
     insert(std::upper_bound(this->begin(), this->end(), _Val, this->comp), _Val);
 }
@@ -215,7 +89,13 @@ __INLINE__ priority_stack<_Ty, _Comparator>::priority_stack()
 }
 
 template <typename _Ty, typename _Comparator>
-__INLINE__ void priority_stack<_Ty, _Comparator>::push(const_reference _Val)
+__INLINE__ void priority_stack<_Ty, _Comparator>::push(const value_type& _Val)
+{
+    insert(std::lower_bound(this->begin(), this->end(), _Val, this->comp), _Val);
+}
+
+template <typename _Ty, typename _Comparator>
+__INLINE__ void priority_stack<_Ty, _Comparator>::push(value_type&& _Val)
 {
     insert(std::lower_bound(this->begin(), this->end(), _Val, this->comp), _Val);
 }
@@ -261,7 +141,7 @@ __INLINE__ _Blocking_deque<_Ty, _Container>::_Blocking_deque()
 }
 
 template <typename _Ty, typename _Container>
-__INLINE__ void _Blocking_deque<_Ty, _Container>::push_front(const_reference _Val)
+__INLINE__ void _Blocking_deque<_Ty, _Container>::push_front(const value_type& _Val)
 {
 #ifdef WINVER
 #ifdef _ATL_NEW_BLOCKING_DEQUE
@@ -283,7 +163,29 @@ __INLINE__ void _Blocking_deque<_Ty, _Container>::push_front(const_reference _Va
 }
 
 template <typename _Ty, typename _Container>
-__INLINE__ void _Blocking_deque<_Ty, _Container>::push_back(const_reference _Val)
+__INLINE__ void _Blocking_deque<_Ty, _Container>::push_front(value_type&& _Val)
+{
+#ifdef WINVER
+#ifdef _ATL_NEW_BLOCKING_DEQUE
+    atlutil::CExclusiveSRWLock lock(_SRWLock);
+    _Cont.push_front(_Val);
+    _CondVar.Wake();
+#else
+    ATL::CCritSecLock lock(_CritSec);
+    _Cont.push_front(_Val);
+
+    ATLASSERT(_Event.m_h);
+    ATLVERIFY(_Event.Set());
+#endif  // _ATL_NEW_BLOCKING_DEQUE
+#else
+    __NS::MutexLock lock(_Mutex);
+    _Cont.push_front(_Val);
+    _Condition.notify();
+#endif  // WINVER
+}
+
+template <typename _Ty, typename _Container>
+__INLINE__ void _Blocking_deque<_Ty, _Container>::push_back(const value_type& _Val)
 {
 #ifdef WINVER
 #ifdef _ATL_NEW_BLOCKING_DEQUE
@@ -305,7 +207,29 @@ __INLINE__ void _Blocking_deque<_Ty, _Container>::push_back(const_reference _Val
 }
 
 template <typename _Ty, typename _Container>
-__INLINE__ bool _Blocking_deque<_Ty, _Container>::find(const_reference _Val) const
+__INLINE__ void _Blocking_deque<_Ty, _Container>::push_back(value_type&& _Val)
+{
+#ifdef WINVER
+#ifdef _ATL_NEW_BLOCKING_DEQUE
+    atlutil::CExclusiveSRWLock lock(_SRWLock);
+    _Cont.push_back(_Val);
+    _CondVar.Wake();
+#else
+    ATL::CCritSecLock lock(_CritSec);
+    _Cont.push_back(_Val);
+
+    ATLASSERT(_Event.m_h);
+    ATLVERIFY(_Event.Set());
+#endif  // _ATL_NEW_BLOCKING_DEQUE
+#else
+    __NS::MutexLock lock(_Mutex);
+    _Cont.push_back(_Val);
+    _Condition.notify();
+#endif  // WINVER
+}
+
+template <typename _Ty, typename _Container>
+__INLINE__ bool _Blocking_deque<_Ty, _Container>::find(const value_type& _Val) const
 {
 #ifdef WINVER
 #ifdef _ATL_NEW_BLOCKING_DEQUE
@@ -337,7 +261,7 @@ __INLINE__ bool _Blocking_deque<_Ty, _Container>::find(_Pr _Pred) const
 }
 
 template <typename _Ty, typename _Container>
-__INLINE__ int _Blocking_deque<_Ty, _Container>::pop_front(reference _Val, unsigned _Timeout/* = INFINITE*/)
+__INLINE__ int _Blocking_deque<_Ty, _Container>::pop_front(value_type& _Val, unsigned _Timeout/* = INFINITE*/)
 {
 #ifdef WINVER
 #ifdef _ATL_NEW_BLOCKING_DEQUE
@@ -351,7 +275,7 @@ __INLINE__ int _Blocking_deque<_Ty, _Container>::pop_front(reference _Val, unsig
     // Popup the first element of the container, if wait successful.
     if (_Result)
     {
-        _Val = _Cont.front();
+        _Val = std::move(_Cont.front());
         _Cont.pop_front();
     }
 #else
@@ -363,7 +287,7 @@ __INLINE__ int _Blocking_deque<_Ty, _Container>::pop_front(reference _Val, unsig
     {
         // Popup the first element of the container, if wait successful.
         ATL::CCritSecLock lock(_CritSec);
-        _Val = _Cont.front();
+        _Val = std::move(_Cont.front());
         _Cont.pop_front();
 
         // Set the event to signaled, if container is not empty.
@@ -382,7 +306,7 @@ __INLINE__ int _Blocking_deque<_Ty, _Container>::pop_front(reference _Val, unsig
     // Popup the first element of the container, if wait successful.
     if (_Result == 0)
     {
-        _Val = _Cont.front();
+        _Val = std::move(_Cont.front());
         _Cont.pop_front();
     }
 #endif  // WINVER
@@ -391,7 +315,7 @@ __INLINE__ int _Blocking_deque<_Ty, _Container>::pop_front(reference _Val, unsig
 }
 
 template <typename _Ty, typename _Container>
-__INLINE__ int _Blocking_deque<_Ty, _Container>::pop_back(reference _Val, unsigned _Timeout/* = INFINITE*/)
+__INLINE__ int _Blocking_deque<_Ty, _Container>::pop_back(value_type& _Val, unsigned _Timeout/* = INFINITE*/)
 {
 #ifdef WINVER
 #ifdef _ATL_NEW_BLOCKING_DEQUE
@@ -405,7 +329,7 @@ __INLINE__ int _Blocking_deque<_Ty, _Container>::pop_back(reference _Val, unsign
     // Popup the last element of the container, if wait successful.
     if (_Result)
     {
-        _Val = _Cont.back();
+        _Val = std::move(_Cont.back());
         _Cont.pop_back();
     }
 #else
@@ -417,7 +341,7 @@ __INLINE__ int _Blocking_deque<_Ty, _Container>::pop_back(reference _Val, unsign
     {
         // Popup the last element of the container, if wait successful.
         ATL::CCritSecLock lock(_CritSec);
-        _Val = _Cont.back();
+        _Val = std::move(_Cont.back());
         _Cont.pop_back();
 
         // Set the event to signaled, if container is not empty.
@@ -436,7 +360,7 @@ __INLINE__ int _Blocking_deque<_Ty, _Container>::pop_back(reference _Val, unsign
     // Popup the last element of the container, if wait successful.
     if (_Result == 0)
     {
-        _Val = _Cont.back();
+        _Val = std::move(_Cont.back());
         _Cont.pop_back();
     }
 #endif  // WINVER
@@ -512,7 +436,7 @@ __INLINE__ void blocking_deque<_Ty, _Traits, _Container>::clear()
 }
 
 template <typename _Ty, typename _Traits, typename _Container>
-__INLINE__ bool blocking_deque<_Ty, _Traits, _Container>::remove(const_reference _Val)
+__INLINE__ bool blocking_deque<_Ty, _Traits, _Container>::remove(const value_type& _Val)
 {
 #ifdef WINVER
 #ifdef _ATL_NEW_BLOCKING_DEQUE
@@ -554,7 +478,7 @@ __INLINE__ bool blocking_deque<_Ty, _Traits, _Container>::remove(_Pr _Pred)
 }
 
 template <typename _Ty, typename _Traits, typename _Container>
-__INLINE__ typename blocking_deque<_Ty, _Traits, _Container>::size_type blocking_deque<_Ty, _Traits, _Container>::remove_n(const_reference _Val)
+__INLINE__ typename blocking_deque<_Ty, _Traits, _Container>::size_type blocking_deque<_Ty, _Traits, _Container>::remove_n(const value_type& _Val)
 {
 #ifdef WINVER
 #ifdef _ATL_NEW_BLOCKING_DEQUE

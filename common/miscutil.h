@@ -73,9 +73,9 @@ __STATIC_INLINE__ const _Ty& __Max(const _Ty& _Left, const _Ty& _Right)
 template <typename _Ty>
 __STATIC_INLINE__ void __swap(_Ty& _Left, _Ty& _Right)
 {
-    _Ty _Tmp = _Left;
-    _Left    = _Right;
-    _Right   = _Tmp;
+    _Ty _Tmp(_Left);
+    _Left  = _Right;
+    _Right = _Tmp;
 }
 
 __STATIC_INLINE__ FILE* __fopen(const char* _Filename, const char* _Mode)
