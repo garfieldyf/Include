@@ -24,7 +24,6 @@
 // timeval_t
 // timespec_t
 // LogPrinter
-// atomic_t<_Ty>
 // TempBuffer<_Ty, t_nFixedBytes>
 //
 // Global functions in this file:
@@ -311,49 +310,6 @@ private:
     int mPriority;
     const char* mTAG;
 };
-
-
-#ifdef _SYS_ATOMICS_H
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the atomic_t class
-//
-
-template <typename _Ty = int>
-class atomic_t
-{
-// Constructors
-public:
-    explicit atomic_t(_Ty value = 0);
-    atomic_t(const atomic_t<_Ty>& that);
-
-// Operations
-public:
-    operator _Ty() const;
-    atomic_t<_Ty>& operator=(_Ty value);
-    atomic_t<_Ty>& operator=(const atomic_t<_Ty>& that);
-
-    _Ty operator++();       // pre-increment (++i)
-    _Ty operator++(int);    // post-increment (i++)
-
-    _Ty operator--();       // pre-decrement (--i)
-    _Ty operator--(int);    // post-decrement (i--)
-
-    _Ty operator+=(_Ty value);
-    _Ty operator-=(_Ty value);
-
-    _Ty getAndAdd(_Ty value);
-    _Ty getAndSet(_Ty value);
-    int compareAndSet(_Ty oldValue, _Ty newValue);
-
-#ifndef NDEBUG
-    void dump() const;
-#endif
-
-// Data members
-private:
-    int mValue;
-};
-#endif  // _SYS_ATOMICS_H
 
 
 ///////////////////////////////////////////////////////////////////////////////
