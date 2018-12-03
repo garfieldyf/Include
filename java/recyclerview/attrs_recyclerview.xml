@@ -2,20 +2,14 @@
 <resources>
     <!-- AUTO-GENERATED FILE. DO NOT MODIFY. -->
 
-    <!-- Attributes format -->
-    <attr name="layoutManager" format="string" />
-    <attr name="spanCount" format="integer" />
-    <attr name="stackFromEnd" format="boolean" />
-    <attr name="reverseLayout" format="boolean" />
-
     <!-- RecyclerView styleable -->
     <declare-styleable name="RecyclerView">
         <attr name="android:orientation" />
         <attr name="android:descendantFocusability" />
-        <attr name="layoutManager" />
-        <attr name="spanCount" />
-        <attr name="reverseLayout" />
-        <attr name="stackFromEnd" />
+        <attr name="spanCount" format="integer" />
+        <attr name="layoutManager" format="string" />
+        <attr name="stackFromEnd" format="boolean" />
+        <attr name="reverseLayout" format="boolean" />
     </declare-styleable>
 
 </resources>

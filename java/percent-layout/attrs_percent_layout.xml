@@ -2,6 +2,7 @@
 <resources>
     <!-- AUTO-GENERATED FILE. DO NOT MODIFY. -->
 
+    <!-- PercentLayout styleable -->
     <declare-styleable name="PercentLayout">
         <attr name="layout_widthPercent" format="fraction" />
         <attr name="layout_heightPercent" format="fraction" />

@@ -139,7 +139,7 @@ import java.util.List;
  * When writing a {@link LayoutManager} you almost always want to use layout positions whereas when
  * writing an {@link Adapter}, you probably want to use adapter positions.
  *
- * @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_layoutManager
+ * @attr ref R.styleable#RecyclerView_layoutManager
  */
 public class RecyclerView extends ViewGroup implements ScrollingView, NestedScrollingChild {
 
@@ -582,7 +582,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
             int defStyleRes = 0;
             TypedArray a = context.obtainStyledAttributes(attrs, RECYCLER_VIEW_ATTRS,
                     defStyle, defStyleRes);
-            String layoutManagerName = a.getString(2 /* R.styleable.RecyclerView_layoutManager */);
+            String layoutManagerName = a.getString(3 /* R.styleable.RecyclerView_layoutManager */);
             int descendantFocusability = a.getInt(1 /* R.styleable.RecyclerView_android_descendantFocusability */, -1);
             if (descendantFocusability == -1) {
                 setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
@@ -9861,10 +9861,10 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         /**
          * Parse the xml attributes to get the most common properties used by layout managers.
          *
-         * @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_android_orientation
-         * @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_spanCount
-         * @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_reverseLayout
-         * @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_stackFromEnd
+         * @attr ref R.styleable#RecyclerView_android_orientation
+         * @attr ref R.styleable#RecyclerView_spanCount
+         * @attr ref R.styleable#RecyclerView_reverseLayout
+         * @attr ref R.styleable#RecyclerView_stackFromEnd
          *
          * @return an object containing the properties as specified in the attrs.
          */
@@ -9874,7 +9874,7 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
             TypedArray a = context.obtainStyledAttributes(attrs, RECYCLER_VIEW_ATTRS,
                     defStyleAttr, defStyleRes);
             properties.orientation = a.getInt(0 /* R.styleable.RecyclerView_android_orientation */, VERTICAL);
-            properties.spanCount = a.getInt(3 /* R.styleable.RecyclerView_spanCount */, 1);
+            properties.spanCount = a.getInt(2 /* R.styleable.RecyclerView_spanCount */, 1);
             properties.stackFromEnd = a.getBoolean(4 /* R.styleable.RecyclerView_stackFromEnd */, false);
             properties.reverseLayout = a.getBoolean(5 /* R.styleable.RecyclerView_reverseLayout */, false);
             a.recycle();
@@ -9918,13 +9918,13 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          * Some general properties that a LayoutManager may want to use.
          */
         public static class Properties {
-            /** @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_android_orientation */
+            /** @attr ref R.styleable#RecyclerView_android_orientation */
             public int orientation;
-            /** @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_spanCount */
+            /** @attr ref R.styleable#RecyclerView_spanCount */
             public int spanCount;
-            /** @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_reverseLayout */
+            /** @attr ref R.styleable#RecyclerView_reverseLayout */
             public boolean reverseLayout;
-            /** @attr ref android.support.v7.recyclerview.R.styleable#RecyclerView_stackFromEnd */
+            /** @attr ref R.styleable#RecyclerView_stackFromEnd */
             public boolean stackFromEnd;
         }
     }
@@ -12587,8 +12587,8 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
      * <tr><th>Attribute</th><th>Type</th><th>Index</th></tr>
      * <tr><td><tt>android:orientation</tt></td><td>enum</td><td>0</td></tr>
      * <tr><td><tt>android:descendantFocusability</tt></td><td>enum</td><td>1</td></tr>
-     * <tr><td><tt>layoutManager</tt></td><td>string</td><td>2</td></tr>
-     * <tr><td><tt>spanCount</tt></td><td>integer</td><td>3</td></tr>
+     * <tr><td><tt>spanCount</tt></td><td>integer</td><td>2</td></tr>
+     * <tr><td><tt>layoutManager</tt></td><td>string</td><td>3</td></tr>
      * <tr><td><tt>stackFromEnd</tt></td><td>boolean</td><td>4</td></tr>
      * <tr><td><tt>reverseLayout</tt></td><td>boolean</td><td>5</td></tr>
      * </table></p>
