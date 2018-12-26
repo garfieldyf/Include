@@ -7,14 +7,12 @@
     <property name="out.dir" value="${basedir}/out" />
     <property name="src.dir" value="${out.dir}/src" />
     <property name="class.dir" value="${out.dir}/classes" />
-    <property name="cmd.file.name" value="${basedir}/vasdolly.jar" />
-    <property name="out.file.name" value="${basedir}/vasdolly-channel.jar" />
-    <property name="source.file.name" value="${basedir}/vasdolly-channel-sources.jar" />
+    <property name="out.file.name" value="${basedir}/vasdolly.jar" />
+    <property name="source.file.name" value="${basedir}/vasdolly-sources.jar" />
 
     <property name="api.level" value="22" />
     <property name="sdk.dir" value="${env.ANDROID_HOME}" />
     <property name="sdk.version" value="Android 5.1.1 (API ${api.level})" />
-    <property name="apksigner.jar.path" value="${sdk.dir}/build-tools/25.0.3/lib/apksigner.jar" />
     <property name="android.jar.path" value="${sdk.dir}/platforms/android-${api.level}/android.jar" />
 
     <!-- target -pre-compile -->
@@ -30,30 +28,10 @@
         <!-- compile java files -->
         <mkdir dir="${class.dir}" />
         <javac srcdir="${src.dir}" destdir="${class.dir}" debug="true" encoding="UTF-8" source="1.7" target="1.7" includeAntRuntime="false" includeJavaRuntime="false"
-            classpath="${android.jar.path};${apksigner.jar.path}" />
+            classpath="${android.jar.path}" />
 
-        <!-- build vasdolly jar file -->
-        <jar destfile="${cmd.file.name}">
-            <zipfileset src="${apksigner.jar.path}" excludes="com/android/apksigner/**" />
-            <fileset dir="${class.dir}">
-                <exclude name="com/leon/channel/helper/**" />
-            </fileset>
-
-            <manifest>
-                <attribute name="Built-By" value="${author}" />
-                <attribute name="Version" value="${version}" />
-                <attribute name="Main-Class" value="com.leon.channel.command.Main" />
-            </manifest>
-        </jar>
-
-        <!-- build vasdolly-channel jar file -->
-        <jar destfile="${out.file.name}">
-            <fileset dir="${class.dir}">
-                <exclude name="com/leon/channel/writer/**" />
-                <exclude name="com/leon/channel/verify/**" />
-                <exclude name="com/leon/channel/command/**" />
-            </fileset>
-
+        <!-- build jar file -->
+        <jar destfile="${out.file.name}" basedir="${class.dir}">
             <manifest>
                 <attribute name="Built-By" value="${author}" />
                 <attribute name="Version" value="${version}" />
@@ -61,14 +39,8 @@
             </manifest>
         </jar>
 
-        <!-- build vasdolly-channel-source jar file -->
-        <jar destfile="${source.file.name}">
-            <fileset dir="${src.dir}">
-                <exclude name="com/leon/channel/writer/**" />
-                <exclude name="com/leon/channel/verify/**" />
-                <exclude name="com/leon/channel/command/**" />
-            </fileset>
-
+        <!-- build source jar file -->
+        <jar destfile="${source.file.name}" basedir="${src.dir}">
             <manifest>
                 <attribute name="Built-By" value="${author}" />
                 <attribute name="Version" value="${version}" />
@@ -87,7 +59,6 @@
     <target name="-clean">
         <echo level="info">Deletes output files...</echo>
         <delete dir="${out.dir}"/>
-        <delete file="${cmd.file.name}"/>
         <delete file="${out.file.name}"/>
         <delete file="${source.file.name}"/>
     </target>
@@ -95,7 +66,6 @@
     <!-- target release -->
     <target name="release" depends="-clean, -pre-compile, -compile, -post-compile">
         <echo level="info">Builds the vasdolly package in RELEASE mode.</echo>
-        <echo level="info">Install: ${cmd.file.name}</echo>
         <echo level="info">Install: ${out.file.name}</echo>
     </target>
 </project>
