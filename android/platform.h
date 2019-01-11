@@ -332,7 +332,7 @@ static inline void CDECL __android_assert(const char* file, int line, const char
     va_end(args);
 
     char tag[MAX_PATH];
-    ::__android_log_print(ANDROID_LOG_ERROR, __android_build_tag(func, tag), "assertion failed : %s\n\tat file : %s\n\tat line : %d\n\tat function : %s\n", error, file, line, func);
+    ::__android_log_print(ANDROID_LOG_ERROR, __android_build_tag(func, tag), "assertion failure : %s\n\tat file : %s\n\tat line : %d\n\tat function : %s\n", error, file, line, func);
     ::__assert2(file, line, func, error);
 }
 
