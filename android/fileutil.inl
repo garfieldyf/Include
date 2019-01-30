@@ -383,30 +383,6 @@ __INLINE__ AssetFileHandle::AssetFileHandle(void* asset/* = NULL*/)
 {
 }
 
-__INLINE__ jbyteArray AssetFileHandle::read(JNIEnv* env) const
-{
-    assert(env);
-    assert(!isEmpty());
-
-    jbyteArray result = NULL;
-    if (const void* buffer = getBuffer())
-    {
-        const off_t length = getLength();
-        if ((result = env->NewByteArray(length)) != NULL)
-            env->SetByteArrayRegion(result, 0, length, (const jbyte*)buffer);
-    }
-
-    return result;
-}
-
-__INLINE__ int AssetFileHandle::read(void* buf, size_t size) const
-{
-    assert(buf);
-    assert(!isEmpty());
-
-    return ::AAsset_read(mAsset, buf, size);
-}
-
 __INLINE__ AssetFileHandle::operator AAsset*() const
 {
     return mAsset;
@@ -415,10 +391,15 @@ __INLINE__ AssetFileHandle::operator AAsset*() const
 __INLINE__ const void* AssetFileHandle::getBuffer() const
 {
     assert(!isEmpty());
+    return ::AAsset_getBuffer(mAsset);
+}
 
-    const void* buffer = ::AAsset_getBuffer(mAsset);
-    __check_error(buffer == NULL, "Couldn't get asset file buffer\n");
-    return buffer;
+__INLINE__ int AssetFileHandle::read(void* buf, size_t size) const
+{
+    assert(buf);
+    assert(!isEmpty());
+
+    return ::AAsset_read(mAsset, buf, size);
 }
 
 __INLINE__ off_t AssetFileHandle::seek(off_t offset, int origin/* = SEEK_SET*/) const

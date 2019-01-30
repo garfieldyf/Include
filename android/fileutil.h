@@ -261,11 +261,10 @@ public:
 
 // Operations
 public:
-    jbyteArray read(JNIEnv* env) const;
-    int read(void* buf, size_t size) const;
-
     operator AAsset*() const;
     const void* getBuffer() const;
+
+    int read(void* buf, size_t size) const;
     off_t seek(off_t offset, int origin = SEEK_SET) const;
 
 // Attributes
