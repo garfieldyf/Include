@@ -349,7 +349,7 @@ __STATIC_INLINE__ jint __android_throw_exception(JNIEnv* env, int errnum, const 
         ::strerror_r(errnum, error, _countof(error));
 
         char detailMessage[MAX_PATH * 2];
-        ::snprintf(detailMessage, _countof(detailMessage), "%s (errno %d) - %s\n\tat file : %s\n\tat line : %d\n\tat function : %s", error, errnum, errorMessage, file, line, func);
+        ::snprintf(detailMessage, _countof(detailMessage), "%s - %s (errno: %d)\n\tat file : %s\n\tat line : %d\n\tat function : %s", error, errorMessage, errnum, file, line, func);
 
         if (jthrowable throwable = (jthrowable)env->NewObject(clazz, initID, errnum, env->NewStringUTF(detailMessage)))
             result = env->Throw(throwable);
