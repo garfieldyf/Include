@@ -31,9 +31,9 @@
 // isAbsolutePath()
 // splitPath()
 // fileAccess()
-// fileStatus()
 // deleteFile()
 // deleteFiles()
+// getFileStatus()
 // createDirectory()
 // defaultFilter()
 // ignoreHiddenFilter()
@@ -351,7 +351,7 @@ __STATIC_INLINE__ int fileAccess(const char* path, int mode)
 #endif  // NDEBUG
 }
 
-__STATIC_INLINE__ int fileStatus(const char* path, struct stat& buf)
+__STATIC_INLINE__ int getFileStatus(const char* path, struct stat& buf)
 {
     assert(path);
     return __verify((::lstat(path, &buf) == 0 ? 0 : errno), "Couldn't get file '%s' status", path);
