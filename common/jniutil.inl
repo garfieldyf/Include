@@ -24,15 +24,15 @@
 #define DECLARE_ARRAY(_jtype, _jname) \
 class _jtype##Array_t : public jarray_t<_jtype> { \
 public: \
-    _jtype##Array_t(JNIEnv* _env, _jtype##Array _array) \
-        : jarray_t(_env->Get##_jname##ArrayElements(_array, NULL), _env->GetArrayLength(_array)), env(_env), array(_array) \
-        { assert(_array); } \
+    _jtype##Array_t(JNIEnv* env, _jtype##Array array) \
+        : jarray_t(env->Get##_jname##ArrayElements(array, NULL), env->GetArrayLength(array)), mEnv(env), mArray(array) \
+        { assert(array); } \
     ~_jtype##Array_t() \
         { LOGD("Release " #_jtype "Array elements - { data = %p, length = %d }\n", this->data(), this->length); \
-          env->Release##_jname##ArrayElements(array, this->data(), 0); } \
+          mEnv->Release##_jname##ArrayElements(mArray, this->data(), 0); } \
 private: \
-    JNIEnv* env; \
-    _jtype##Array array; \
+    JNIEnv* mEnv; \
+    _jtype##Array mArray; \
 }
 
 namespace JNI {
@@ -55,15 +55,15 @@ DECLARE_ARRAY(jboolean, Boolean);   // jbooleanArray_t
 // Implementation of the jmutex_t class
 //
 
-__INLINE__ jmutex_t::jmutex_t(JNIEnv* _env, jobject _lock)
-    : status(_env->MonitorEnter(_lock)), env(_env), lock(_lock)
+__INLINE__ jmutex_t::jmutex_t(JNIEnv* env, jobject lock)
+    : mStatus(env->MonitorEnter(lock)), mEnv(env), mLock(lock)
 {
-    assert(env);
-    assert(lock);
+    assert(mEnv);
+    assert(mLock);
 
 #ifndef NDEBUG
-    if (status != JNI_OK)
-        LOGE("Couldn't lock object (object = %p, error = %d)\n", lock, status);
+    if (mStatus != JNI_OK)
+        LOGE("Couldn't lock object (object = %p, error = %d)\n", mLock, mStatus);
 #endif  // NDEBUG
 }
 
@@ -74,18 +74,18 @@ __INLINE__ jmutex_t::~jmutex_t()
 
 __INLINE__ void jmutex_t::unlock()
 {
-    assert(env);
-    assert(lock);
+    assert(mEnv);
+    assert(mLock);
 
-    if (status == JNI_OK)
+    if (mStatus == JNI_OK)
     {
-        status = JNI_ERR;
+        mStatus = JNI_ERR;
     #ifndef NDEBUG
-        jint result = env->MonitorExit(lock);
+        jint result = mEnv->MonitorExit(mLock);
         if (result != JNI_OK)
-            LOGE("Couldn't unlock object (object = %p, error = %d)\n", lock, result);
+            LOGE("Couldn't unlock object (object = %p, error = %d)\n", mLock, result);
     #else
-        env->MonitorExit(lock);
+        mEnv->MonitorExit(mLock);
     #endif  // NDEBUG
     }
 }
@@ -95,51 +95,51 @@ __INLINE__ void jmutex_t::unlock()
 // Implementation of the jclass_t class
 //
 
-__INLINE__ jclass_t::jclass_t(JNIEnv* _env, jobject object)
-    : env(_env), clazz(_env->GetObjectClass(object))
+__INLINE__ jclass_t::jclass_t(JNIEnv* env, jobject object)
+    : mEnv(env), mClass(env->GetObjectClass(object))
 {
-    assert(_env);
+    assert(env);
     assert(object);
 
 #ifndef NDEBUG
-    if (clazz == NULL)
+    if (mClass == NULL)
     {
         LOGE("Unable to get object class - %p\n", object);
-        assert(clazz);
+        assert(mClass);
     }
     else
     {
-        LOGI("The object %p className - '%s'\n", object, ::__android_class_name(_env, object, className));
+        LOGI("The object %p className - '%s'\n", object, ::__android_class_name(env, object, mClassName));
     }
 #endif  // NDEBUG
 }
 
-__INLINE__ jclass_t::jclass_t(JNIEnv* _env, const char* _className)
-    : env(_env), clazz(_env->FindClass(_className))
+__INLINE__ jclass_t::jclass_t(JNIEnv* env, const char* className)
+    : mEnv(env), mClass(env->FindClass(className))
 {
-    assert(_env);
-    assert(_className);
+    assert(env);
+    assert(className);
 
 #ifndef NDEBUG
-    ::__strncpy(className, _className, _countof(className));
-    if (clazz == NULL)
+    ::__strncpy(mClassName, className, _countof(mClassName));
+    if (mClass == NULL)
     {
-        LOGE("Unable to find class - '%s'\n", _className);
-        assert(clazz);
+        LOGE("Unable to find class - '%s'\n", className);
+        assert(mClass);
     }
 #endif  // NDEBUG
 }
 
 inline jobject CDECL jclass_t::newObject(jmethodID methodID, ...) const
 {
-    assert(env);
-    assert(clazz);
+    assert(mEnv);
+    assert(mClass);
     assert(methodID);
 
     va_list args;
     va_start(args, methodID);
 
-    jobject result = env->NewObjectV(clazz, methodID, args);
+    jobject result = mEnv->NewObjectV(mClass, methodID, args);
     va_end(args);
 
     return result;
@@ -147,79 +147,79 @@ inline jobject CDECL jclass_t::newObject(jmethodID methodID, ...) const
 
 __INLINE__ jobjectArray jclass_t::newArray(jsize length, jobject initialElement/* = NULL*/) const
 {
-    assert(env);
-    assert(clazz);
+    assert(mEnv);
+    assert(mClass);
     assert(length >= 0);
 
-    return env->NewObjectArray(length, clazz, initialElement);
+    return mEnv->NewObjectArray(length, mClass, initialElement);
 }
 
 __INLINE__ jint jclass_t::registerNatives(const JNINativeMethod* methods, jsize numMethods) const
 {
-    assert(env);
-    assert(clazz);
+    assert(mEnv);
+    assert(mClass);
     assert(methods);
 
-    const jint result = env->RegisterNatives(clazz, methods, numMethods);
-    __check_error(result != JNI_OK, "Unable to register '%s' native methods, error = %d\n", className, result);
+    const jint result = mEnv->RegisterNatives(mClass, methods, numMethods);
+    __check_error(result != JNI_OK, "Unable to register '%s' native methods, error = %d\n", mClassName, result);
     return result;
 }
 
 __INLINE__ jint jclass_t::unregisterNatives() const
 {
-    assert(env);
-    assert(clazz);
+    assert(mEnv);
+    assert(mClass);
 
-    const jint result = env->UnregisterNatives(clazz);
-    __check_error(result != JNI_OK, "Unable to unregister '%s' native methods, error = %d\n", className, result);
+    const jint result = mEnv->UnregisterNatives(mClass);
+    __check_error(result != JNI_OK, "Unable to unregister '%s' native methods, error = %d\n", mClassName, result);
     return result;
 }
 
 __INLINE__ jfieldID jclass_t::getFieldID(const char* fieldName, const char* signature) const
 {
-    assert(env);
-    assert(clazz);
+    assert(mEnv);
+    assert(mClass);
     assert(fieldName);
     assert(signature);
 
-    jfieldID fieldID = env->GetFieldID(clazz, fieldName, signature);
-    __check_error(fieldID == NULL, "Couldn't get field ID [class - '%s' field - '%s' signature - '%s']\n", className, fieldName, signature);
+    jfieldID fieldID = mEnv->GetFieldID(mClass, fieldName, signature);
+    __check_error(fieldID == NULL, "Couldn't get field ID [class - '%s' field - '%s' signature - '%s']\n", mClassName, fieldName, signature);
     return fieldID;
 }
 
 __INLINE__ jfieldID jclass_t::getStaticFieldID(const char* fieldName, const char* signature) const
 {
-    assert(env);
-    assert(clazz);
+    assert(mEnv);
+    assert(mClass);
     assert(fieldName);
     assert(signature);
 
-    jfieldID fieldID = env->GetStaticFieldID(clazz, fieldName, signature);
-    __check_error(fieldID == NULL, "Couldn't get static field ID [class - '%s' field - '%s' signature - '%s']\n", className, fieldName, signature);
+    jfieldID fieldID = mEnv->GetStaticFieldID(mClass, fieldName, signature);
+    __check_error(fieldID == NULL, "Couldn't get static field ID [class - '%s' field - '%s' signature - '%s']\n", mClassName, fieldName, signature);
     return fieldID;
 }
 
 __INLINE__ jmethodID jclass_t::getMethodID(const char* methodName, const char* signature) const
 {
-    assert(env);
-    assert(clazz);
+    assert(mEnv);
+    assert(mClass);
     assert(signature);
     assert(methodName);
 
-    jmethodID methodID = env->GetMethodID(clazz, methodName, signature);
-    __check_error(methodID == NULL, "Couldn't get method ID [class - '%s' method - '%s' signature - '%s']\n", className, methodName, signature);
+    jmethodID methodID = mEnv->GetMethodID(mClass, methodName, signature);
+    __check_error(methodID == NULL, "Couldn't get method ID [class - '%s' method - '%s' signature - '%s']\n", mClassName, methodName, signature);
     return methodID;
 }
 
 __INLINE__ jmethodID jclass_t::getStaticMethodID(const char* methodName, const char* signature) const
 {
-    assert(env);
-    assert(clazz);
+    assert(mEnv);
+    assert(mClass);
     assert(signature);
     assert(methodName);
 
-    jmethodID methodID = env->GetStaticMethodID(clazz, methodName, signature);
-    __check_error(methodID == NULL, "Couldn't get static method ID [class - '%s' method - '%s' signature - '%s']\n", className, methodName, signature);
+    jmethodID methodID = mEnv->GetStaticMethodID(mClass, methodName, signature);
+    __check_error(methodID == NULL, "Couldn't get static method ID [class - '%s' method - '%s' signature - '%s']\n", mClassName, methodName, signature);
     return methodID;
 }
 
@@ -321,7 +321,7 @@ __INLINE__ jstringRef::~jstringRef()
 
 template <typename _Ty>
 __INLINE__ jarray_t<_Ty>::jarray_t(_Ty* _data, jsize len)
-    : length(len), mdata(_data)
+    : length(len), mData(_data)
 {
     assert(_data);
     assert(len >= 0);
@@ -330,38 +330,38 @@ __INLINE__ jarray_t<_Ty>::jarray_t(_Ty* _data, jsize len)
 template <typename _Ty>
 __INLINE__ _Ty* jarray_t<_Ty>::data()
 {
-    return mdata;
+    return mData;
 }
 
 template <typename _Ty>
 __INLINE__ const _Ty* jarray_t<_Ty>::data() const
 {
-    return mdata;
+    return mData;
 }
 
 template <typename _Ty>
 __INLINE__ _Ty& jarray_t<_Ty>::operator[](jsize index)
 {
-    assert(mdata);
+    assert(mData);
     assert(index >= 0 && index < length);
 
-    return mdata[index];
+    return mData[index];
 }
 
 template <typename _Ty>
 __INLINE__ _Ty jarray_t<_Ty>::operator[](jsize index) const
 {
-    assert(mdata);
+    assert(mData);
     assert(index >= 0 && index < length);
 
-    return mdata[index];
+    return mData[index];
 }
 
 #ifndef NDEBUG
 template <typename _Ty>
 __INLINE__ void jarray_t<_Ty>::dump() const
 {
-    LOGI("jarray_t { data = %p, length = %d }\n", mdata, length);
+    LOGI("jarray_t { data = %p, length = %d }\n", mData, length);
 }
 #endif  // NDEBUG
 

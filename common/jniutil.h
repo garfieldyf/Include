@@ -50,7 +50,7 @@ class jmutex_t
 
 // Constructors/Destructor
 public:
-    jmutex_t(JNIEnv* _env, jobject _lock);
+    jmutex_t(JNIEnv* env, jobject lock);
     ~jmutex_t();
 
 // Operations
@@ -59,9 +59,9 @@ public:
 
 // Data members
 private:
-    jint status;
-    JNIEnv* env;
-    jobject lock;
+    jint mStatus;
+    JNIEnv* mEnv;
+    jobject mLock;
 };
 
 
@@ -75,8 +75,8 @@ class jclass_t
 
 // Constructors
 public:
-    jclass_t(JNIEnv* _env, jobject object);
-    jclass_t(JNIEnv* _env, const char* _className);
+    jclass_t(JNIEnv* env, jobject object);
+    jclass_t(JNIEnv* env, const char* className);
 
 // Operations
 public:
@@ -94,11 +94,11 @@ public:
 
 // Data members
 private:
-    JNIEnv* env;
-    jclass clazz;
+    JNIEnv* mEnv;
+    jclass mClass;
 
 #ifndef NDEBUG
-    char className[MAX_PATH];
+    char mClassName[MAX_PATH];
 #endif
 };
 
@@ -161,7 +161,7 @@ public:
 
 // Constructors
 public:
-    _jwstring_t(JNIEnv* _env, jstring _str);
+    _jwstring_t(JNIEnv* env, jstring str);
 };
 
 
@@ -224,7 +224,7 @@ public:
 
 // Data members
 private:
-    _Ty* mdata;
+    _Ty* mData;
 };
 
 

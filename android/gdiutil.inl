@@ -369,42 +369,42 @@ __INLINE__ void Color::dump() const
 // Implementation of the Bitmap class
 //
 
-__INLINE__ Bitmap::Bitmap(JNIEnv* _env, jobject _bitmap)
-    : env(_env), lockResult(ANDROID_BITMAP_RESULT_BAD_PARAMETER), bitmap(_bitmap)
+__INLINE__ Bitmap::Bitmap(JNIEnv* env, jobject bitmap)
+    : mEnv(env), mBitmap(bitmap), mLockResult(ANDROID_BITMAP_RESULT_BAD_PARAMETER)
 {
-    assert(env);
-    assert(bitmap);
+    assert(mEnv);
+    assert(mBitmap);
 }
 
 __INLINE__ Bitmap::~Bitmap()
 {
-    if (lockResult == ANDROID_BITMAP_RESULT_SUCCESS)
+    if (mLockResult == ANDROID_BITMAP_RESULT_SUCCESS)
     {
     #ifndef NDEBUG
-        const int result = ::AndroidBitmap_unlockPixels(env, bitmap);
+        const int result = ::AndroidBitmap_unlockPixels(mEnv, mBitmap);
         __check_error(result != ANDROID_BITMAP_RESULT_SUCCESS, "Couldn't unlock pixels, error = %d\n", result);
     #else
-        ::AndroidBitmap_unlockPixels(env, bitmap);
+        ::AndroidBitmap_unlockPixels(mEnv, mBitmap);
     #endif  // NDEBUG
     }
 }
 
 __INLINE__ int Bitmap::lockPixels(void*& addrPtr)
 {
-    assert(env);
-    assert(bitmap);
+    assert(mEnv);
+    assert(mBitmap);
 
-    lockResult = ::AndroidBitmap_lockPixels(env, bitmap, &addrPtr);
-    __check_error(lockResult != ANDROID_BITMAP_RESULT_SUCCESS, "Couldn't lock pixels, error = %d\n", lockResult);
-    return lockResult;
+    mLockResult = ::AndroidBitmap_lockPixels(mEnv, mBitmap, &addrPtr);
+    __check_error(mLockResult != ANDROID_BITMAP_RESULT_SUCCESS, "Couldn't lock pixels, error = %d\n", mLockResult);
+    return mLockResult;
 }
 
 __INLINE__ int Bitmap::getBitmapInfo(AndroidBitmapInfo& info) const
 {
-    assert(env);
-    assert(bitmap);
+    assert(mEnv);
+    assert(mBitmap);
 
-    const int result = ::AndroidBitmap_getInfo(env, bitmap, &info);
+    const int result = ::AndroidBitmap_getInfo(mEnv, mBitmap, &info);
     __check_error(result != ANDROID_BITMAP_RESULT_SUCCESS, "Couldn't get bitmap info, error = %d\n", result);
     return result;
 }

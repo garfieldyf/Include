@@ -195,7 +195,7 @@ class Bitmap
 
 // Constructors/Destructor
 public:
-    Bitmap(JNIEnv* _env, jobject _bitmap);
+    Bitmap(JNIEnv* env, jobject bitmap);
     ~Bitmap();
 
 // Operations
@@ -208,9 +208,9 @@ public:
 
 // Data members
 private:
-    JNIEnv* env;
-    int lockResult;
-    jobject bitmap;
+    JNIEnv* mEnv;
+    jobject mBitmap;
+    int mLockResult;
 };
 
 
