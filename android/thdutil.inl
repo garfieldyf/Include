@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // thdutil.inl
 //
-// Copyright(c) 2018, Garfield. All rights reserved.
+// Copyright(c) 2019, Garfield. All rights reserved.
 // Author  : Garfield
 // Version : 1.5
 // Creation Date : 2012/8/12

@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // stdcolls.inl
 //
-// Copyright(c) 2018, Garfield. All rights reserved.
+// Copyright(c) 2019, Garfield. All rights reserved.
 // Author  : Garfield
 // Version : 1.2
 // Creation Date : 2010/4/12
