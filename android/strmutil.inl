@@ -64,8 +64,8 @@ __INLINE__ int32_t BufferedInputStream::read(void* buf, int32_t size)
     static const jmethodID readID = JNI::jclass_t(mEnv, "java/io/InputStream").getMethodID("read", "([B)I");
     assert(readID);
 
-    int32_t readBytes = 0;
-    for (int32_t count = 0; size > 0; size -= count, readBytes += count)
+    int32_t count = 0;
+    for (int32_t readBytes = 0; size > 0; size -= readBytes, count += readBytes)
     {
         if (mLength <= 0)
         {
@@ -75,7 +75,7 @@ __INLINE__ int32_t BufferedInputStream::read(void* buf, int32_t size)
             {
                 mEnv->ExceptionDescribe();
                 mEnv->ExceptionClear();
-                readBytes = 0;
+                count = 0;
                 break;      // read threw an IOException.
             }
 
@@ -87,10 +87,10 @@ __INLINE__ int32_t BufferedInputStream::read(void* buf, int32_t size)
         }
 
         // Reads the data from the mData to buf.
-        count = ByteArrayInputStream::read(reinterpret_cast<char*>(buf) + readBytes, size);
+        readBytes = ByteArrayInputStream::read(reinterpret_cast<jbyte*>(buf) + count, size);
     }
 
-    return readBytes;
+    return count;
 }
 
 __END_NAMESPACE
