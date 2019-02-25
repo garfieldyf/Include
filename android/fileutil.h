@@ -30,7 +30,6 @@
 // isRootDir()
 // isAbsolutePath()
 // splitPath()
-// fileAccess()
 // deleteFile()
 // deleteFiles()
 // getFileStatus()
@@ -312,6 +311,18 @@ public:
 // Global functions
 //
 
+__STATIC_INLINE__ int defaultFilter(const struct dirent* entry)
+{
+    // Ignores the entry '.' and '..' representing the current and parent directory.
+    return !(entry->d_name[0] == '.' && (entry->d_name[1] == '\0' || (entry->d_name[1] == '.' && entry->d_name[2] == '\0')));
+}
+
+__STATIC_INLINE__ int ignoreHiddenFilter(const struct dirent* entry)
+{
+    // Ignores the hidden files (start with '.', including '.' and '..').
+    return (entry->d_name[0] != '.');
+}
+
 __STATIC_INLINE__ bool isRootDir(const char* path)
 {
     return (path != NULL && path[0] == '/' && path[1] == '\0');
@@ -334,21 +345,6 @@ __STATIC_INLINE__ const char* splitPath(const char* path, stdutil::char_sequence
     }
 
     return result;
-}
-
-__STATIC_INLINE__ int fileAccess(const char* path, int mode)
-{
-    assert(path);
-
-#ifndef NDEBUG
-    const int errnum = (::access(path, mode) == 0 ? 0 : errno);
-    if (errnum != 0 && mode != F_OK)
-        __verify(errnum, "Couldn't access file '%s' mode = %d", path, mode);
-
-    return errnum;
-#else
-    return (::access(path, mode) == 0 ? 0 : errno);
-#endif  // NDEBUG
 }
 
 __STATIC_INLINE__ int getFileStatus(const char* path, struct stat& buf)
@@ -396,18 +392,6 @@ __STATIC_INLINE__ int deleteFiles(const char* path, bool deleteSelf)
 
     const int errnum = deleteFiles(path);
     return (errnum == 0 && deleteSelf ? deleteFile(path) : errnum);
-}
-
-__STATIC_INLINE__ int defaultFilter(const struct dirent* entry)
-{
-    // Ignores the entry '.' and '..' representing the current and parent directory.
-    return !(entry->d_name[0] == '.' && (entry->d_name[1] == '\0' || (entry->d_name[1] == '.' && entry->d_name[2] == '\0')));
-}
-
-__STATIC_INLINE__ int ignoreHiddenFilter(const struct dirent* entry)
-{
-    // Ignores the hidden files (start with '.', including '.' and '..').
-    return (entry->d_name[0] != '.');
 }
 
 __STATIC_INLINE__ int createDirectory(const char* path, uint32_t length, mode_t mode = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)
