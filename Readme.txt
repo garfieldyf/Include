@@ -64,6 +64,9 @@ D:\Google\android-sdk-windows\build-tools\25.0.3\aapt dump xmltree E:\TVMaster\T
 mount -o remount /system
 mount -o rw,remount /system
 
+## 统计目录下面的文件和目录总数
+busybox find | busybox wc -l
+
 ## Android.mk 引用 library 工程编译
 1.在引入的工程下project.properties文件中是否有这句话  android.library=true 没有就添加。
 2.在自己的工程目录下 project.properties 是否有 android.library.reference.1=../Library/TopAndroid  目录一定要写对
