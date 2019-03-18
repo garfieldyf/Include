@@ -18,12 +18,9 @@
 // File
 // FileHandle
 // Directory
-// FileScanner
 // AssetDir
 // AssetFile
 // AssetFileHandle
-// DefaultFilter
-// IgnoreHiddenFilter
 //
 // Global functions in this file:
 //
@@ -38,14 +35,6 @@
 // ignoreHiddenFilter()
 
 __BEGIN_NAMESPACE
-
-///////////////////////////////////////////////////////////////////////////////
-// Forward declarations
-//
-
-__STATIC_INLINE__ int defaultFilter(const struct dirent* entry);
-__STATIC_INLINE__ int ignoreHiddenFilter(const struct dirent* entry);
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Interface of the FileHandle class
@@ -103,28 +92,6 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the DefaultFilter class
-//
-
-struct DefaultFilter
-{
-    int operator()(const struct dirent* entry) const
-        { return defaultFilter(entry); }
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the IgnoreHiddenFilter class
-//
-
-struct IgnoreHiddenFilter
-{
-    int operator()(const struct dirent* entry) const
-        { return ignoreHiddenFilter(entry); }
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
 // Interface of the DirectoryBase class
 //
 
@@ -176,40 +143,6 @@ public:
 // Data members
 public:
     _Filter filter;
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the FileScanner class
-//
-
-class FileScanner
-{
-    DECLARE_NONCOPYABLE(FileScanner);
-
-// Constructors/Destructor
-public:
-    FileScanner();
-    ~FileScanner();
-
-// Operations
-public:
-    int scan(const char* path, int (*filter)(const struct dirent*) = defaultFilter, int (*compar)(const struct dirent**, const struct dirent**) = alphasort);
-    void destroy();
-
-#ifndef NDEBUG
-    void dump() const;
-#endif
-
-// Attributes
-public:
-    bool isEmpty() const;
-    const struct dirent* get(int index) const;
-
-// Data members
-public:
-    int size;
-    struct dirent** namelist;
 };
 
 
@@ -363,7 +296,7 @@ static inline int deleteFiles(const char* path)
 {
     assert(path);
 
-    Directory<DefaultFilter> dir;
+    Directory<> dir(defaultFilter);
     int errnum = dir.open(path);
     if (errnum == 0)
     {
