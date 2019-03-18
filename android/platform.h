@@ -118,10 +118,6 @@ typedef char TCHAR;
 #define _PRId                                   "%d"
 #endif
 
-#ifndef INVALID_LENGTH
-#define INVALID_LENGTH                          ((int32_t)-1)
-#endif
-
 #ifndef UNUSED_PARAMETER
 #define UNUSED_PARAMETER(var)                   ((void)(var))
 #endif
@@ -229,6 +225,9 @@ enum
 
     // Invalid file descriptor
     INVALID_FD = -1,
+
+    // Invalid length.
+    INVALID_LENGTH = -1,
 
     // Time unit.
     MILLISECONDS = 1000,
