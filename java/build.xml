@@ -4,5 +4,6 @@
     <ant antfile="${basedir}/android/build.xml" target="release" inheritAll="false" inheritRefs="false" />
     <ant antfile="${basedir}/vasdolly/build.xml" target="release" inheritAll="false" inheritRefs="false" />
     <ant antfile="${basedir}/recyclerview/build.xml" target="release" inheritAll="false" inheritRefs="false" />
+    <ant antfile="${basedir}/focus-layout/build.xml" target="release" inheritAll="false" inheritRefs="false" />
     <ant antfile="${basedir}/percent-layout/build.xml" target="release" inheritAll="false" inheritRefs="false" />
 </project>
