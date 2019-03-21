@@ -50,13 +50,13 @@ public final class FocusDrawable {
     public void draw(Canvas canvas, View view, int[] stateSpec) {
         if (mDrawable.isStateful()) {
             mDrawable.setState(view.getDrawableState());
-            drawFocusDrawable(canvas, view, mDrawable);
+            draw(canvas, view, mDrawable);
         } else if (StateSet.stateSetMatches(stateSpec, view.getDrawableState())) {
-            drawFocusDrawable(canvas, view, mDrawable);
+            draw(canvas, view, mDrawable);
         }
     }
 
-    private void drawFocusDrawable(Canvas canvas, View view, Drawable drawable) {
+    private void draw(Canvas canvas, View view, Drawable drawable) {
         int left = 0, top = 0, right = view.getWidth(), bottom = view.getHeight();
         if (drawable instanceof DrawableContainer) {
             drawable = ((DrawableContainer)drawable).getCurrent();
