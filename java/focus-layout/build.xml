@@ -21,6 +21,11 @@
         <copy todir="${src.dir}" overwrite="true">
             <fileset dir="${basedir}/src" />
         </copy>
+
+        <!-- replace the package name -->
+        <replace dir="${src.dir}" includes="**/*.java" encoding="UTF-8">
+            <replacefilter token="@author Garfield" value="@author ${author}" />
+        </replace>
     </target>
 
     <!-- target -compile -->
