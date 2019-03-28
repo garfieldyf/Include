@@ -151,12 +151,6 @@ char (&__sizeof_helper(_Ty (&_Array)[_CountOfArray]))[_CountOfArray];
 #define _countof(_Array)                        sizeof(__sizeof_helper(_Array))
 #endif
 
-#ifdef __STDCEXPORT__
-#define STDCEXPORT
-#else
-#define STDCEXPORT                              __attribute__ ((visibility ("hidden")))
-#endif
-
 #ifndef __INLINE__
 #ifndef NDEBUG
 #define __INLINE__                              inline

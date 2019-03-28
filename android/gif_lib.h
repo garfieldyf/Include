@@ -13,21 +13,13 @@ extern "C" {
 
 #define GIFLIB_MAJOR 5
 #define GIFLIB_MINOR 1
-#define GIFLIB_RELEASE 4
+#define GIFLIB_RELEASE 8
 
 #define GIF_ERROR   0
 #define GIF_OK      1
 
 #include <stddef.h>
 #include <stdbool.h>
-
-#ifndef STDCEXPORT
-#if !defined(__GNUC__) || defined(__STDCEXPORT__)
-#define STDCEXPORT
-#else
-#define STDCEXPORT      __attribute__ ((visibility ("hidden")))
-#endif /* __GNUC__ */
-#endif /* STDCEXPORT */
 
 #define GIF_STAMP "GIFVER"          /* First chars in file - GIF stamp.  */
 #define GIF_STAMP_LEN sizeof(GIF_STAMP) - 1
@@ -66,7 +58,7 @@ typedef struct ExtensionBlock {
 #define COMMENT_EXT_FUNC_CODE     0xfe    /* comment */
 #define GRAPHICS_EXT_FUNC_CODE    0xf9    /* graphics control (GIF89) */
 #define PLAINTEXT_EXT_FUNC_CODE   0x01    /* plaintext */
-#define APPLICATION_EXT_FUNC_CODE 0xff    /* application block */
+#define APPLICATION_EXT_FUNC_CODE 0xff    /* application block (GIF89) */
 } ExtensionBlock;
 
 typedef struct SavedImage {
@@ -188,7 +180,7 @@ GifFileType *DGifOpenFileName(const char *GifFileName, int *Error);
 GifFileType *DGifOpenFileHandle(int GifFileHandle, int *Error);
 int DGifSlurp(GifFileType * GifFile);
 GifFileType *DGifOpen(void *userPtr, InputFunc readFunc, int *Error);    /* new one (TVT) */
-int DGifCloseFile(GifFileType * GifFile, int *ErrorCode);
+    int DGifCloseFile(GifFileType * GifFile, int *ErrorCode);
 
 #define D_GIF_SUCCEEDED          0
 #define D_GIF_ERR_OPEN_FAILED    101    /* And DGif possible errors. */
@@ -208,10 +200,10 @@ int DGifCloseFile(GifFileType * GifFile, int *ErrorCode);
 /* These are legacy.  You probably do not want to call them directly */
 int DGifGetScreenDesc(GifFileType *GifFile);
 int DGifGetRecordType(GifFileType *GifFile, GifRecordType *GifType);
+int DGifGetImageHeader(GifFileType *GifFile);
 int DGifGetImageDesc(GifFileType *GifFile);
 int DGifGetLine(GifFileType *GifFile, GifPixelType *GifLine, int GifLineLen);
 int DGifGetPixel(GifFileType *GifFile, GifPixelType GifPixel);
-int DGifGetComment(GifFileType *GifFile, char *GifComment);
 int DGifGetExtension(GifFileType *GifFile, int *GifExtCode,
                      GifByteType **GifExtension);
 int DGifGetExtensionNext(GifFileType *GifFile, GifByteType **GifExtension);
@@ -219,6 +211,7 @@ int DGifGetCode(GifFileType *GifFile, int *GifCodeSize,
                 GifByteType **GifCodeBlock);
 int DGifGetCodeNext(GifFileType *GifFile, GifByteType **GifCodeBlock);
 int DGifGetLZCodes(GifFileType *GifFile, int *GifCode);
+const char *DGifGetGifVersion(GifFileType *GifFile);
 
 
 /******************************************************************************

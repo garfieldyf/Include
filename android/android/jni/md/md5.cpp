@@ -167,7 +167,7 @@ __BEGIN_DECLS
 /**
  * The routine MD5Init initializes the message-digest context.
  */
-STDCEXPORT void MD5Init(MD5_CTX* context)
+void MD5Init(MD5_CTX* context)
 {
     context->state[0] = 0x67452301;
     context->state[1] = 0xefcdab89;
@@ -181,7 +181,7 @@ STDCEXPORT void MD5Init(MD5_CTX* context)
  * for the presence of each of the characters data[0..size - 1] in the
  * message whose digest is being computed.
  */
-STDCEXPORT void MD5Update(MD5_CTX* context, const u_char* data, uint32_t size)
+void MD5Update(MD5_CTX* context, const u_char* data, uint32_t size)
 {
     /* compute number of bytes mod 64 */
     int mdi = (int)((context->count[0] >> 3) & 0x3F);
@@ -215,7 +215,7 @@ STDCEXPORT void MD5Update(MD5_CTX* context, const u_char* data, uint32_t size)
  * The routine MD5Final terminates the message-digest computation
  * and ends with the desired message digest in digest[0...15].
  */
-STDCEXPORT void MD5Final(MD5_CTX* context, u_char digest[MD5_DIGEST_LENGTH])
+void MD5Final(MD5_CTX* context, u_char digest[MD5_DIGEST_LENGTH])
 {
     uint32_t buf[16];
 

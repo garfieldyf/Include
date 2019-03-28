@@ -94,7 +94,7 @@ __BEGIN_DECLS
 /**
  * The routine SHA256Init initializes the SHA256 context.
  */
-STDCEXPORT void SHA256Init(SHA256_CTX* context)
+void SHA256Init(SHA256_CTX* context)
 {
     context->state[0] = 0x6a09e667;
     context->state[1] = 0xbb67ae85;
@@ -112,7 +112,7 @@ STDCEXPORT void SHA256Init(SHA256_CTX* context)
  * for the presence of each of the characters data[0..size - 1] in
  * the message whose digest is being computed.
  */
-STDCEXPORT void SHA256Update(SHA256_CTX* context, const u_char* data, uint32_t size)
+void SHA256Update(SHA256_CTX* context, const u_char* data, uint32_t size)
 {
     const uint32_t temp = SHA256_BLOCK_SIZE - context->count[1];
     uint32_t remainSize = (size < temp ? size : temp);
@@ -142,7 +142,7 @@ STDCEXPORT void SHA256Update(SHA256_CTX* context, const u_char* data, uint32_t s
  * The routine SHA256 terminates the SHA256 computation and
  * ends with the desired message digest in digest[0...31].
  */
-STDCEXPORT void SHA256Final(SHA256_CTX* context, u_char digest[SHA256_DIGEST_LENGTH])
+void SHA256Final(SHA256_CTX* context, u_char digest[SHA256_DIGEST_LENGTH])
 {
     const uint32_t blockSize = 1 + ((SHA256_BLOCK_SIZE - 9) < (context->count[1] % SHA256_BLOCK_SIZE));
     const uint32_t length = (context->count[0] + context->count[1]) << 3;

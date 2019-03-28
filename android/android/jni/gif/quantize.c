@@ -55,7 +55,6 @@ static int SortCmpRtn(const void *Entry1, const void *Entry2);
    Also non of the parameter are allocated by this routine.
    This function returns GIF_OK if successful, GIF_ERROR otherwise.
 ******************************************************************************/
-STDCEXPORT
 int
 GifQuantizeBuffer(unsigned int Width,
                unsigned int Height,
@@ -199,14 +198,14 @@ SubdivColorMap(NewColorMapType * NewColorSubdiv,
                unsigned int ColorMapSize,
                unsigned int *NewColorMapSize) {
 
-    int MaxSize;
-    unsigned int i, j, Index = 0, NumEntries, MinColor, MaxColor;
-    long Sum, Count;
+    unsigned int i, j, Index = 0;
     QuantizedColorType *QuantizedColor, **SortArray;
 
     while (ColorMapSize > *NewColorMapSize) {
         /* Find candidate for subdivision: */
-        MaxSize = -1;
+	long Sum, Count;
+        int MaxSize = -1;
+	unsigned int NumEntries, MinColor, MaxColor;
         for (i = 0; i < *NewColorMapSize; i++) {
             for (j = 0; j < 3; j++) {
                 if ((((int)NewColorSubdiv[i].RGBWidth[j]) > MaxSize) &&

@@ -127,7 +127,7 @@ __BEGIN_DECLS
 /**
  * SHA1Init - Initialize new context
  */
-STDCEXPORT void SHA1Init(SHA1_CTX* context)
+void SHA1Init(SHA1_CTX* context)
 {
     context->state[0] = 0x67452301;
     context->state[1] = 0xEFCDAB89;
@@ -140,7 +140,7 @@ STDCEXPORT void SHA1Init(SHA1_CTX* context)
 /**
  * Run your data through this.
  */
-STDCEXPORT void SHA1Update(SHA1_CTX* context, const u_char* data, uint32_t size)
+void SHA1Update(SHA1_CTX* context, const u_char* data, uint32_t size)
 {
     uint32_t i, j = context->count[0];
     if ((context->count[0] += size << 3) < j)
@@ -163,7 +163,7 @@ STDCEXPORT void SHA1Update(SHA1_CTX* context, const u_char* data, uint32_t size)
 /**
  * Add padding and return the message digest.
  */
-STDCEXPORT void SHA1Final(SHA1_CTX* context, u_char digest[SHA1_DIGEST_LENGTH])
+void SHA1Final(SHA1_CTX* context, u_char digest[SHA1_DIGEST_LENGTH])
 {
     u_char data[8];
     for (int32_t i = 0; i < 8; ++i)    /* Endian independent */

@@ -44,13 +44,19 @@ static int EGifBufferedOutput(GifFileType * GifFile, GifByteType * Buf,
 #define LOBYTE(x)	((x) & 0xff)
 #define HIBYTE(x)	(((x) >> 8) & 0xff)
 
+#ifndef S_IREAD
+#define S_IREAD S_IRUSR
+#endif
+
+#ifndef S_IWRITE
+#define S_IWRITE S_IWUSR
+#endif
 /******************************************************************************
  Open a new GIF file for write, specified by name. If TestExistance then
  if the file exists this routines fails (returns NULL).
  Returns a dynamically allocated GifFileType pointer which serves as the GIF
  info record. The Error member is cleared if successful.
 ******************************************************************************/
-STDCEXPORT
 GifFileType *
 EGifOpenFileName(const char *FileName, const bool TestExistence, int *Error)
 {
@@ -60,10 +66,10 @@ EGifOpenFileName(const char *FileName, const bool TestExistence, int *Error)
 
     if (TestExistence)
         FileHandle = open(FileName, O_WRONLY | O_CREAT | O_EXCL, 
-			  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+			  S_IREAD | S_IWRITE);
     else
         FileHandle = open(FileName, O_WRONLY | O_CREAT | O_TRUNC, 
-			  S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+			  S_IREAD | S_IWRITE);
 
     if (FileHandle == -1) {
         if (Error != NULL)
@@ -83,7 +89,6 @@ EGifOpenFileName(const char *FileName, const bool TestExistence, int *Error)
  info record.
  Only fails on a memory allocation error.
 ******************************************************************************/
-STDCEXPORT
 GifFileType *
 EGifOpenFileHandle(const int FileHandle, int *Error)
 {
@@ -105,7 +110,7 @@ EGifOpenFileHandle(const int FileHandle, int *Error)
 	    *Error = E_GIF_ERR_NOT_ENOUGH_MEM;
         return NULL;
     }
-    memset(Private, '\0', sizeof(GifFilePrivateType));
+    /*@i1@*/memset(Private, '\0', sizeof(GifFilePrivateType));
     if ((Private->HashTable = _InitHashTable()) == NULL) {
         free(GifFile);
         free(Private);
@@ -138,7 +143,6 @@ EGifOpenFileHandle(const int FileHandle, int *Error)
  Output constructor that takes user supplied output function.
  Basically just a copy of EGifOpenFileHandle. (MRB)
 ******************************************************************************/
-STDCEXPORT
 GifFileType *
 EGifOpen(void *userData, OutputFunc writeFunc, int *Error)
 {
@@ -191,7 +195,6 @@ EGifOpen(void *userData, OutputFunc writeFunc, int *Error)
 /******************************************************************************
  Routine to compute the GIF version that will be written on output.
 ******************************************************************************/
-STDCEXPORT
 const char *
 EGifGetGifVersion(GifFileType *GifFile)
 {
@@ -239,7 +242,6 @@ EGifGetGifVersion(GifFileType *GifFile)
  is 1 (numerically the same as bool true).  That way we'll even preserve
  object-file compatibility!
 ******************************************************************************/
-STDCEXPORT
 void EGifSetGifVersion(GifFileType *GifFile, const bool gif89)
 {
     GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
@@ -264,7 +266,6 @@ static int InternalWrite(GifFileType *GifFileOut,
  This routine should be called before any other EGif calls, immediately
  following the GIF file opening.
 ******************************************************************************/
-STDCEXPORT
 int
 EGifPutScreenDesc(GifFileType *GifFile,
                   const int Width,
@@ -276,6 +277,7 @@ EGifPutScreenDesc(GifFileType *GifFile,
     GifByteType Buf[3];
     GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
     const char *write_version;
+    GifFile->SColorMap = NULL;
 
     if (Private->FileState & FILE_STATE_SCREEN) {
         /* If already has screen descriptor - something is wrong! */
@@ -358,7 +360,6 @@ EGifPutScreenDesc(GifFileType *GifFile,
  This routine should be called before any attempt to dump an image - any
  call to any of the pixel dump routines.
 ******************************************************************************/
-STDCEXPORT
 int
 EGifPutImageDesc(GifFileType *GifFile,
                  const int Left,
@@ -387,19 +388,21 @@ EGifPutImageDesc(GifFileType *GifFile,
     GifFile->Image.Width = Width;
     GifFile->Image.Height = Height;
     GifFile->Image.Interlace = Interlace;
-    if (ColorMap) {
-	if (GifFile->Image.ColorMap != NULL) {
-	    GifFreeMapObject(GifFile->Image.ColorMap);
+    if (ColorMap != GifFile->Image.ColorMap) {
+	if (ColorMap) {
+	    if (GifFile->Image.ColorMap != NULL) {
+		GifFreeMapObject(GifFile->Image.ColorMap);
+		GifFile->Image.ColorMap = NULL;
+	    }
+	    GifFile->Image.ColorMap = GifMakeMapObject(ColorMap->ColorCount,
+						    ColorMap->Colors);
+	    if (GifFile->Image.ColorMap == NULL) {
+		GifFile->Error = E_GIF_ERR_NOT_ENOUGH_MEM;
+		return GIF_ERROR;
+	    }
+	} else {
 	    GifFile->Image.ColorMap = NULL;
 	}
-        GifFile->Image.ColorMap = GifMakeMapObject(ColorMap->ColorCount,
-                                                ColorMap->Colors);
-        if (GifFile->Image.ColorMap == NULL) {
-            GifFile->Error = E_GIF_ERR_NOT_ENOUGH_MEM;
-            return GIF_ERROR;
-        }
-    } else {
-        GifFile->Image.ColorMap = NULL;
     }
 
     /* Put the image descriptor into the file: */
@@ -446,7 +449,6 @@ EGifPutImageDesc(GifFileType *GifFile,
 /******************************************************************************
  Put one full scanned line (Line) of length LineLen into GIF file.
 ******************************************************************************/
-STDCEXPORT
 int
 EGifPutLine(GifFileType * GifFile, GifPixelType *Line, int LineLen)
 {
@@ -480,7 +482,6 @@ EGifPutLine(GifFileType * GifFile, GifPixelType *Line, int LineLen)
 /******************************************************************************
  Put one pixel (Pixel) into GIF file.
 ******************************************************************************/
-STDCEXPORT
 int
 EGifPutPixel(GifFileType *GifFile, GifPixelType Pixel)
 {
@@ -508,7 +509,6 @@ EGifPutPixel(GifFileType *GifFile, GifPixelType Pixel)
 /******************************************************************************
  Put a comment into GIF file using the GIF89 comment extension block.
 ******************************************************************************/
-STDCEXPORT
 int
 EGifPutComment(GifFileType *GifFile, const char *Comment)
 {
@@ -552,7 +552,6 @@ EGifPutComment(GifFileType *GifFile, const char *Comment)
  extensions can be dumped using EGifPutExtensionBlock until
  EGifPutExtensionTrailer is invoked.
 ******************************************************************************/
-STDCEXPORT
 int
 EGifPutExtensionLeader(GifFileType *GifFile, const int ExtCode)
 {
@@ -575,7 +574,6 @@ EGifPutExtensionLeader(GifFileType *GifFile, const int ExtCode)
 /******************************************************************************
  Put extension block data (see GIF manual) into a GIF file.
 ******************************************************************************/
-STDCEXPORT
 int
 EGifPutExtensionBlock(GifFileType *GifFile, 
 		     const int ExtLen,
@@ -600,7 +598,6 @@ EGifPutExtensionBlock(GifFileType *GifFile,
 /******************************************************************************
  Put a terminating block (see GIF manual) into a GIF file.
 ******************************************************************************/
-STDCEXPORT
 int
 EGifPutExtensionTrailer(GifFileType *GifFile) {
 
@@ -626,7 +623,6 @@ EGifPutExtensionTrailer(GifFileType *GifFile) {
  most one subblock.  Extensions with more than one subblock need to use the
  EGifPutExtension{Leader,Block,Trailer} functions instead.
 ******************************************************************************/
-STDCEXPORT
 int
 EGifPutExtension(GifFileType *GifFile,
                  const int ExtCode,
@@ -661,7 +657,6 @@ EGifPutExtension(GifFileType *GifFile,
  Render a Graphics Control Block as raw extension data
 ******************************************************************************/
 
-STDCEXPORT
 size_t EGifGCBToExtension(const GraphicsControlBlock *GCB,
 		       GifByteType *GifExtension)
 {
@@ -679,7 +674,6 @@ size_t EGifGCBToExtension(const GraphicsControlBlock *GCB,
  Replace the Graphics Control Block for a saved image, if it exists.
 ******************************************************************************/
 
-STDCEXPORT
 int EGifGCBToSavedExtension(const GraphicsControlBlock *GCB, 
 			    GifFileType *GifFile, int ImageIndex)
 {
@@ -716,7 +710,6 @@ int EGifGCBToSavedExtension(const GraphicsControlBlock *GCB,
  to EGifPutCodeNext, until NULL block is given.
  The block should NOT be freed by the user (not dynamically allocated).
 ******************************************************************************/
-STDCEXPORT
 int
 EGifPutCode(GifFileType *GifFile, int CodeSize, const GifByteType *CodeBlock)
 {
@@ -745,7 +738,6 @@ EGifPutCode(GifFileType *GifFile, int CodeSize, const GifByteType *CodeBlock)
  called with blocks of code as read via DGifGetCode/DGifGetCodeNext. If
  given buffer pointer is NULL, empty block is written to mark end of code.
 ******************************************************************************/
-STDCEXPORT
 int
 EGifPutCodeNext(GifFileType *GifFile, const GifByteType *CodeBlock)
 {
@@ -773,7 +765,6 @@ EGifPutCodeNext(GifFileType *GifFile, const GifByteType *CodeBlock)
 /******************************************************************************
  This routine should be called last, to close the GIF file.
 ******************************************************************************/
-STDCEXPORT
 int
 EGifCloseFile(GifFileType *GifFile, int *ErrorCode)
 {
@@ -787,44 +778,45 @@ EGifCloseFile(GifFileType *GifFile, int *ErrorCode)
     Private = (GifFilePrivateType *) GifFile->Private;
     if (Private == NULL)
 	return GIF_ERROR;
-    if (!IS_WRITEABLE(Private)) {
+    else if (!IS_WRITEABLE(Private)) {
         /* This file was NOT open for writing: */
 	if (ErrorCode != NULL)
 	    *ErrorCode = E_GIF_ERR_NOT_WRITEABLE;
 	free(GifFile);
         return GIF_ERROR;
-    }
+    } else {
+	//cppcheck-suppress nullPointerRedundantCheck
+	File = Private->File;
 
-    File = Private->File;
+	Buf = TERMINATOR_INTRODUCER;
+	InternalWrite(GifFile, &Buf, 1);
 
-    Buf = TERMINATOR_INTRODUCER;
-    InternalWrite(GifFile, &Buf, 1);
+	if (GifFile->Image.ColorMap) {
+	    GifFreeMapObject(GifFile->Image.ColorMap);
+	    GifFile->Image.ColorMap = NULL;
+	}
+	if (GifFile->SColorMap) {
+	    GifFreeMapObject(GifFile->SColorMap);
+	    GifFile->SColorMap = NULL;
+	}
+	if (Private) {
+	    if (Private->HashTable) {
+		free((char *) Private->HashTable);
+	    }
+	    free((char *) Private);
+	}
 
-    if (GifFile->Image.ColorMap) {
-        GifFreeMapObject(GifFile->Image.ColorMap);
-        GifFile->Image.ColorMap = NULL;
-    }
-    if (GifFile->SColorMap) {
-        GifFreeMapObject(GifFile->SColorMap);
-        GifFile->SColorMap = NULL;
-    }
-    if (Private) {
-        if (Private->HashTable) {
-            free((char *) Private->HashTable);
-        }
-	free((char *) Private);
-    }
+	if (File && fclose(File) != 0) {
+	    if (ErrorCode != NULL)
+		*ErrorCode = E_GIF_ERR_CLOSE_FAILED;
+	    free(GifFile);
+	    return GIF_ERROR;
+	}
 
-    if (File && fclose(File) != 0) {
-	if (ErrorCode != NULL)
-	    *ErrorCode = E_GIF_ERR_CLOSE_FAILED;
 	free(GifFile);
-        return GIF_ERROR;
+	if (ErrorCode != NULL)
+	    *ErrorCode = E_GIF_SUCCEEDED;
     }
-
-    free(GifFile);
-    if (ErrorCode != NULL)
-	*ErrorCode = E_GIF_SUCCEEDED;
     return GIF_OK;
 }
 
@@ -899,9 +891,7 @@ EGifCompressLine(GifFileType *GifFile,
                  GifPixelType *Line,
                  const int LineLen)
 {
-    int i = 0, CrntCode, NewCode;
-    unsigned long NewKey;
-    GifPixelType Pixel;
+    int i = 0, CrntCode;
     GifHashTableType *HashTable;
     GifFilePrivateType *Private = (GifFilePrivateType *) GifFile->Private;
 
@@ -913,11 +903,12 @@ EGifCompressLine(GifFileType *GifFile,
         CrntCode = Private->CrntCode;    /* Get last code in compression. */
 
     while (i < LineLen) {   /* Decode LineLen items. */
-        Pixel = Line[i++];  /* Get next pixel from stream. */
+	GifPixelType Pixel = Line[i++];  /* Get next pixel from stream. */
         /* Form a new unique key to search hash table for the code combines 
          * CrntCode as Prefix string with Pixel as postfix char.
          */
-        NewKey = (((uint32_t) CrntCode) << 8) + Pixel;
+	int NewCode;
+	unsigned long NewKey = (((uint32_t) CrntCode) << 8) + Pixel;
         if ((NewCode = _ExistsHashTable(HashTable, NewKey)) >= 0) {
             /* This Key is already there, or the string is old one, so
              * simple take new code as our CrntCode:
@@ -1075,11 +1066,10 @@ EGifWriteExtensions(GifFileType *GifFileOut,
 			       int ExtensionBlockCount) 
 {
     if (ExtensionBlocks) {
-        ExtensionBlock *ep;
 	int j;
 
 	for (j = 0; j < ExtensionBlockCount; j++) {
-	    ep = &ExtensionBlocks[j];
+	    ExtensionBlock *ep = &ExtensionBlocks[j];
 	    if (ep->Function != CONTINUE_EXT_FUNC_CODE)
 		if (EGifPutExtensionLeader(GifFileOut, ep->Function) == GIF_ERROR)
 		    return (GIF_ERROR);
@@ -1094,7 +1084,6 @@ EGifWriteExtensions(GifFileType *GifFileOut,
     return (GIF_OK);
 }
 
-STDCEXPORT
 int
 EGifSpew(GifFileType *GifFileOut) 
 {

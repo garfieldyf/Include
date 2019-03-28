@@ -135,7 +135,7 @@ __BEGIN_DECLS
 /**
  * The routine SHA384Init initializes the SHA512 context.
  */
-STDCEXPORT void SHA384Init(SHA512_CTX* context)
+void SHA384Init(SHA512_CTX* context)
 {
     context->state[0] = 0xcbbb9d5dc1059ed8ULL;
     context->state[1] = 0x629a292a367cd507ULL;
@@ -152,7 +152,7 @@ STDCEXPORT void SHA384Init(SHA512_CTX* context)
  * The routine SHA384 terminates the SHA384 computation and
  * ends with the desired message digest in digest[0..size - 1].
  */
-STDCEXPORT void SHA384Final(SHA512_CTX* context, u_char digest[SHA384_DIGEST_LENGTH])
+void SHA384Final(SHA512_CTX* context, u_char digest[SHA384_DIGEST_LENGTH])
 {
     SHAFinalImpl(context, digest, SHA384_DIGEST_LENGTH);
 }
@@ -160,7 +160,7 @@ STDCEXPORT void SHA384Final(SHA512_CTX* context, u_char digest[SHA384_DIGEST_LEN
 /**
  * The routine SHA512Init initializes the SHA512 context.
  */
-STDCEXPORT void SHA512Init(SHA512_CTX* context)
+void SHA512Init(SHA512_CTX* context)
 {
     context->state[0] = 0x6a09e667f3bcc908ULL;
     context->state[1] = 0xbb67ae8584caa73bULL;
@@ -178,7 +178,7 @@ STDCEXPORT void SHA512Init(SHA512_CTX* context)
  * for the presence of each of the characters data[0..size - 1] in
  * the message whose digest is being computed.
  */
-STDCEXPORT void SHA512Update(SHA512_CTX* context, const u_char* data, uint32_t size)
+void SHA512Update(SHA512_CTX* context, const u_char* data, uint32_t size)
 {
     const uint32_t temp = SHA512_BLOCK_SIZE - context->count[1];
     uint32_t remainSize = (size < temp ? size : temp);
@@ -208,7 +208,7 @@ STDCEXPORT void SHA512Update(SHA512_CTX* context, const u_char* data, uint32_t s
  * The routine SHA512 terminates the SHA512 computation and
  * ends with the desired message digest in digest[0...63].
  */
-STDCEXPORT void SHA512Final(SHA512_CTX* context, u_char digest[SHA512_DIGEST_LENGTH])
+void SHA512Final(SHA512_CTX* context, u_char digest[SHA512_DIGEST_LENGTH])
 {
     SHAFinalImpl(context, digest, SHA512_DIGEST_LENGTH);
 }

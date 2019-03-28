@@ -34,7 +34,6 @@ static int KeyItem(uint32_t Item);
 /******************************************************************************
  Initialize HashTable - allocate the memory needed and clear it.	      *
 ******************************************************************************/
-__LIBC_HIDDEN__
 GifHashTableType *_InitHashTable(void)
 {
     GifHashTableType *HashTable;
@@ -52,7 +51,6 @@ GifHashTableType *_InitHashTable(void)
  Routine to clear the HashTable to an empty state.			      *
  This part is a little machine depended. Use the commented part otherwise.   *
 ******************************************************************************/
-__LIBC_HIDDEN__
 void _ClearHashTable(GifHashTableType *HashTable)
 {
     memset(HashTable -> HTable, 0xFF, HT_SIZE * sizeof(uint32_t));
@@ -62,7 +60,6 @@ void _ClearHashTable(GifHashTableType *HashTable)
  Routine to insert a new Item into the HashTable. The data is assumed to be  *
  new one.								      *
 ******************************************************************************/
-__LIBC_HIDDEN__
 void _InsertHashTable(GifHashTableType *HashTable, uint32_t Key, int Code)
 {
     int HKey = KeyItem(Key);
@@ -86,7 +83,6 @@ void _InsertHashTable(GifHashTableType *HashTable, uint32_t Key, int Code)
  Routine to test if given Key exists in HashTable and if so returns its code *
  Returns the Code if key was found, -1 if not.				      *
 ******************************************************************************/
-__LIBC_HIDDEN__
 int _ExistsHashTable(GifHashTableType *HashTable, uint32_t Key)
 {
     int HKey = KeyItem(Key);

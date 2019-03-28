@@ -11,7 +11,7 @@ __BEGIN_DECLS
 // Implementation of the Android_grayBitmap
 //
 
-STDCEXPORT void Android_grayBitmap(void* pixels, uint32_t width, uint32_t height)
+void Android_grayBitmap(void* pixels, uint32_t width, uint32_t height)
 {
     assert(pixels);
     __NS::handleBitmap((__NS::Color*)pixels, width * height, [](__NS::Color& color) { color.red = color.green = color.blue = (uint8_t)(0.299f * color.red + 0.587f * color.green + 0.114f * color.blue); });
@@ -21,7 +21,7 @@ STDCEXPORT void Android_grayBitmap(void* pixels, uint32_t width, uint32_t height
 // Implementation of the Android_inverseBitmap
 //
 
-STDCEXPORT void Android_inverseBitmap(void* pixels, uint32_t width, uint32_t height)
+void Android_inverseBitmap(void* pixels, uint32_t width, uint32_t height)
 {
     assert(pixels);
     __NS::handleBitmap((__NS::Color*)pixels, width * height, [](__NS::Color& color) { color.setRGB(255 - color.red, 255 - color.green, 255 - color.blue); });
@@ -31,7 +31,7 @@ STDCEXPORT void Android_inverseBitmap(void* pixels, uint32_t width, uint32_t hei
 // Implementation of the Android_blurBitmap
 //
 
-STDCEXPORT void Android_blurBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t radius)
+void Android_blurBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t radius)
 {
     assert(pixels);
 
@@ -61,7 +61,7 @@ STDCEXPORT void Android_blurBitmap(void* pixels, uint32_t width, uint32_t height
 // Implementation of the Android_binaryBitmap
 //
 
-STDCEXPORT void Android_binaryBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t gray)
+void Android_binaryBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t gray)
 {
     assert(pixels);
 
@@ -87,7 +87,7 @@ STDCEXPORT void Android_binaryBitmap(void* pixels, uint32_t width, uint32_t heig
 // Implementation of the Android_mirrorBitmap
 //
 
-STDCEXPORT void Android_mirrorBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t horizontal)
+void Android_mirrorBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t horizontal)
 {
     __NS::Color* colors = (__NS::Color*)pixels;
     assert(colors);
@@ -120,7 +120,7 @@ STDCEXPORT void Android_mirrorBitmap(void* pixels, uint32_t width, uint32_t heig
 // Implementation of the Android_spreadBitmap
 //
 
-STDCEXPORT void Android_spreadBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t spreadSize)
+void Android_spreadBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t spreadSize)
 {
     __NS::Color* colors = (__NS::Color*)pixels;
     assert(colors);
@@ -151,7 +151,7 @@ STDCEXPORT void Android_spreadBitmap(void* pixels, uint32_t width, uint32_t heig
 // Implementation of the Android_mosaicBitmap
 //
 
-STDCEXPORT void Android_mosaicBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t mosaicSize)
+void Android_mosaicBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t mosaicSize)
 {
     __NS::Color* colors = (__NS::Color*)pixels;
     assert(colors);
