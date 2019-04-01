@@ -29,7 +29,6 @@
 // splitPath()
 // deleteFile()
 // deleteFiles()
-// getFileStatus()
 // createDirectory()
 // defaultFilter()
 // ignoreHiddenFilter()
@@ -278,12 +277,6 @@ __STATIC_INLINE__ const char* splitPath(const char* path, stdutil::char_sequence
     }
 
     return result;
-}
-
-__STATIC_INLINE__ int getFileStatus(const char* path, struct stat& buf)
-{
-    assert(path);
-    return __verify((::lstat(path, &buf) == 0 ? 0 : errno), "Couldn't get file '%s' status", path);
 }
 
 __STATIC_INLINE__ int deleteFile(const char* path)
