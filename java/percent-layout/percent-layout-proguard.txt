@@ -6,9 +6,3 @@
 -keepclasseswithmembers class **.R$styleable {
     <fields>;
 }
-
-# When layoutManager xml attribute is used, RecyclerView inflates
-# LayoutManagers's constructors using reflection.
--keep public class * extends android.support.v7.widget.RecyclerView$LayoutManager {
-    public <init>(...);
-}
