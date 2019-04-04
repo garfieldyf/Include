@@ -48,10 +48,11 @@ public final class FocusDrawable {
      * focus drawable is state full, This parameter will be ignored.
      */
     public void draw(Canvas canvas, View view, int[] stateSpec) {
+        final int[] stateSet = view.getDrawableState();
         if (mDrawable.isStateful()) {
-            mDrawable.setState(view.getDrawableState());
+            mDrawable.setState(stateSet);
             draw(canvas, view, mDrawable);
-        } else if (StateSet.stateSetMatches(stateSpec, view.getDrawableState())) {
+        } else if (StateSet.stateSetMatches(stateSpec, stateSet)) {
             draw(canvas, view, mDrawable);
         }
     }
