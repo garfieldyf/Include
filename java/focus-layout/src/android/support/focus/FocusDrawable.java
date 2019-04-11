@@ -16,7 +16,7 @@ import android.view.View;
  * @author Garfield
  */
 public final class FocusDrawable {
-    private static final AtomicReference<Rect> sRect = new AtomicReference<Rect>();
+    private static final AtomicReference<Rect> sRectPool = new AtomicReference<Rect>();
     private final Drawable mDrawable;
 
     /**
@@ -71,13 +71,13 @@ public final class FocusDrawable {
             bottom += padding.bottom;
         }
 
-        sRect.compareAndSet(null, padding);
+        sRectPool.compareAndSet(null, padding);
         drawable.setBounds(left, top, right, bottom);
         drawable.draw(canvas);
     }
 
     private static Rect obtain() {
-        final Rect result = sRect.getAndSet(null);
+        final Rect result = sRectPool.getAndSet(null);
         return (result != null ? result : new Rect());
     }
 
