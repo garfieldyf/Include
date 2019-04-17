@@ -19,6 +19,7 @@ package android.support.percent;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.support.ResourcesUtils;
 import android.support.annotation.NonNull;
 import android.support.v4.view.MarginLayoutParamsCompat;
 import android.support.v4.view.ViewCompat;
@@ -144,8 +145,8 @@ public class PercentLayoutHelper {
     public static PercentLayoutInfo getPercentLayoutInfo(Context context,
             AttributeSet attrs) {
         PercentLayoutInfo info = null;
-        TypedArray array = context.obtainStyledAttributes(attrs, (int[])getAttributeValue(context, "PercentLayout"));
-        float value = array.getFraction((int)getAttributeValue(context, "PercentLayout_layout_widthPercent"), 1, 1, -1f);
+        TypedArray array = context.obtainStyledAttributes(attrs, (int[])ResourcesUtils.getAttributeValue(context, "PercentLayout"));
+        float value = array.getFraction((int)ResourcesUtils.getAttributeValue(context, "PercentLayout_layout_widthPercent"), 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent width: " + value);
@@ -153,7 +154,7 @@ public class PercentLayoutHelper {
             info = info != null ? info : new PercentLayoutInfo();
             info.widthPercent = value;
         }
-        value = array.getFraction((int)getAttributeValue(context, "PercentLayout_layout_heightPercent"), 1, 1, -1f);
+        value = array.getFraction((int)ResourcesUtils.getAttributeValue(context, "PercentLayout_layout_heightPercent"), 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent height: " + value);
@@ -161,7 +162,7 @@ public class PercentLayoutHelper {
             info = info != null ? info : new PercentLayoutInfo();
             info.heightPercent = value;
         }
-        value = array.getFraction((int)getAttributeValue(context, "PercentLayout_layout_marginPercent"), 1, 1, -1f);
+        value = array.getFraction((int)ResourcesUtils.getAttributeValue(context, "PercentLayout_layout_marginPercent"), 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent margin: " + value);
@@ -172,7 +173,7 @@ public class PercentLayoutHelper {
             info.rightMarginPercent = value;
             info.bottomMarginPercent = value;
         }
-        value = array.getFraction((int)getAttributeValue(context, "PercentLayout_layout_marginLeftPercent"), 1, 1, -1f);
+        value = array.getFraction((int)ResourcesUtils.getAttributeValue(context, "PercentLayout_layout_marginLeftPercent"), 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent left margin: " + value);
@@ -180,7 +181,7 @@ public class PercentLayoutHelper {
             info = info != null ? info : new PercentLayoutInfo();
             info.leftMarginPercent = value;
         }
-        value = array.getFraction((int)getAttributeValue(context, "PercentLayout_layout_marginTopPercent"), 1, 1, -1f);
+        value = array.getFraction((int)ResourcesUtils.getAttributeValue(context, "PercentLayout_layout_marginTopPercent"), 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent top margin: " + value);
@@ -188,7 +189,7 @@ public class PercentLayoutHelper {
             info = info != null ? info : new PercentLayoutInfo();
             info.topMarginPercent = value;
         }
-        value = array.getFraction((int)getAttributeValue(context, "PercentLayout_layout_marginRightPercent"), 1, 1, -1f);
+        value = array.getFraction((int)ResourcesUtils.getAttributeValue(context, "PercentLayout_layout_marginRightPercent"), 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent right margin: " + value);
@@ -196,7 +197,7 @@ public class PercentLayoutHelper {
             info = info != null ? info : new PercentLayoutInfo();
             info.rightMarginPercent = value;
         }
-        value = array.getFraction((int)getAttributeValue(context, "PercentLayout_layout_marginBottomPercent"), 1, 1, -1f);
+        value = array.getFraction((int)ResourcesUtils.getAttributeValue(context, "PercentLayout_layout_marginBottomPercent"), 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent bottom margin: " + value);
@@ -204,7 +205,7 @@ public class PercentLayoutHelper {
             info = info != null ? info : new PercentLayoutInfo();
             info.bottomMarginPercent = value;
         }
-        value = array.getFraction((int)getAttributeValue(context, "PercentLayout_layout_marginStartPercent"), 1, 1, -1f);
+        value = array.getFraction((int)ResourcesUtils.getAttributeValue(context, "PercentLayout_layout_marginStartPercent"), 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent start margin: " + value);
@@ -212,7 +213,7 @@ public class PercentLayoutHelper {
             info = info != null ? info : new PercentLayoutInfo();
             info.startMarginPercent = value;
         }
-        value = array.getFraction((int)getAttributeValue(context, "PercentLayout_layout_marginEndPercent"), 1, 1, -1f);
+        value = array.getFraction((int)ResourcesUtils.getAttributeValue(context, "PercentLayout_layout_marginEndPercent"), 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "percent end margin: " + value);
@@ -221,7 +222,7 @@ public class PercentLayoutHelper {
             info.endMarginPercent = value;
         }
 
-        value = array.getFraction((int)getAttributeValue(context, "PercentLayout_layout_aspectRatio"), 1, 1, -1f);
+        value = array.getFraction((int)ResourcesUtils.getAttributeValue(context, "PercentLayout_layout_aspectRatio"), 1, 1, -1f);
         if (value != -1f) {
             if (VERBOSE) {
                 Log.v(TAG, "aspect ratio: " + value);
@@ -553,13 +554,5 @@ public class PercentLayoutHelper {
      */
     public interface PercentLayoutParams {
         PercentLayoutInfo getPercentLayoutInfo();
-    }
-
-    private static Object getAttributeValue(Context context, String name) {
-        try {
-            return Class.forName(context.getPackageName() + ".R$styleable").getField(name).get(null);
-        } catch (Throwable e) {
-            throw new AssertionError(e);
-        }
     }
 }

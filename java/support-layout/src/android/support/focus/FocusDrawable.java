@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.DrawableContainer;
+import android.support.ResourcesUtils;
 import android.util.AttributeSet;
 import android.util.StateSet;
 import android.view.View;
@@ -35,7 +36,7 @@ public final class FocusDrawable {
      * @see #FocusDrawable(Drawable)
      */
     public FocusDrawable(Context context, AttributeSet attrs) {
-        final TypedArray a = context.obtainStyledAttributes(attrs, (int[])getAttributeValue(context, "FocusDrawable"));
+        final TypedArray a = context.obtainStyledAttributes(attrs, (int[])ResourcesUtils.getAttributeValue(context, "FocusDrawable"));
         mDrawable = a.getDrawable(0 /* R.styleable.FocusDrawable_foucs */);
         a.recycle();
     }
@@ -79,13 +80,5 @@ public final class FocusDrawable {
     private static Rect obtain() {
         final Rect result = sRectPool.getAndSet(null);
         return (result != null ? result : new Rect());
-    }
-
-    private static Object getAttributeValue(Context context, String name) {
-        try {
-            return Class.forName(context.getPackageName() + ".R$styleable").getField(name).get(null);
-        } catch (Throwable e) {
-            throw new AssertionError(e);
-        }
     }
 }

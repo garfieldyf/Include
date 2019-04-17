@@ -2,6 +2,11 @@
 <resources>
     <!-- AUTO-GENERATED FILE. DO NOT MODIFY. -->
 
+    <!-- FocusDrawable styleable -->
+    <declare-styleable name="FocusDrawable">
+        <attr name="focus" format="reference|color" />
+    </declare-styleable>
+
     <!-- PercentLayout styleable -->
     <declare-styleable name="PercentLayout">
         <attr name="layout_widthPercent" format="fraction" />

@@ -1,8 +1,0 @@
-# This is a configuration file for ProGuard.
-# http://proguard.sourceforge.net/index.html#manual/usage.html
-# AUTO-GENERATED FILE. DO NOT MODIFY.
-
-# Keeps the R.styleable class fields.
--keepclasseswithmembers class **.R$styleable {
-    <fields>;
-}

@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="focus-layout" basedir="." default="release">
+<project name="support-layout" basedir="." default="release">
     <!-- properties -->
     <property environment="env" />
     <property name="author" value="Garfield" />
-    <property name="version" value="1.0.0" />
+    <property name="version" value="25.3.1" />
     <property name="out.dir" value="${basedir}/out" />
     <property name="src.dir" value="${out.dir}/src" />
     <property name="class.dir" value="${out.dir}/classes" />
-    <property name="out.file.name" value="${basedir}/focus-layout.jar" />
-    <property name="source.file.name" value="${basedir}/focus-layout-sources.jar" />
+    <property name="out.file.name" value="${basedir}/support-layout.jar" />
+    <property name="source.file.name" value="${basedir}/support-layout-sources.jar" />
 
     <property name="api.level" value="22" />
     <property name="sdk.dir" value="${env.ANDROID_HOME}" />
     <property name="sdk.version" value="Android 5.1.1 (API ${api.level})" />
     <property name="android.jar.path" value="${sdk.dir}/platforms/android-${api.level}/android.jar" />
+    <property name="support.v4.jar.path" value="${sdk.dir}/extras/android/support/v7/appcompat/libs/android-support-v4.jar" />
 
     <!-- target -pre-compile -->
     <target name="-pre-compile">
@@ -21,11 +22,6 @@
         <copy todir="${src.dir}" overwrite="true">
             <fileset dir="${basedir}/src" />
         </copy>
-
-        <!-- replace the package name -->
-        <replace dir="${src.dir}" includes="**/*.java" encoding="UTF-8">
-            <replacefilter token="@author Garfield" value="@author ${author}" />
-        </replace>
     </target>
 
     <!-- target -compile -->
@@ -33,7 +29,7 @@
         <!-- compile java files -->
         <mkdir dir="${class.dir}" />
         <javac srcdir="${src.dir}" destdir="${class.dir}" debug="true" source="1.7" target="1.7" includeAntRuntime="false" includeJavaRuntime="false"
-            classpath="${android.jar.path}" />
+            classpath="${android.jar.path};${support.v4.jar.path}" />
 
         <!-- build jar file -->
         <jar destfile="${out.file.name}" basedir="${class.dir}">
@@ -70,7 +66,7 @@
 
     <!-- target release -->
     <target name="release" depends="-clean, -pre-compile, -compile, -post-compile">
-        <echo level="info">Builds the focus-layout package in RELEASE mode.</echo>
+        <echo level="info">Builds the support-layout package in RELEASE mode.</echo>
         <echo level="info">Install: ${out.file.name}</echo>
     </target>
 </project>
