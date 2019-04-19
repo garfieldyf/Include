@@ -11,117 +11,117 @@ public final class AssetManager implements AutoCloseable {
     public static final int ACCESS_BUFFER = 3;
 
     public AssetManager() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public static AssetManager getSystem() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public void close() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public final InputStream open(String fileName) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public final InputStream open(String fileName, int accessMode) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public final AssetFileDescriptor openFd(String fileName) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public native final String[] list(String path) throws IOException;
 
     public final InputStream openNonAsset(String fileName) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public final InputStream openNonAsset(String fileName, int accessMode) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public final InputStream openNonAsset(int cookie, String fileName) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public final InputStream openNonAsset(int cookie, String fileName, int accessMode) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public final AssetFileDescriptor openNonAssetFd(String fileName) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public final AssetFileDescriptor openNonAssetFd(int cookie, String fileName) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public final XmlResourceParser openXmlResourceParser(String fileName) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public final XmlResourceParser openXmlResourceParser(int cookie, String fileName) throws IOException {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public final class AssetInputStream extends InputStream {
         public final int getAssetInt() {
-            throw new UnsupportedOperationException();
+            throw new RuntimeException("Stub!");
         }
 
         public final long getNativeAsset() {
-            throw new UnsupportedOperationException();
+            throw new RuntimeException("Stub!");
         }
 
         public final int read() throws IOException {
-            throw new UnsupportedOperationException();
+            throw new RuntimeException("Stub!");
         }
 
         public final boolean markSupported() {
-            throw new UnsupportedOperationException();
+            throw new RuntimeException("Stub!");
         }
 
         public final int available() throws IOException {
-            throw new UnsupportedOperationException();
+            throw new RuntimeException("Stub!");
         }
 
         public final void close() throws IOException {
-            throw new UnsupportedOperationException();
+            throw new RuntimeException("Stub!");
         }
 
         public final void mark(int readlimit) {
-            throw new UnsupportedOperationException();
+            throw new RuntimeException("Stub!");
         }
 
         public final void reset() throws IOException {
-            throw new UnsupportedOperationException();
+            throw new RuntimeException("Stub!");
         }
 
         public final int read(byte[] b) throws IOException {
-            throw new UnsupportedOperationException();
+            throw new RuntimeException("Stub!");
         }
 
         public final int read(byte[] b, int off, int len) throws IOException {
-            throw new UnsupportedOperationException();
+            throw new RuntimeException("Stub!");
         }
 
         public final long skip(long n) throws IOException {
-            throw new UnsupportedOperationException();
+            throw new RuntimeException("Stub!");
         }
     }
 
     public final int addAssetPath(String path) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public native final int addOverlayPath(String idmapPath);
 
     public final int[] addAssetPaths(String[] paths) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public native final boolean isUpToDate();

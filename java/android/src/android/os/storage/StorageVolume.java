@@ -12,120 +12,120 @@ public class StorageVolume implements Parcelable {
     public static final String EXTRA_STORAGE_VOLUME = "storage_volume";
 
     public StorageVolume(File path, int descriptionId, boolean primary, boolean removable, boolean emulated, int mtpReserveSpace, boolean allowMassStorage, long maxFileSize, UserHandle owner) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public static StorageVolume fromTemplate(StorageVolume template, File path, UserHandle owner) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public String getPath() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public File getPathFile() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public String getDescription(Context context) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public int getDescriptionId() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public boolean isPrimary() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public boolean isRemovable() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public boolean isEmulated() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public int getStorageId() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public void setStorageId(int index) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public int getMtpReserveSpace() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public boolean allowMassStorage() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public long getMaxFileSize() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public UserHandle getOwner() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public void setUuid(String uuid) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public String getUuid() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public int getFatVolumeId() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public void setUserLabel(String userLabel) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public String getUserLabel() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public void setState(String state) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public String getState() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public boolean equals(Object obj) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public int hashCode() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public String toString() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public static final Creator<StorageVolume> CREATOR = new Creator<StorageVolume>() {
         public StorageVolume createFromParcel(Parcel in) {
-            throw new UnsupportedOperationException();
+            throw new RuntimeException("Stub!");
         }
 
         public StorageVolume[] newArray(int size) {
-            throw new UnsupportedOperationException();
+            throw new RuntimeException("Stub!");
         }
     };
 
     public int describeContents() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public void writeToParcel(Parcel parcel, int flags) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 }

@@ -8,83 +8,83 @@ import android.os.RemoteException;
 
 public class StorageManager {
     public static StorageManager from(Context context) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public StorageManager(ContentResolver resolver, Looper tgtLooper) throws RemoteException {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public void registerListener(StorageEventListener listener) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public void unregisterListener(StorageEventListener listener) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public void enableUsbMassStorage() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public void disableUsbMassStorage() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public boolean isUsbMassStorageConnected() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public boolean isUsbMassStorageEnabled() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public boolean mountObb(String rawPath, String key, OnObbStateChangeListener listener) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public boolean unmountObb(String rawPath, boolean force, OnObbStateChangeListener listener) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public boolean isObbMounted(String rawPath) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public String getMountedObbPath(String rawPath) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public String getVolumeState(String mountPoint) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public StorageVolume[] getVolumeList() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public String[] getVolumePaths() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public StorageVolume getPrimaryVolume() {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public static StorageVolume getPrimaryVolume(StorageVolume[] volumes) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public long getStorageBytesUntilLow(File path) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public long getStorageLowBytes(File path) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public long getStorageFullBytes(File path) {
-        throw new UnsupportedOperationException();
+        throw new RuntimeException("Stub!");
     }
 
     public static final int CRYPT_TYPE_PASSWORD = 0;
