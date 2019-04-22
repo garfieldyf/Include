@@ -11,8 +11,8 @@
     <property name="source.file.name" value="${basedir}/recyclerview-v7-sources.jar" />
 
     <property name="api.level" value="22" />
+    <property name="api.version" value="5.1.1" />
     <property name="sdk.dir" value="${env.ANDROID_HOME}" />
-    <property name="sdk.version" value="Android 5.1.1 (API ${api.level})" />
     <property name="android.jar.path" value="${sdk.dir}/platforms/android-${api.level}/android.jar" />
     <property name="support.v4.jar.path" value="${sdk.dir}/extras/android/support/v7/appcompat/libs/android-support-v4.jar" />
 
@@ -36,7 +36,7 @@
             <manifest>
                 <attribute name="Built-By" value="${author}" />
                 <attribute name="Version" value="${version}" />
-                <attribute name="SDK-Version" value="${sdk.version}" />
+                <attribute name="SDK-Version" value="Android ${api.version} (API ${api.level})" />
             </manifest>
         </jar>
 
@@ -45,7 +45,7 @@
             <manifest>
                 <attribute name="Built-By" value="${author}" />
                 <attribute name="Version" value="${version}" />
-                <attribute name="SDK-Version" value="${sdk.version}" />
+                <attribute name="SDK-Version" value="Android ${api.version} (API ${api.level})" />
             </manifest>
         </jar>
     </target>
