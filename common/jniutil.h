@@ -107,14 +107,14 @@ private:
 // Interface of the basic_jstring class
 //
 
-template <typename _Ty, uint32_t t_length>
+template <typename _Ty, jsize t_length>
 class ATL_NO_VTABLE basic_jstring
 {
     DECLARE_NONCOPYABLE(basic_jstring);
 
 // Constructors/Destructor
 protected:
-    basic_jstring(uint32_t len);
+    basic_jstring(jsize len);
     ~basic_jstring();
 
 // Operations
@@ -124,7 +124,7 @@ public:
 
 // Attributes
 public:
-    const uint32_t length;
+    const jsize length;
 
 // Data members
 protected:
@@ -137,7 +137,7 @@ protected:
 // Interface of the _jstring_t class
 //
 
-template <uint32_t t_length = MAX_PATH>
+template <jsize t_length = MAX_PATH>
 class _jstring_t : public basic_jstring<char, t_length>
 {
 public:
@@ -153,7 +153,7 @@ public:
 // Interface of the _jwstring_t class
 //
 
-template <uint32_t t_length = MAX_PATH>
+template <jsize t_length = MAX_PATH>
 class _jwstring_t : public basic_jstring<jchar, t_length>
 {
 public:
@@ -197,14 +197,15 @@ public:
 // Interface of the jarray_t class
 //
 
-template <typename _Ty>
-class jarray_t
+template <typename _Ty, jsize t_length = 1024>
+class ATL_NO_VTABLE jarray_t
 {
     DECLARE_NONCOPYABLE(jarray_t);
 
-// Constructors
-public:
-    jarray_t(_Ty* _data, jsize len);
+// Constructors/Destructor
+protected:
+    jarray_t(jsize len);
+    ~jarray_t();
 
 // Operations
 public:
@@ -214,17 +215,14 @@ public:
     _Ty& operator[](jsize index);
     _Ty operator[](jsize index) const;
 
-#ifndef NDEBUG
-    void dump() const;
-#endif
-
 // Attributes
 public:
     const jsize length;
 
 // Data members
-private:
-    _Ty* mData;
+protected:
+    _Ty* cdata;
+    _Ty mdata[t_length];
 };
 
 

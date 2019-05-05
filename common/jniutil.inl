@@ -22,17 +22,16 @@
 //
 
 #define DECLARE_ARRAY(_jtype, _jname) \
-class _jtype##Array_t : public jarray_t<_jtype> { \
+template <jsize t_length = 1024> \
+class _jtype##Array_t : public jarray_t<_jtype, t_length> { \
 public: \
     _jtype##Array_t(JNIEnv* env, _jtype##Array array) \
-        : jarray_t(env->Get##_jname##ArrayElements(array, NULL), env->GetArrayLength(array)), mEnv(env), mArray(array) \
-        { assert(array); } \
-    ~_jtype##Array_t() \
-        { LOGD("Release " #_jtype "Array elements - { data = %p, length = %d }\n", this->data(), this->length); \
-          mEnv->Release##_jname##ArrayElements(mArray, this->data(), 0); } \
-private: \
-    JNIEnv* mEnv; \
-    _jtype##Array mArray; \
+        : jarray_t<_jtype, t_length>(env->GetArrayLength(array)) \
+        { env->Get##_jname##ArrayRegion(array, 0, this->length, this->cdata); } \
+    jsize size() const \
+        { return (sizeof(_jtype) * this->length); } \
+    void copyTo(JNIEnv* env, _jtype##Array array) \
+        { env->Set##_jname##ArrayRegion(array, 0, this->length, this->cdata); } \
 }
 
 namespace JNI {
@@ -41,14 +40,14 @@ namespace JNI {
 // Implementation of the jxxxArray_t class
 //
 
-DECLARE_ARRAY(jint, Int);           // jintArray_t
-DECLARE_ARRAY(jbyte, Byte);         // jbyteArray_t
-DECLARE_ARRAY(jchar, Char);         // jcharArray_t
-DECLARE_ARRAY(jlong, Long);         // jlongArray_t
-DECLARE_ARRAY(jshort, Short);       // jshortArray_t
-DECLARE_ARRAY(jfloat, Float);       // jfloatArray_t
-DECLARE_ARRAY(jdouble, Double);     // jdoubleArray_t
-DECLARE_ARRAY(jboolean, Boolean);   // jbooleanArray_t
+DECLARE_ARRAY(jint, Int);           // jintArray_t<t_length>
+DECLARE_ARRAY(jbyte, Byte);         // jbyteArray_t<t_length>
+DECLARE_ARRAY(jchar, Char);         // jcharArray_t<t_length>
+DECLARE_ARRAY(jlong, Long);         // jlongArray_t<t_length>
+DECLARE_ARRAY(jshort, Short);       // jshortArray_t<t_length>
+DECLARE_ARRAY(jfloat, Float);       // jfloatArray_t<t_length>
+DECLARE_ARRAY(jdouble, Double);     // jdoubleArray_t<t_length>
+DECLARE_ARRAY(jboolean, Boolean);   // jbooleanArray_t<t_length>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -228,38 +227,38 @@ __INLINE__ jmethodID jclass_t::getStaticMethodID(const char* methodName, const c
 // Implementation of the basic_jstring class
 //
 
-template <typename _Ty, uint32_t t_length>
-__INLINE__ basic_jstring<_Ty, t_length>::basic_jstring(uint32_t len)
+template <typename _Ty, jsize t_length>
+__INLINE__ basic_jstring<_Ty, t_length>::basic_jstring(jsize len)
     : length(len)
 {
-    cstr = (len >= t_length ? (_Ty*)::malloc((len + 1) * sizeof(_Ty)) : mstr);
+    cstr = (len >= t_length ? (_Ty*)::malloc(sizeof(_Ty) * (len + 1)) : mstr);
     assert(cstr);
 }
 
-template <typename _Ty, uint32_t t_length>
+template <typename _Ty, jsize t_length>
 __INLINE__ basic_jstring<_Ty, t_length>::~basic_jstring()
 {
     if (cstr != mstr)
     {
-        LOGW("Release HEAP string characters : %s(%u)\n", cstr, length);
+        LOGW("Release HEAP string : %s { length = %d, fixedLength = %d }\n", cstr, length, t_length);
         ::free(cstr);
     }
 #ifndef NDEBUG
     else
     {
-        LOGD("Release STACK string characters : %s(%u)\n", cstr, length);
+        LOGD("Release STACK string : %s { length = %d, fixedLength = %d }\n", cstr, length, t_length);
         ::memset(mstr, 0xCCCCCCCC, sizeof(mstr));
     }
 #endif  // NDEBUG
 }
 
-template <typename _Ty, uint32_t t_length>
+template <typename _Ty, jsize t_length>
 __INLINE__ const _Ty* basic_jstring<_Ty, t_length>::str() const
 {
     return cstr;
 }
 
-template <typename _Ty, uint32_t t_length>
+template <typename _Ty, jsize t_length>
 __INLINE__ basic_jstring<_Ty, t_length>::operator const _Ty*() const
 {
     return cstr;
@@ -270,7 +269,7 @@ __INLINE__ basic_jstring<_Ty, t_length>::operator const _Ty*() const
 // Implementation of the _jstring_t class
 //
 
-template <uint32_t t_length>
+template <jsize t_length>
 __INLINE__ _jstring_t<t_length>::_jstring_t(JNIEnv* env, jstring str)
     : _Mybase(env->GetStringUTFLength(str))
 {
@@ -286,7 +285,7 @@ __INLINE__ _jstring_t<t_length>::_jstring_t(JNIEnv* env, jstring str)
 // Implementation of the _jwstring_t class
 //
 
-template <uint32_t t_length>
+template <jsize t_length>
 __INLINE__ _jwstring_t<t_length>::_jwstring_t(JNIEnv* env, jstring str)
     : _Mybase(env->GetStringLength(str))
 {
@@ -319,51 +318,60 @@ __INLINE__ jstringRef::~jstringRef()
 // Implementation of the jarray_t class
 //
 
-template <typename _Ty>
-__INLINE__ jarray_t<_Ty>::jarray_t(_Ty* _data, jsize len)
-    : length(len), mData(_data)
+template <typename _Ty, jsize t_length>
+__INLINE__ jarray_t<_Ty, t_length>::jarray_t(jsize len)
+    : length(len)
 {
-    assert(_data);
-    assert(len >= 0);
+    cdata = (len > t_length ? (_Ty*)::malloc(sizeof(_Ty) * len) : mdata);
+    assert(cdata);
 }
 
-template <typename _Ty>
-__INLINE__ _Ty* jarray_t<_Ty>::data()
+template <typename _Ty, jsize t_length>
+__INLINE__ jarray_t<_Ty, t_length>::~jarray_t()
 {
-    return mData;
-}
-
-template <typename _Ty>
-__INLINE__ const _Ty* jarray_t<_Ty>::data() const
-{
-    return mData;
-}
-
-template <typename _Ty>
-__INLINE__ _Ty& jarray_t<_Ty>::operator[](jsize index)
-{
-    assert(mData);
-    assert(index >= 0 && index < length);
-
-    return mData[index];
-}
-
-template <typename _Ty>
-__INLINE__ _Ty jarray_t<_Ty>::operator[](jsize index) const
-{
-    assert(mData);
-    assert(index >= 0 && index < length);
-
-    return mData[index];
-}
-
+    if (cdata != mdata)
+    {
+        LOGW("Release HEAP jarray_t { data = %p, length = %d, fixedLength = %d }\n", cdata, length, t_length);
+        ::free(cdata);
+    }
 #ifndef NDEBUG
-template <typename _Ty>
-__INLINE__ void jarray_t<_Ty>::dump() const
-{
-    LOGI("jarray_t { data = %p, length = %d }\n", mData, length);
-}
+    else
+    {
+        LOGD("Release STACK jarray_t { data = %p, length = %d, fixedLength = %d }\n", cdata, length, t_length);
+        ::memset(mdata, 0xCCCCCCCC, sizeof(mdata));
+    }
 #endif  // NDEBUG
+}
+
+template <typename _Ty, jsize t_length>
+__INLINE__ _Ty* jarray_t<_Ty, t_length>::data()
+{
+    return cdata;
+}
+
+template <typename _Ty, jsize t_length>
+__INLINE__ const _Ty* jarray_t<_Ty, t_length>::data() const
+{
+    return cdata;
+}
+
+template <typename _Ty, jsize t_length>
+__INLINE__ _Ty& jarray_t<_Ty, t_length>::operator[](jsize index)
+{
+    assert(cdata);
+    assert(index >= 0 && index < length);
+
+    return cdata[index];
+}
+
+template <typename _Ty, jsize t_length>
+__INLINE__ _Ty jarray_t<_Ty, t_length>::operator[](jsize index) const
+{
+    assert(cdata);
+    assert(index >= 0 && index < length);
+
+    return cdata[index];
+}
 
 }  // namespace JNI
 
