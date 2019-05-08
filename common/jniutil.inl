@@ -20,18 +20,39 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Macros in this file:
 //
+// __s2utf(__string, __jstring)
+// __s2utf_l(__string, __length, __jstring)
 
-#define DECLARE_ARRAY(_jtype, _jname) \
+/*
+#define __s2utf(__string, __jstring)        __s2utf_l(__string, __##__string##_length, __jstring)
+
+#ifndef NDEBUG
+#define __s2utf_l(__string, __length, __jstring) \
+    __basic_s2utf(__string, __length, __jstring); \
+    LOGD("Release STACK string : %s { length = %d, size = %zu }\n", __string, __length, sizeof(__string))
+#else
+#define __s2utf_l(__string, __length, __jstring) \
+    __basic_s2utf(__string, __length, __jstring)
+#endif  // NDEBUG
+
+#define __basic_s2utf(__string, __length, __jstring) \
+    const jsize __length = env->GetStringUTFLength(__jstring); \
+    char __string[__length + 1]; \
+    env->GetStringUTFRegion(__jstring, 0, env->GetStringLength(__jstring), __string); \
+    __string[__length] = '\0'
+*/
+
+#define DECLARE_ARRAY(__jtype, __jname) \
 template <jsize t_length = 1024> \
-class _jtype##Array_t : public jarray_t<_jtype, t_length> { \
+class __jtype##Array_t : public jarray_t<__jtype, t_length> { \
 public: \
-    _jtype##Array_t(JNIEnv* env, _jtype##Array array) \
-        : jarray_t<_jtype, t_length>(env->GetArrayLength(array)) \
-        { env->Get##_jname##ArrayRegion(array, 0, this->length, this->cdata); } \
+    __jtype##Array_t(JNIEnv* env, __jtype##Array array) \
+        : jarray_t<__jtype, t_length>(env->GetArrayLength(array)) \
+        { env->Get##__jname##ArrayRegion(array, 0, this->length, this->cdata); } \
     jsize size() const \
-        { return (sizeof(_jtype) * this->length); } \
-    void copyTo(JNIEnv* env, _jtype##Array array) \
-        { env->Set##_jname##ArrayRegion(array, 0, this->length, this->cdata); } \
+        { return (sizeof(__jtype) * this->length); } \
+    void copyTo(JNIEnv* env, __jtype##Array array) \
+        { env->Set##__jname##ArrayRegion(array, 0, this->length, this->cdata); } \
 }
 
 namespace JNI {
@@ -240,13 +261,13 @@ __INLINE__ basic_jstring<_Ty, t_length>::~basic_jstring()
 {
     if (cstr != mstr)
     {
-        LOGW("Release HEAP string : %s { length = %d, fixedLength = %d }\n", cstr, length, t_length);
+        LOGW("Release HEAP string : %s { length = %d, size = %zu }\n", cstr, length, sizeof(mstr));
         ::free(cstr);
     }
 #ifndef NDEBUG
     else
     {
-        LOGD("Release STACK string : %s { length = %d, fixedLength = %d }\n", cstr, length, t_length);
+        LOGD("Release STACK string : %s { length = %d, size = %zu }\n", cstr, length, sizeof(mstr));
         ::memset(mstr, 0xCCCCCCCC, sizeof(mstr));
     }
 #endif  // NDEBUG
@@ -331,13 +352,13 @@ __INLINE__ jarray_t<_Ty, t_length>::~jarray_t()
 {
     if (cdata != mdata)
     {
-        LOGW("Release HEAP jarray_t { data = %p, length = %d, fixedLength = %d }\n", cdata, length, t_length);
+        LOGW("Release HEAP array { data = %p, length = %d, size = %zu }\n", cdata, length, sizeof(mdata));
         ::free(cdata);
     }
 #ifndef NDEBUG
     else
     {
-        LOGD("Release STACK jarray_t { data = %p, length = %d, fixedLength = %d }\n", cdata, length, t_length);
+        LOGD("Release STACK array { data = %p, length = %d, size = %zu }\n", cdata, length, sizeof(mdata));
         ::memset(mdata, 0xCCCCCCCC, sizeof(mdata));
     }
 #endif  // NDEBUG
