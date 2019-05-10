@@ -115,7 +115,10 @@ public:
     int32_t centerX() const;
     int32_t centerY() const;
 
+    Point& topLeft();
     const Point& topLeft() const;
+
+    Point& bottomRight();
     const Point& bottomRight() const;
 };
 #endif  // ANDROID_RECT_H

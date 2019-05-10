@@ -265,9 +265,19 @@ __INLINE__ int32_t Rect::centerY() const
     return (top + bottom) >> 1;
 }
 
+__INLINE__ Point& Rect::topLeft()
+{
+    return *((Point*)this);
+}
+
 __INLINE__ const Point& Rect::topLeft() const
 {
     return *((Point*)this);
+}
+
+__INLINE__ Point& Rect::bottomRight()
+{
+    return *((Point*)this + 1);
 }
 
 __INLINE__ const Point& Rect::bottomRight() const
@@ -320,9 +330,7 @@ __INLINE__ uint16_t Color::toRGB565() const
 
 __INLINE__ void Color::swap(Color& color)
 {
-    uint32_t c = rgba;
-    rgba = color.rgba;
-    color.rgba = c;
+    __swap(rgba, color.rgba);
 }
 
 __INLINE__ void Color::setRGB(uint8_t r, uint8_t g, uint8_t b)
