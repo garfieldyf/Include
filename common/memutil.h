@@ -100,7 +100,7 @@ public:
 
 // Attributes
 public:
-#if defined(_STRING_) || defined(_STLP_STRING) || defined(_GLIBCXX_STRING)
+#if defined(_STRING_) || defined(_STLP_STRING) || defined(_GLIBCXX_STRING) || defined(_LIBCPP_STRING)
     std::string to_string() const;
 #endif
     uint32_t to_string(char* _Str, uint32_t _Length) const;

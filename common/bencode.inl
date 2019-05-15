@@ -495,7 +495,7 @@ __INLINE__ void bencode_file::path(char* outPath, uint32_t length, char separato
     _FilePath(outPath, length, filePath->size(), separator);
 }
 
-#if defined(_STRING_) || defined(_STLP_STRING) || defined(_GLIBCXX_STRING)
+#if defined(_STRING_) || defined(_STLP_STRING) || defined(_GLIBCXX_STRING) || defined(_LIBCPP_STRING)
 __INLINE__ std::string bencode_file::path(char separator/* = '\\'*/) const
 {
     assert(!empty());
@@ -505,7 +505,7 @@ __INLINE__ std::string bencode_file::path(char separator/* = '\\'*/) const
 
     return std::string(tmpPath);
 }
-#endif  // defined(_STRING_) || defined(_STLP_STRING) || defined(_GLIBCXX_STRING)
+#endif  // defined(_STRING_) || defined(_STLP_STRING) || defined(_GLIBCXX_STRING) || defined(_LIBCPP_STRING)
 
 #ifdef _CRT_DEBUG_DUMP
 template <typename _Pr>

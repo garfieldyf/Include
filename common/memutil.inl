@@ -180,13 +180,13 @@ __INLINE__ void char_sequence::Dump(const _Pr& _Printer) const
 }
 #endif  // _CRT_DEBUG_DUMP
 
-#if defined(_STRING_) || defined(_STLP_STRING) || defined(_GLIBCXX_STRING)
+#if defined(_STRING_) || defined(_STLP_STRING) || defined(_GLIBCXX_STRING) || defined(_LIBCPP_STRING)
 __INLINE__ std::string char_sequence::to_string() const
 {
     assert(!empty());
     return std::string(data, size);
 }
-#endif  // defined(_STRING_) || defined(_STLP_STRING) || defined(_GLIBCXX_STRING)
+#endif  // defined(_STRING_) || defined(_STLP_STRING) || defined(_GLIBCXX_STRING) || defined(_LIBCPP_STRING)
 
 __INLINE__ uint32_t char_sequence::to_string(char* _Str, uint32_t _Length) const
 {

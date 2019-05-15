@@ -363,4 +363,5 @@ __STATIC_INLINE__ jint __android_throw_exception(JNIEnv* env, int errnum, const 
     return result;
 }
 #endif  // PACKAGE_UTILITIES
+
 #endif  // __PLATFORM_H__

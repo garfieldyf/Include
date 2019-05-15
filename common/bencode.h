@@ -291,7 +291,7 @@ public:
     // Returns the file path (such as 'aaa\bbb\ccc.dat').
     void path(char* outPath, uint32_t length, char separator = '\\') const;
 
-#if defined(_STRING_) || defined(_STLP_STRING) || defined(_GLIBCXX_STRING)
+#if defined(_STRING_) || defined(_STLP_STRING) || defined(_GLIBCXX_STRING) || defined(_LIBCPP_STRING)
     std::string path(char separator = '\\') const;
 #endif
 

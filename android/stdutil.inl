@@ -251,13 +251,13 @@ __INLINE__ void regmatch::dump(const char* input) const
 }
 #endif  // NDEBUG
 
-#if defined(_STLP_STRING) || defined(_GLIBCXX_STRING)
+#if defined(_STLP_STRING) || defined(_GLIBCXX_STRING) || defined(_LIBCPP_STRING)
 __INLINE__ std::string regmatch::toString(const char* input) const
 {
     assert(input);
     return std::string(input + rm_so, rm_eo - rm_so);
 }
-#endif  // defined(_STLP_STRING) || defined(_GLIBCXX_STRING)
+#endif  // defined(_STLP_STRING) || defined(_GLIBCXX_STRING) || defined(_LIBCPP_STRING)
 
 __INLINE__ uint32_t regmatch::copyTo(const char* input, char* buf, uint32_t length) const
 {

@@ -194,7 +194,7 @@ public:
     void dump(const char* input) const;
 #endif
 
-#if defined(_STLP_STRING) || defined(_GLIBCXX_STRING)
+#if defined(_STLP_STRING) || defined(_GLIBCXX_STRING) || defined(_LIBCPP_STRING)
     std::string toString(const char* input) const;
 #endif
 
