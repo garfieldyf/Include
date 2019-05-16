@@ -1,0 +1,58 @@
+apply plugin: 'com.android.application'
+
+android {
+    buildToolsVersion '28.0.3'
+    compileSdkVersion 26
+    defaultConfig {
+        applicationId "com.funshion.test"
+        minSdkVersion 19
+        targetSdkVersion 26
+        versionCode 1000
+        versionName "1.0.0"
+    }
+
+    signingConfigs {
+        release {
+            keyAlias 'aurora'
+            keyPassword 'lk#$AA78YG'
+            storeFile file('AuroraKS.keystore')
+            storePassword 'QEDdfx@!34'
+        }
+    }
+
+    buildTypes {
+        release {
+            useProguard true
+            minifyEnabled true
+            zipAlignEnabled true
+            shrinkResources true
+//            buildConfigField "boolean", "FLAG_DEBUG", "false"
+//            proguardFiles rootProject.sdkDir + '/tools/proguard/proguard-android-optimize.txt', 'proguard.txt', rootProject.funLibsDir + '/funshion-proguard.txt', rootProject.libsDir + '/android/android-sdk-proguard.txt'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard.txt', rootProject.funLibsDir + '/funshion-proguard.txt', rootProject.libsDir + '/android/android-sdk-proguard.txt'
+            signingConfig signingConfigs.release
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    android.applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = rootProject.name + '_v' + defaultConfig.versionName + '_' + buildType.name + '.apk';
+        }
+    }
+}
+
+dependencies {
+    compileOnly files(rootProject.libsDir + '/android/android-sdk-internal.jar')
+
+    debugImplementation files(rootProject.funLibsDir + '/debug/funshion.jar')
+    releaseImplementation files(rootProject.funLibsDir + '/release/funshion.jar')
+
+    implementation files(rootProject.libsDir + '/zxing/zxing.jar')
+    implementation files(rootProject.libsDir + '/recyclerview/recyclerview-v7.jar')
+    implementation files(rootProject.libsDir + '/support-layout/support-layout.jar')
+    implementation files(rootProject.sdkDir + '/extras/android/support/v7/appcompat/libs/android-support-v4.jar')
+}
