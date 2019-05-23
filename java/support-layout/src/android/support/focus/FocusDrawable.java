@@ -36,7 +36,7 @@ public final class FocusDrawable {
      * @see #FocusDrawable(Drawable)
      */
     public FocusDrawable(Context context, AttributeSet attrs) {
-        final TypedArray a = context.obtainStyledAttributes(attrs, (int[])ResourcesUtils.getAttributeValue(context, "FocusDrawable"));
+        final TypedArray a = context.obtainStyledAttributes(attrs, (int[])ResourcesUtils.getFieldValue(context, "FocusDrawable"));
         mDrawable = a.getDrawable(0 /* R.styleable.FocusDrawable_foucs */);
         a.recycle();
     }
