@@ -7,8 +7,9 @@
     <property name="out.dir" value="${basedir}/out" />
     <property name="src.dir" value="${out.dir}/src" />
     <property name="class.dir" value="${out.dir}/classes" />
-    <property name="out.file.name" value="${basedir}/support-layout.jar" />
-    <property name="source.file.name" value="${basedir}/support-layout-sources.jar" />
+    <property name="out.file.name" value="support-layout.jar" />
+    <property name="out.final.file" value="${basedir}/${out.file.name}" />
+    <property name="source.final.file" value="${basedir}/support-layout-sources.jar" />
 
     <property name="api.level" value="22" />
     <property name="api.version" value="5.1.1" />
@@ -19,6 +20,7 @@
     <!-- target -pre-compile -->
     <target name="-pre-compile">
         <!-- copy the java files -->
+        <echo level="info">Build the ${out.file.name} in RELEASE mode.</echo>
         <copy todir="${src.dir}" overwrite="true">
             <fileset dir="${basedir}/src" />
         </copy>
@@ -32,7 +34,7 @@
             classpath="${android.jar.path};${support.v4.jar.path}" />
 
         <!-- build jar file -->
-        <jar destfile="${out.file.name}" basedir="${class.dir}">
+        <jar destfile="${out.final.file}" basedir="${class.dir}">
             <manifest>
                 <attribute name="Built-By" value="${author}" />
                 <attribute name="Version" value="${version}" />
@@ -41,7 +43,7 @@
         </jar>
 
         <!-- build source jar file -->
-        <jar destfile="${source.file.name}" basedir="${src.dir}">
+        <jar destfile="${source.final.file}" basedir="${src.dir}">
             <manifest>
                 <attribute name="Built-By" value="${author}" />
                 <attribute name="Version" value="${version}" />
@@ -60,13 +62,12 @@
     <target name="-clean">
         <echo level="info">Deletes output files...</echo>
         <delete dir="${out.dir}"/>
-        <delete file="${out.file.name}"/>
-        <delete file="${source.file.name}"/>
+        <delete file="${out.final.file}"/>
+        <delete file="${source.final.file}"/>
     </target>
 
     <!-- target release -->
     <target name="release" depends="-clean, -pre-compile, -compile, -post-compile">
-        <echo level="info">Builds the support-layout package in RELEASE mode.</echo>
-        <echo level="info">Install: ${out.file.name}</echo>
+        <echo level="info">Install: ${out.final.file}</echo>
     </target>
 </project>
