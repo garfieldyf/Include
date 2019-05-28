@@ -6,9 +6,9 @@
     <property name="out.dir" value="${basedir}/out" />
     <property name="src.dir" value="${out.dir}/src" />
     <property name="class.dir" value="${out.dir}/classes" />
-    <property name="out.file.name" value="zxing.jar" />
+    <property name="out.file.name" value="${ant.project.name}.jar" />
     <property name="out.final.file" value="${basedir}/${out.file.name}" />
-    <property name="source.final.file" value="${basedir}/zxing-sources.jar" />
+    <property name="source.final.file" value="${basedir}/${ant.project.name}-sources.jar" />
 
     <!-- target -pre-compile -->
     <target name="-pre-compile">
