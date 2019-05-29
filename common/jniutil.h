@@ -208,15 +208,14 @@ public:
 // Interface of the jarray_t class
 //
 
-template <typename _Ty, jsize t_length = 1024>
+template <typename _Ty>
 class ATL_NO_VTABLE jarray_t
 {
     DECLARE_NONCOPYABLE(jarray_t);
 
-// Constructors/Destructor
+// Constructors
 protected:
-    jarray_t(jsize len);
-    ~jarray_t();
+    jarray_t(_Ty* data, jsize len);
 
 // Operations
 public:
@@ -232,8 +231,7 @@ public:
 
 // Data members
 protected:
-    _Ty* cdata;
-    _Ty mdata[t_length];
+    _Ty* mData;
 };
 
 

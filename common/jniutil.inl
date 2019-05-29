@@ -20,39 +20,70 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Macros in this file:
 //
-// __s2utf(__string, __jstring)
-// __s2utf_l(__string, __length, __jstring)
+// JNI_S2UTF(__string, __jstring)
+// JNI_S2UTF_L(__string, __length, __jstring)
+// JNI_IA2A(__array, __length, __jarray)
+// JNI_BA2A(__array, __length, __jarray)
+// JNI_LA2A(__array, __length, __jarray)
+// JNI_SA2A(__array, __length, __jarray)
+// JNI_FA2A(__array, __length, __jarray)
+// JNI_DA2A(__array, __length, __jarray)
+// JNI_ZA2A(__array, __length, __jarray)
 
 /*
-#define __s2utf(__string, __jstring)        __s2utf_l(__string, __##__string##_length, __jstring)
+#define JNI_S2UTF(__string, __jstring)          JNI_S2UTF_L(__string, __##__string##_length, __jstring)
 
 #ifndef NDEBUG
-#define __s2utf_l(__string, __length, __jstring) \
-    __basic_s2utf(__string, __length, __jstring); \
+#define JNI_S2UTF_L(__string, __length, __jstring) \
+    __BASIC_S2UTF(__string, __length, __jstring); \
     LOGD("Release STACK string : %s { length = %d, size = %zu }\n", __string, __length, sizeof(__string))
 #else
-#define __s2utf_l(__string, __length, __jstring) \
-    __basic_s2utf(__string, __length, __jstring)
+#define JNI_S2UTF_L(__string, __length, __jstring) \
+    __BASIC_S2UTF(__string, __length, __jstring)
 #endif  // NDEBUG
 
-#define __basic_s2utf(__string, __length, __jstring) \
+#define __BASIC_S2UTF(__string, __length, __jstring) \
     const jsize __length = env->GetStringUTFLength(__jstring); \
     char __string[__length + 1]; \
     env->GetStringUTFRegion(__jstring, 0, env->GetStringLength(__jstring), __string); \
     __string[__length] = '\0'
+
+#define JNI_IA2A(__array, __length, __jarray)   __JNI_A2A(__array, __length, __jarray, jint, Int)
+#define JNI_BA2A(__array, __length, __jarray)   __JNI_A2A(__array, __length, __jarray, jbyte, Byte)
+#define JNI_LA2A(__array, __length, __jarray)   __JNI_A2A(__array, __length, __jarray, jlong, Long)
+#define JNI_SA2A(__array, __length, __jarray)   __JNI_A2A(__array, __length, __jarray, jshort, Short)
+#define JNI_FA2A(__array, __length, __jarray)   __JNI_A2A(__array, __length, __jarray, jfloat, Float)
+#define JNI_DA2A(__array, __length, __jarray)   __JNI_A2A(__array, __length, __jarray, jdouble, Double)
+#define JNI_ZA2A(__array, __length, __jarray)   __JNI_A2A(__array, __length, __jarray, jboolean, Boolean)
+
+#ifndef NDEBUG
+#define __JNI_A2A(__array, __length, __jarray, __jtype, __jname) \
+    __BASIC_A2A(__array, __length, __jarray, __jtype, __jname); \
+    LOGD("Release STACK "#__jtype"Array { data = %p, length = %d, size = %zu }\n", __array, __length, sizeof(__array))
+#else
+#define __JNI_A2A(__array, __length, __jarray, __jtype, __jname) \
+    __BASIC_A2A(__array, __length, __jarray, __jtype, __jname)
+#endif  // NDEBUG
+
+#define __BASIC_A2A(__array, __length, __jarray, __jtype, __jname) \
+    const jsize __length = env->GetArrayLength(__jarray); \
+    __jtype __array[__length]; \
+    env->Get##__jname##ArrayRegion(__jarray, 0, __length, __array)
 */
 
 #define DECLARE_ARRAY(__jtype, __jname) \
-template <jsize t_length = 1024> \
-class __jtype##Array_t : public jarray_t<__jtype, t_length> { \
+template <jint t_mode = 0> \
+class __jtype##Array_t : public jarray_t<__jtype> { \
 public: \
     __jtype##Array_t(JNIEnv* env, __jtype##Array array) \
-        : jarray_t<__jtype, t_length>(env->GetArrayLength(array)) \
-        { env->Get##__jname##ArrayRegion(array, 0, this->length, this->cdata); } \
-    jsize size() const \
-        { return (sizeof(__jtype) * this->length); } \
-    void copyTo(JNIEnv* env, __jtype##Array array) \
-        { env->Set##__jname##ArrayRegion(array, 0, this->length, this->cdata); } \
+        : jarray_t<__jtype>(env->Get##__jname##ArrayElements(array, NULL), env->GetArrayLength(array)), mEnv(env), mArray(array) \
+        { static_assert(t_mode != JNI_COMMIT, "Invalid t_mode - JNI_COMMIT"); } \
+    ~__jtype##Array_t() \
+        { LOGD("Release "#__jtype"Array { data = %p, length = %d, mode = %s }\n", mData, length, (t_mode == JNI_ABORT ? "JNI_ABORT" : "0")); \
+          mEnv->Release##__jname##ArrayElements(mArray, mData, t_mode); } \
+private: \
+    JNIEnv* mEnv; \
+    __jtype##Array mArray; \
 }
 
 namespace JNI {
@@ -69,14 +100,13 @@ typedef _jwstring_t<>   jwstring_t;
 // Implementation of the jxxxArray_t class
 //
 
-DECLARE_ARRAY(jint, Int);           // jintArray_t<t_length>
-DECLARE_ARRAY(jbyte, Byte);         // jbyteArray_t<t_length>
-DECLARE_ARRAY(jchar, Char);         // jcharArray_t<t_length>
-DECLARE_ARRAY(jlong, Long);         // jlongArray_t<t_length>
-DECLARE_ARRAY(jshort, Short);       // jshortArray_t<t_length>
-DECLARE_ARRAY(jfloat, Float);       // jfloatArray_t<t_length>
-DECLARE_ARRAY(jdouble, Double);     // jdoubleArray_t<t_length>
-DECLARE_ARRAY(jboolean, Boolean);   // jbooleanArray_t<t_length>
+DECLARE_ARRAY(jint, Int);           // jintArray_t<t_mode>
+DECLARE_ARRAY(jbyte, Byte);         // jbyteArray_t<t_mode>
+DECLARE_ARRAY(jlong, Long);         // jlongArray_t<t_mode>
+DECLARE_ARRAY(jshort, Short);       // jshortArray_t<t_mode>
+DECLARE_ARRAY(jfloat, Float);       // jfloatArray_t<t_mode>
+DECLARE_ARRAY(jdouble, Double);     // jdoubleArray_t<t_mode>
+DECLARE_ARRAY(jboolean, Boolean);   // jbooleanArray_t<t_mode>
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -373,59 +403,42 @@ __INLINE__ jstringRef_t::jstringRef_t(JNIEnv* env, const char* str)
 // Implementation of the jarray_t class
 //
 
-template <typename _Ty, jsize t_length>
-__INLINE__ jarray_t<_Ty, t_length>::jarray_t(jsize len)
-    : length(len)
+template <typename _Ty>
+__INLINE__ jarray_t<_Ty>::jarray_t(_Ty* data, jsize len)
+    : length(len), mData(data)
 {
-    cdata = (len > t_length ? (_Ty*)::malloc(sizeof(_Ty) * len) : mdata);
-    assert(cdata);
+    assert(data);
+    assert(len >= 0);
 }
 
-template <typename _Ty, jsize t_length>
-__INLINE__ jarray_t<_Ty, t_length>::~jarray_t()
+template <typename _Ty>
+__INLINE__ _Ty* jarray_t<_Ty>::data()
 {
-    if (cdata != mdata)
-    {
-        LOGW("Release HEAP array { data = %p, length = %d, size = %zu }\n", cdata, length, sizeof(mdata));
-        ::free(cdata);
-    }
-#ifndef NDEBUG
-    else
-    {
-        LOGD("Release STACK array { data = %p, length = %d, size = %zu }\n", cdata, length, sizeof(mdata));
-        ::memset(mdata, 0xCCCCCCCC, sizeof(mdata));
-    }
-#endif  // NDEBUG
+    return mData;
 }
 
-template <typename _Ty, jsize t_length>
-__INLINE__ _Ty* jarray_t<_Ty, t_length>::data()
+template <typename _Ty>
+__INLINE__ const _Ty* jarray_t<_Ty>::data() const
 {
-    return cdata;
+    return mData;
 }
 
-template <typename _Ty, jsize t_length>
-__INLINE__ const _Ty* jarray_t<_Ty, t_length>::data() const
+template <typename _Ty>
+__INLINE__ _Ty& jarray_t<_Ty>::operator[](jsize index)
 {
-    return cdata;
-}
-
-template <typename _Ty, jsize t_length>
-__INLINE__ _Ty& jarray_t<_Ty, t_length>::operator[](jsize index)
-{
-    assert(cdata);
+    assert(mData);
     assert(index >= 0 && index < length);
 
-    return cdata[index];
+    return mData[index];
 }
 
-template <typename _Ty, jsize t_length>
-__INLINE__ _Ty jarray_t<_Ty, t_length>::operator[](jsize index) const
+template <typename _Ty>
+__INLINE__ _Ty jarray_t<_Ty>::operator[](jsize index) const
 {
-    assert(cdata);
+    assert(mData);
     assert(index >= 0 && index < length);
 
-    return cdata[index];
+    return mData[index];
 }
 
 }  // namespace JNI
