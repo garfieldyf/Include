@@ -58,6 +58,14 @@ public: \
 namespace JNI {
 
 ///////////////////////////////////////////////////////////////////////////////
+// Implementation of the jstring_t / jwstring_t class
+//
+
+typedef _jstring_t<>    jstring_t;
+typedef _jwstring_t<>   jwstring_t;
+
+
+///////////////////////////////////////////////////////////////////////////////
 // Implementation of the jxxxArray_t class
 //
 
@@ -319,19 +327,45 @@ __INLINE__ _jwstring_t<t_length>::_jwstring_t(JNIEnv* env, jstring str)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the jstringRef class
+// Implementation of the jlocalRef_t class
 //
 
-__INLINE__ jstringRef::jstringRef(JNIEnv* _env, const char* _str)
-    : env(_env), str(newString(_env, _str))
+template <typename _Ty>
+__INLINE__ jlocalRef_t<_Ty>::jlocalRef_t(JNIEnv* env, _Ty localRef)
+    : mEnv(env), mLocalRef(localRef)
+{
+    assert(env);
+    assert(localRef);
+}
+
+template <typename _Ty>
+__INLINE__ _Ty jlocalRef_t<_Ty>::get() const
+{
+    return mLocalRef;
+}
+
+template <typename _Ty>
+__INLINE__ jlocalRef_t<_Ty>::operator _Ty() const
+{
+    return mLocalRef;
+}
+
+template <typename _Ty>
+__INLINE__ jlocalRef_t<_Ty>::~jlocalRef_t()
+{
+    mEnv->DeleteLocalRef(mLocalRef);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the jstringRef_t class
+//
+
+__INLINE__ jstringRef_t::jstringRef_t(JNIEnv* env, const char* str)
+    : jlocalRef_t<jstring>(env, newString(env, str))
 {
     assert(env);
     assert(str);
-}
-
-__INLINE__ jstringRef::~jstringRef()
-{
-    env->DeleteLocalRef(str);
 }
 
 

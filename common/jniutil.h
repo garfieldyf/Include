@@ -23,7 +23,8 @@
 // jclass_t
 // jstring_t
 // jwstring_t
-// jstringRef
+// jlocalRef_t
+// jstringRef_t
 // jintArray_t
 // jbyteArray_t
 // jcharArray_t
@@ -166,30 +167,40 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the jstring_t / jwstring_t class
+// Interface of the jlocalRef_t class
 //
 
-typedef _jstring_t<>    jstring_t;
-typedef _jwstring_t<>   jwstring_t;
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the jstringRef class
-//
-
-class jstringRef
+template <typename _Ty>
+class jlocalRef_t
 {
-    DECLARE_NONCOPYABLE(jstringRef);
+    DECLARE_NONCOPYABLE(jlocalRef_t);
 
 // Constructors/Destructor
 public:
-    jstringRef(JNIEnv* _env, const char* _str);
-    ~jstringRef();
+    jlocalRef_t(JNIEnv* env, _Ty localRef);
+    ~jlocalRef_t();
+
+// Operations
+public:
+    _Ty get() const;
+    operator _Ty() const;
 
 // Data members
+private:
+    JNIEnv* mEnv;
+    _Ty mLocalRef;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the jstringRef_t class
+//
+
+class jstringRef_t : public jlocalRef_t<jstring>
+{
+// Constructors
 public:
-    JNIEnv* env;
-    jstring str;
+    jstringRef_t(JNIEnv* env, const char* str);
 };
 
 
