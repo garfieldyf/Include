@@ -20,52 +20,52 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Macros in this file:
 //
-// JNI_S2UTF(__string, __jstring)
-// JNI_S2UTF_L(__string, __length, __jstring)
-// JNI_IA2A(__array, __length, __jarray)
-// JNI_BA2A(__array, __length, __jarray)
-// JNI_LA2A(__array, __length, __jarray)
-// JNI_SA2A(__array, __length, __jarray)
-// JNI_FA2A(__array, __length, __jarray)
-// JNI_DA2A(__array, __length, __jarray)
-// JNI_ZA2A(__array, __length, __jarray)
+// __jni_s2utf(__string, __jstring)
+// __jni_s2utf_l(__string, __length, __jstring)
+// __jni_ia2a(__array, __length, __jarray)
+// __jni_ba2a(__array, __length, __jarray)
+// __jni_la2a(__array, __length, __jarray)
+// __jni_sa2a(__array, __length, __jarray)
+// __jni_fa2a(__array, __length, __jarray)
+// __jni_da2a(__array, __length, __jarray)
+// __jni_za2a(__array, __length, __jarray)
 
 /*
-#define JNI_S2UTF(__string, __jstring)          JNI_S2UTF_L(__string, __##__string##_length, __jstring)
+#define __jni_s2utf(__string, __jstring)            __jni_s2utf_l(__string, __##__string##_length, __jstring)
 
 #ifndef NDEBUG
-#define JNI_S2UTF_L(__string, __length, __jstring) \
-    __BASIC_S2UTF(__string, __length, __jstring); \
+#define __jni_s2utf_l(__string, __length, __jstring) \
+    __basic_s2utf(__string, __length, __jstring); \
     LOGD("Release STACK string : %s { length = %d, size = %zu }\n", __string, __length, sizeof(__string))
 #else
-#define JNI_S2UTF_L(__string, __length, __jstring) \
-    __BASIC_S2UTF(__string, __length, __jstring)
+#define __jni_s2utf_l(__string, __length, __jstring) \
+    __basic_s2utf(__string, __length, __jstring)
 #endif  // NDEBUG
 
-#define __BASIC_S2UTF(__string, __length, __jstring) \
+#define __basic_s2utf(__string, __length, __jstring) \
     const jsize __length = env->GetStringUTFLength(__jstring); \
     char __string[__length + 1]; \
     env->GetStringUTFRegion(__jstring, 0, env->GetStringLength(__jstring), __string); \
     __string[__length] = '\0'
 
-#define JNI_IA2A(__array, __length, __jarray)   __JNI_A2A(__array, __length, __jarray, jint, Int)
-#define JNI_BA2A(__array, __length, __jarray)   __JNI_A2A(__array, __length, __jarray, jbyte, Byte)
-#define JNI_LA2A(__array, __length, __jarray)   __JNI_A2A(__array, __length, __jarray, jlong, Long)
-#define JNI_SA2A(__array, __length, __jarray)   __JNI_A2A(__array, __length, __jarray, jshort, Short)
-#define JNI_FA2A(__array, __length, __jarray)   __JNI_A2A(__array, __length, __jarray, jfloat, Float)
-#define JNI_DA2A(__array, __length, __jarray)   __JNI_A2A(__array, __length, __jarray, jdouble, Double)
-#define JNI_ZA2A(__array, __length, __jarray)   __JNI_A2A(__array, __length, __jarray, jboolean, Boolean)
+#define __jni_ia2a(__array, __length, __jarray)     __jni_a2a(__array, __length, __jarray, jint, int)
+#define __jni_ba2a(__array, __length, __jarray)     __jni_a2a(__array, __length, __jarray, jbyte, byte)
+#define __jni_la2a(__array, __length, __jarray)     __jni_a2a(__array, __length, __jarray, jlong, long)
+#define __jni_sa2a(__array, __length, __jarray)     __jni_a2a(__array, __length, __jarray, jshort, short)
+#define __jni_fa2a(__array, __length, __jarray)     __jni_a2a(__array, __length, __jarray, jfloat, float)
+#define __jni_da2a(__array, __length, __jarray)     __jni_a2a(__array, __length, __jarray, jdouble, double)
+#define __jni_za2a(__array, __length, __jarray)     __jni_a2a(__array, __length, __jarray, jboolean, boolean)
 
 #ifndef NDEBUG
-#define __JNI_A2A(__array, __length, __jarray, __jtype, __jname) \
-    __BASIC_A2A(__array, __length, __jarray, __jtype, __jname); \
+#define __jni_a2a(__array, __length, __jarray, __jtype, __jname) \
+    __basic_a2a(__array, __length, __jarray, __jtype, __jname); \
     LOGD("Release STACK "#__jtype"Array { data = %p, length = %d, size = %zu }\n", __array, __length, sizeof(__array))
 #else
-#define __JNI_A2A(__array, __length, __jarray, __jtype, __jname) \
-    __BASIC_A2A(__array, __length, __jarray, __jtype, __jname)
+#define __jni_a2a(__array, __length, __jarray, __jtype, __jname) \
+    __basic_a2a(__array, __length, __jarray, __jtype, __jname)
 #endif  // NDEBUG
 
-#define __BASIC_A2A(__array, __length, __jarray, __jtype, __jname) \
+#define __basic_a2a(__array, __length, __jarray, __jtype, __jname) \
     const jsize __length = env->GetArrayLength(__jarray); \
     __jtype __array[__length]; \
     env->Get##__jname##ArrayRegion(__jarray, 0, __length, __array)
