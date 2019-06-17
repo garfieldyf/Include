@@ -265,12 +265,6 @@ __STATIC_INLINE__ constexpr typename __remove_reference<T>::type&& __move(T&& t)
 }
 #endif  // __cplusplus
 
-__STATIC_INLINE__ int __android_sdk_version()
-{
-    char version[PROP_VALUE_MAX + 1];
-    return (::__system_property_get("ro.build.version.sdk", version) > 0 ? ::strtol(version, NULL, 10) : 0);
-}
-
 static inline const char* __android_build_tag(const char* func, char (&tag)[MAX_PATH])
 {
     // Finds the function name end pointer (including return type).
