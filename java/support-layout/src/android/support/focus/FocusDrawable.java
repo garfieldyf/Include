@@ -57,7 +57,7 @@ public final class FocusDrawable {
         }
     }
 
-    private void draw(Canvas canvas, View view, Drawable drawable) {
+    private static void draw(Canvas canvas, View view, Drawable drawable) {
         int left = 0, top = 0, right = view.getWidth(), bottom = view.getHeight();
         if (drawable instanceof DrawableContainer) {
             drawable = ((DrawableContainer)drawable).getCurrent();
