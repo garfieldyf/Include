@@ -7,6 +7,7 @@ import android.widget.Button;
 
 /**
  * Class <tt>FocusButton</tt>
+ * <p>Note: Don't set android:singleLine="true" in the layout.</p>
  * @author Garfield
  */
 public class FocusButton extends Button {

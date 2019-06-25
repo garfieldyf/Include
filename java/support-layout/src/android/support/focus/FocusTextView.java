@@ -7,6 +7,7 @@ import android.widget.TextView;
 
 /**
  * Class <tt>FocusTextView</tt>
+ * <p>Note: Don't set android:singleLine="true" in the layout.</p>
  * @author Garfield
  */
 public class FocusTextView extends TextView {

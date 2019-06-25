@@ -25,6 +25,7 @@ https://lanhuapp.com
 android SDK : https://developer.android.google.cn/
 mount -o remount /system
 mount -o rw,remount /system
+adb tcpip 5555
 adb shell dumpsys meminfo -a tv.fun.children
 D:\Google\android-sdk-windows\platform-tools\hprof-conv E:\hprof\com.tencent.test.hprof E:\hprof\com.tencent.test.android.hprof
 
