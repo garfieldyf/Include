@@ -61,11 +61,11 @@ void Android_blurBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t 
 // Implementation of the Android_binaryBitmap
 //
 
-void Android_binaryBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t gray)
+void Android_binaryBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t grayscale)
 {
     assert(pixels);
 
-    if (!gray)
+    if (!grayscale)
         Android_grayBitmap(pixels, width, height);
 
     const __NS::Color* colors = (__NS::Color*)pixels;
