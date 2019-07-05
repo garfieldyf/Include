@@ -37,10 +37,9 @@ void Android_blurBitmap(void* pixels, uint32_t width, uint32_t height, uint32_t 
 
     if (radius > 1)
     {
-        static const double SQRT2PI = ::sqrt(M_PI * 2.0);
         const double sigma  = (double)radius / 3.0;
         const double sigma2 = 2.0 * sigma * sigma;
-        const double sigmap = sigma * SQRT2PI;
+        const double sigmap = sigma * ::sqrt(M_PI * 2.0);
 
         // Builds the gaussian matrix from radius.
         float matrix[radius * 2 + 1];
