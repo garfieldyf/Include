@@ -58,6 +58,7 @@ make update-api
 ## dump AndroidManifest.xml
 pm list packages com.tencent.test
 dumpsys package com.tencent.test
+ps -p -t|grep u0_a60
 D:\Google\android-sdk-windows\build-tools\25.0.3\aapt dump badging E:\TVMaster\TVMaster-2.0.0.0-for-dangbei.apk
 D:\Google\android-sdk-windows\build-tools\25.0.3\aapt dump xmltree E:\TVMaster\TVMaster-2.0.0.0-for-dangbei.apk AndroidManifest.xml
 
