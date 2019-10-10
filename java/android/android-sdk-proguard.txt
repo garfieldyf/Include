@@ -2,6 +2,6 @@
 # http://proguard.sourceforge.net/index.html#manual/usage.html
 # AUTO-GENERATED FILE. DO NOT MODIFY.
 
-# Don't warn the classes in the android-sdk-internal.jar.
+# Don't warn the classes in the android-sdk-stubs.jar.
 -dontwarn android.os.**
 -dontwarn android.content.res.**
