@@ -1,10 +1,27 @@
 package android.os;
 
 public class Process {
+    public static final int ROOT_UID = 0;
     public static final int SYSTEM_UID = 1000;
     public static final int PHONE_UID = 1001;
+    public static final int SHELL_UID = 2000;
+    public static final int LOG_UID = 1007;
+    public static final int WIFI_UID = 1010;
+    public static final int MEDIA_UID = 1013;
+    public static final int DRM_UID = 1019;
+    public static final int VPN_UID = 1016;
+    public static final int NFC_UID = 1027;
+    public static final int BLUETOOTH_UID = 1002;
+    public static final int MEDIA_RW_GID = 1023;
+    public static final int PACKAGE_INFO_GID = 1032;
+    public static final int SHARED_RELRO_UID = 1037;
     public static final int FIRST_APPLICATION_UID = 10000;
     public static final int LAST_APPLICATION_UID = 19999;
+    public static final int FIRST_ISOLATED_UID = 99000;
+    public static final int LAST_ISOLATED_UID = 99999;
+    public static final int SHARED_USER_GID = 9997;
+    public static final int FIRST_SHARED_APPLICATION_GID = 50000;
+    public static final int LAST_SHARED_APPLICATION_GID = 59999;
     public static final int THREAD_PRIORITY_DEFAULT = 0;
     public static final int THREAD_PRIORITY_LOWEST = 19;
     public static final int THREAD_PRIORITY_BACKGROUND = 10;
@@ -15,9 +32,23 @@ public class Process {
     public static final int THREAD_PRIORITY_URGENT_AUDIO = -19;
     public static final int THREAD_PRIORITY_MORE_FAVORABLE = -1;
     public static final int THREAD_PRIORITY_LESS_FAVORABLE = +1;
+    public static final int SCHED_OTHER = 0;
+    public static final int SCHED_FIFO = 1;
+    public static final int SCHED_RR = 2;
+    public static final int SCHED_BATCH = 3;
+    public static final int SCHED_IDLE = 5;
+    public static final int THREAD_GROUP_DEFAULT = -1;
+    public static final int THREAD_GROUP_BG_NONINTERACTIVE = 0;
+    public static final int THREAD_GROUP_SYSTEM = 2;
+    public static final int THREAD_GROUP_AUDIO_APP = 3;
+    public static final int THREAD_GROUP_AUDIO_SYS = 4;
     public static final int SIGNAL_QUIT = 3;
     public static final int SIGNAL_KILL = 9;
     public static final int SIGNAL_USR1 = 10;
+
+    public static void establishZygoteConnectionForAbi(String abi) {
+        throw new RuntimeException("Stub!");
+    }
 
     public static final native long getElapsedCpuTime();
 
@@ -41,6 +72,10 @@ public class Process {
         throw new RuntimeException("Stub!");
     }
 
+    public static final boolean isIsolated() {
+        throw new RuntimeException("Stub!");
+    }
+
     public static final native int getUidForName(String name);
 
     public static final native int getGidForName(String name);
@@ -59,6 +94,8 @@ public class Process {
 
     public static final native void setThreadPriority(int tid, int priority) throws IllegalArgumentException, SecurityException;
 
+    public static final native void setCanSelfBackground(boolean backgroundOk);
+
     public static final native void setThreadGroup(int tid, int group) throws IllegalArgumentException, SecurityException;
 
     public static final native void setProcessGroup(int pid, int group) throws IllegalArgumentException, SecurityException;
@@ -75,6 +112,10 @@ public class Process {
     public static final boolean supportsProcesses() {
         throw new RuntimeException("Stub!");
     }
+
+    public static final native boolean setSwappiness(int pid, boolean is_increased);
+
+    public static final native void setArgV0(String text);
 
     public static final void killProcess(int pid) {
         throw new RuntimeException("Stub!");
@@ -99,6 +140,17 @@ public class Process {
     public static final native void readProcLines(String path, String[] reqFields, long[] outSizes);
 
     public static final native int[] getPids(String path, int[] lastArray);
+
+    public static final int PROC_TERM_MASK = 0xff;
+    public static final int PROC_ZERO_TERM = 0;
+    public static final int PROC_SPACE_TERM = (int)' ';
+    public static final int PROC_TAB_TERM = (int)'\t';
+    public static final int PROC_COMBINE = 0x100;
+    public static final int PROC_PARENS = 0x200;
+    public static final int PROC_QUOTES = 0x400;
+    public static final int PROC_OUT_STRING = 0x1000;
+    public static final int PROC_OUT_LONG = 0x2000;
+    public static final int PROC_OUT_FLOAT = 0x4000;
 
     public static final native boolean readProcFile(String file, int[] format, String[] outStrings, long[] outLongs, float[] outFloats);
 
