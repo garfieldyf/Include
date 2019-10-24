@@ -19,6 +19,12 @@ allprojects {
         maven { url "https://maven.aliyun.com/repository/jcenter" }
     }
 
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs.add('-Xbootclasspath/p:app/libs/classes-full-debug.jar')
+        }
+    }
+
     readLocalProperties()
 }
 
