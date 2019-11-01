@@ -46,6 +46,8 @@ android {
 }
 
 dependencies {
+    // src/debug/jniLibs/armeabi-v7a
+    // src/release/jniLibs/armeabi-v7a
     compileOnly files(rootProject.libsDir + '/android/android-sdk-internal.jar')
 
     debugImplementation files(rootProject.funLibsDir + '/debug/funshion.jar')
