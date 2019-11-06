@@ -8,7 +8,7 @@
     <property name="lib.dir" value="${basedir}/../libs" />
     <property name="obj.dir" value="${basedir}/../obj" />
     <property name="ndk.args" value="-B" />
-    <property name="ndk.abi" value="armeabi-v7a,arm64-v8a,x86,x86_64" />
+    <property name="ndk.abi" value="armeabi-v7a,arm64-v8a" />
 
     <!-- target -set-debug-mode -->
     <target name="-set-debug-mode">
