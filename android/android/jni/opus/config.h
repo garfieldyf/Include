@@ -1,4 +1,4 @@
-/* config.h.in.  Generated from configure.ac by autoheader.  */
+/* config.h. Generated from configure.ac by autoheader. */
 
 /* Get CPU Info by asm method */
 //#define CPU_INFO_BY_ASM
