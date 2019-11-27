@@ -27,7 +27,7 @@
     <target name="-compile">
         <!-- compile java files -->
         <mkdir dir="${class.dir}" />
-        <javac srcdir="${src.dir}" destdir="${class.dir}" source="1.7" target="1.7" includeAntRuntime="false" includeJavaRuntime="false" classpath="${android.jar.path}" />
+        <javac srcdir="${src.dir}" destdir="${class.dir}" source="1.8" target="1.8" includeAntRuntime="false" includeJavaRuntime="false" classpath="${android.jar.path}" />
 
         <!-- build jar file -->
         <jar destfile="${out.final.file}" basedir="${class.dir}">
