@@ -4,6 +4,8 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/android",
+                "${workspaceFolder}/common",
                 "D:\\Google\\android-ndk-windows\\sysroot\\usr\\include",
                 "D:\\Google\\android-ndk-windows\\sources\\cxx-stl\\llvm-libc++\\include"
             ],
