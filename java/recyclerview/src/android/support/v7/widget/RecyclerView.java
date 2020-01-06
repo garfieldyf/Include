@@ -580,10 +580,11 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
 
         if (attrs != null) {
             int defStyleRes = 0;
-            TypedArray a = context.obtainStyledAttributes(attrs, (int[])getFieldValue(context, "RecyclerView"),
+            final String packageName = context.getPackageName();
+            TypedArray a = context.obtainStyledAttributes(attrs, (int[])getFieldValue(packageName, "RecyclerView"),
                     defStyle, defStyleRes);
-            String layoutManagerName = a.getString((int)getFieldValue(context, "RecyclerView_layoutManager"));
-            int descendantFocusability = a.getInt((int)getFieldValue(context, "RecyclerView_android_descendantFocusability"), -1);
+            String layoutManagerName = a.getString((int)getFieldValue(packageName, "RecyclerView_layoutManager"));
+            int descendantFocusability = a.getInt((int)getFieldValue(packageName, "RecyclerView_android_descendantFocusability"), -1);
             if (descendantFocusability == -1) {
                 setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
             }
@@ -9870,13 +9871,14 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
          */
         public static Properties getProperties(Context context, AttributeSet attrs,
                 int defStyleAttr, int defStyleRes) {
+            final String packageName = context.getPackageName();
             Properties properties = new Properties();
-            TypedArray a = context.obtainStyledAttributes(attrs, (int[])getFieldValue(context, "RecyclerView"),
+            TypedArray a = context.obtainStyledAttributes(attrs, (int[])getFieldValue(packageName, "RecyclerView"),
                     defStyleAttr, defStyleRes);
-            properties.orientation = a.getInt((int)getFieldValue(context, "RecyclerView_android_orientation"), VERTICAL);
-            properties.spanCount = a.getInt((int)getFieldValue(context, "RecyclerView_spanCount"), 1);
-            properties.stackFromEnd = a.getBoolean((int)getFieldValue(context, "RecyclerView_stackFromEnd"), false);
-            properties.reverseLayout = a.getBoolean((int)getFieldValue(context, "RecyclerView_reverseLayout"), false);
+            properties.orientation = a.getInt((int)getFieldValue(packageName, "RecyclerView_android_orientation"), VERTICAL);
+            properties.spanCount = a.getInt((int)getFieldValue(packageName, "RecyclerView_spanCount"), 1);
+            properties.stackFromEnd = a.getBoolean((int)getFieldValue(packageName, "RecyclerView_stackFromEnd"), false);
+            properties.reverseLayout = a.getBoolean((int)getFieldValue(packageName, "RecyclerView_reverseLayout"), false);
             a.recycle();
             return properties;
         }
@@ -12579,9 +12581,9 @@ public class RecyclerView extends ViewGroup implements ScrollingView, NestedScro
         return mScrollingChildHelper;
     }
 
-    /* package */ static Object getFieldValue(Context context, String name) {
+    /* package */ static Object getFieldValue(String packageName, String name) {
         try {
-            return Class.forName(context.getPackageName() + ".R$styleable").getField(name).get(null);
+            return Class.forName(packageName + ".R$styleable").getField(name).get(null);
         } catch (Throwable e) {
             throw new AssertionError(e);
         }
