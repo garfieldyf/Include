@@ -1,14 +1,22 @@
 apply plugin: 'com.android.application'
 
 android {
-    buildToolsVersion '28.0.3'
     compileSdkVersion 26
+    buildToolsVersion "29.0.2"
+
     defaultConfig {
         applicationId "com.funshion.test"
         minSdkVersion 19
         targetSdkVersion 26
-        versionCode 1000
+        versionCode 10000
         versionName "1.0.0"
+
+//        flavorDimensions "default"
+//        manifestPlaceholders = [APP_CHANNEL: "xiaomi", APP_NAME: "@string/app_name", APP_ICON: "@drawable/icon", APP_HOME_THEME: "@style/AppHomeTheme"]
+
+        ndk {
+            abiFilters "armeabi-v7a"
+        }
     }
 
     signingConfigs {
@@ -22,7 +30,10 @@ android {
 
     buildTypes {
         release {
-            useProguard true
+//            useProguard true
+//            add in gradle.properties
+//            android.enableR8=true
+
             minifyEnabled true
             zipAlignEnabled true
             shrinkResources true
@@ -36,6 +47,12 @@ android {
     compileOptions {
         sourceCompatibility = '1.8'
         targetCompatibility = '1.8'
+    }
+
+    productFlavors {
+        xiaomi {
+            manifestPlaceholders = [APP_CHANNEL: "xiaomi", APP_HOME_THEME: "@style/CustomHomeTheme"]
+        }
     }
 
     android.applicationVariants.all { variant ->
