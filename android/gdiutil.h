@@ -205,15 +205,19 @@ public:
 public:
     int lockPixels(void*& addrPtr);
 
+#ifndef NDEBUG
+    void checkMutable(const AndroidBitmapInfo& info) const;
+#endif  // NDEBUG
+
 // Attributes
 public:
     int getBitmapInfo(AndroidBitmapInfo& info) const;
 
 // Data members
 private:
+    int mResult;
     JNIEnv* mEnv;
     jobject mBitmap;
-    int mLockResult;
 };
 
 

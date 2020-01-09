@@ -378,7 +378,7 @@ __INLINE__ void Color::dump() const
 //
 
 __INLINE__ Bitmap::Bitmap(JNIEnv* env, jobject bitmap)
-    : mEnv(env), mBitmap(bitmap), mLockResult(ANDROID_BITMAP_RESULT_BAD_PARAMETER)
+    : mResult(ANDROID_BITMAP_RESULT_BAD_PARAMETER), mEnv(env), mBitmap(bitmap)
 {
     assert(mEnv);
     assert(mBitmap);
@@ -386,7 +386,7 @@ __INLINE__ Bitmap::Bitmap(JNIEnv* env, jobject bitmap)
 
 __INLINE__ Bitmap::~Bitmap()
 {
-    if (mLockResult == ANDROID_BITMAP_RESULT_SUCCESS)
+    if (mResult == ANDROID_BITMAP_RESULT_SUCCESS)
     {
     #ifndef NDEBUG
         const int result = ::AndroidBitmap_unlockPixels(mEnv, mBitmap);
@@ -402,10 +402,28 @@ __INLINE__ int Bitmap::lockPixels(void*& addrPtr)
     assert(mEnv);
     assert(mBitmap);
 
-    mLockResult = ::AndroidBitmap_lockPixels(mEnv, mBitmap, &addrPtr);
-    __check_error(mLockResult != ANDROID_BITMAP_RESULT_SUCCESS, "Couldn't lock pixels, error = %d\n", mLockResult);
-    return mLockResult;
+    mResult = ::AndroidBitmap_lockPixels(mEnv, mBitmap, &addrPtr);
+    __check_error(mResult != ANDROID_BITMAP_RESULT_SUCCESS, "Couldn't lock pixels, error = %d\n", mResult);
+    return mResult;
 }
+
+#ifndef NDEBUG
+__INLINE__ void Bitmap::checkMutable(const AndroidBitmapInfo& info) const
+{
+    assert(mEnv);
+    assert(mBitmap);
+
+    jclass clazz = mEnv->GetObjectClass(mBitmap);
+    assert(clazz != NULL);
+
+    jmethodID methodID = mEnv->GetMethodID(clazz, "isMutable", "()Z");
+    assert(methodID != NULL);
+
+    assert_log(info.width > 0 && info.height > 0, "The bitmap width and height must be > 0");
+    assert_log(info.format == ANDROID_BITMAP_FORMAT_RGBA_8888, "The bitmap pixel format must be ARGB_8888");
+    assert_log(mEnv->CallBooleanMethod(mBitmap, methodID), "The bitmap must be a mutable bitmap");
+}
+#endif  // NDEBUG
 
 __INLINE__ int Bitmap::getBitmapInfo(AndroidBitmapInfo& info) const
 {
