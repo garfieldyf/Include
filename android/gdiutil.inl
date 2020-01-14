@@ -419,6 +419,7 @@ __INLINE__ void Bitmap::checkMutable(const AndroidBitmapInfo& info) const
     jmethodID methodID = mEnv->GetMethodID(clazz, "isMutable", "()Z");
     assert(methodID != NULL);
 
+    LOGI("width = %d, stride = %d, strideBytes = %d\n", info.width, (info.stride / 4), info.stride);
     assert_log(info.width > 0 && info.height > 0, "The bitmap width and height must be > 0");
     assert_log(info.format == ANDROID_BITMAP_FORMAT_RGBA_8888, "The bitmap pixel format must be ARGB_8888");
     assert_log(mEnv->CallBooleanMethod(mBitmap, methodID), "The bitmap must be a mutable bitmap");
