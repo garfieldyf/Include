@@ -7,6 +7,14 @@ import android.widget.LinearLayout;
 
 /**
  * Class <tt>FocusLinearLayout</tt>
+ * <h3>Usage</h3>
+ * <p>Here is a xml resource example:</p><pre>
+ * &lt;android.support.focus.FocusLinearLayout
+ *     xmlns:app="http://schemas.android.com/apk/res-auto"
+ *     app:focus="@drawable/focused_image"
+ *     ... ... &gt;
+ *     ... ...
+ * &lt;android.support.focus.FocusLinearLayout /&gt;</pre>
  * @author Garfield
  */
 public class FocusLinearLayout extends LinearLayout {

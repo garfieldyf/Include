@@ -7,7 +7,13 @@ import android.widget.TextView;
 
 /**
  * Class <tt>FocusTextView</tt>
- * <p>Note: Don't set android:singleLine="true" in the layout.</p>
+ * <h3>Usage</h3>
+ * <p>Here is a xml resource example:</p><pre>
+ * &lt;android.support.focus.FocusTextView
+ *     xmlns:app="http://schemas.android.com/apk/res-auto"
+ *     android:singleLine="false" &lt;!-- must be false --&gt;
+ *     app:focus="@drawable/focused_image"
+ *     ... ... /&gt;</pre>
  * @author Garfield
  */
 public class FocusTextView extends TextView {

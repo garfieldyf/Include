@@ -7,6 +7,14 @@ import android.widget.FrameLayout;
 
 /**
  * Class <tt>FocusFrameLayout</tt>
+ * <h3>Usage</h3>
+ * <p>Here is a xml resource example:</p><pre>
+ * &lt;android.support.focus.FocusFrameLayout
+ *     xmlns:app="http://schemas.android.com/apk/res-auto"
+ *     app:focus="@drawable/focused_image"
+ *     ... ... &gt;
+ *     ... ...
+ * &lt;android.support.focus.FocusFrameLayout /&gt;</pre>
  * @author Garfield
  */
 public class FocusFrameLayout extends FrameLayout {

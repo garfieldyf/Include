@@ -7,7 +7,13 @@ import android.widget.Button;
 
 /**
  * Class <tt>FocusButton</tt>
- * <p>Note: Don't set android:singleLine="true" in the layout.</p>
+ * <h3>Usage</h3>
+ * <p>Here is a xml resource example:</p><pre>
+ * &lt;android.support.focus.FocusButton
+ *     xmlns:app="http://schemas.android.com/apk/res-auto"
+ *     android:singleLine="false" &lt;!-- must be false --&gt;
+ *     app:focus="@drawable/focused_image"
+ *     ... ... /&gt;</pre>
  * @author Garfield
  */
 public class FocusButton extends Button {

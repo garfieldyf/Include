@@ -7,6 +7,12 @@ import android.widget.ImageView;
 
 /**
  * Class <tt>FocusImageView</tt>
+ * <h3>Usage</h3>
+ * <p>Here is a xml resource example:</p><pre>
+ * &lt;android.support.focus.FocusImageView
+ *     xmlns:app="http://schemas.android.com/apk/res-auto"
+ *     app:focus="@drawable/focused_image"
+ *     ... ... /&gt;</pre>
  * @author Garfield
  */
 public class FocusImageView extends ImageView {

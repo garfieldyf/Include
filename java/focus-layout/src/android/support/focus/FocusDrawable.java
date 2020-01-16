@@ -1,15 +1,14 @@
 package android.support.focus;
 
-import java.util.concurrent.atomic.AtomicReference;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.DrawableContainer;
 import android.util.AttributeSet;
 import android.util.StateSet;
 import android.view.View;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Class <tt>FocusDrawable</tt>
@@ -35,7 +34,7 @@ public final class FocusDrawable {
      * @see #FocusDrawable(Drawable)
      */
     public FocusDrawable(Context context, AttributeSet attrs) {
-        final TypedArray a = context.obtainStyledAttributes(attrs, (int[])getFieldValue(context, "FocusDrawable"));
+        final TypedArray a = context.obtainStyledAttributes(attrs, getAttributes(context));
         mDrawable = a.getDrawable(0 /* R.styleable.FocusDrawable_foucs */);
         a.recycle();
     }
@@ -51,7 +50,10 @@ public final class FocusDrawable {
         final int[] stateSet = view.getDrawableState();
         if (mDrawable.isStateful()) {
             mDrawable.setState(stateSet);
-            draw(canvas, view, mDrawable);
+            final Drawable drawable = mDrawable.getCurrent();
+            if (drawable != null) {
+                draw(canvas, view, drawable);
+            }
         } else if (StateSet.stateSetMatches(stateSpec, stateSet)) {
             draw(canvas, view, mDrawable);
         }
@@ -59,10 +61,6 @@ public final class FocusDrawable {
 
     private static void draw(Canvas canvas, View view, Drawable drawable) {
         int left = 0, top = 0, right = view.getWidth(), bottom = view.getHeight();
-        if (drawable instanceof DrawableContainer) {
-            drawable = ((DrawableContainer)drawable).getCurrent();
-        }
-
         final Rect padding = obtain();
         if (drawable.getPadding(padding)) {
             left   -= padding.left;
@@ -81,9 +79,9 @@ public final class FocusDrawable {
         return (result != null ? result : new Rect());
     }
 
-    private static Object getFieldValue(Context context, String name) {
+    private static int[] getAttributes(Context context) {
         try {
-            return Class.forName(context.getPackageName() + ".R$styleable").getField(name).get(null);
+            return (int[])Class.forName(context.getPackageName() + ".R$styleable").getField("FocusDrawable").get(null);
         } catch (Throwable e) {
             throw new AssertionError(e);
         }
