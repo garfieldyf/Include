@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // atlsyncutil.h
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 2.0
+// Author : Garfield
 // Creation Date : 2010/5/22
 
 #if (_MSC_VER >= 1020)

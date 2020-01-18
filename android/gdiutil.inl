@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // gdiutil.inl
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 1.0
+// Author : Garfield
 // Creation Date : 2013/11/5
 
 #ifndef __GDIUTIL_INL__

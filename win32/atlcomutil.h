@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // atlcomutil.h
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 3.5
+// Author : Garfield
 // Creation Date : 2008/3/22
 
 #if (_MSC_VER >= 1020)

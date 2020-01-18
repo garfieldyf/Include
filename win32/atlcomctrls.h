@@ -1,10 +1,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 // atlcomctrls.h
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 5.0
+// Author : Garfield
 // Creation Date : 2008/2/4
+//
 // Summary:
 //  _ATL_SUPPORT_CCE_TEXTCOLOR          Enable CCueEditImpl set/get text color
 //  _ATL_SUPPORT_LVN_BEGINDRAG          Enable CDragDropImpl LVN_BEGINDRAG notify message

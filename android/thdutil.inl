@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // thdutil.inl
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 1.5
+// Author : Garfield
 // Creation Date : 2012/8/12
 
 #ifndef __THDUTIL_INL__

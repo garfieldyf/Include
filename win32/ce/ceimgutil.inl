@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // ceimgutil.inl
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
 // Author : Garfield
-// Version : 1.0
 // Creation Date : 2010/10/17
 
 #if (_MSC_VER >= 1020)

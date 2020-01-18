@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // miscutil.h
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 1.0
+// Author : Garfield
 // Creation Date : 2010/3/22
 
 #if (_MSC_VER >= 1020)

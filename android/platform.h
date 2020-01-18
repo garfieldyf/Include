@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // platform.h
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 2.0
+// Author : Garfield
 // Creation Date : 2011/6/23
 
 #ifndef __PLATFORM_H__

@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // bencode.h
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 1.0
+// Author : Garfield
 // Creation Date : 2011/6/22
 
 #if (_MSC_VER >= 1020)

@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // fileutil.h
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 1.5
+// Author : Garfield
 // Creation Date : 2007/12/21
 
 #if (_MSC_VER >= 1020)

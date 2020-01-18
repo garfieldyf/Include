@@ -1,8 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // atlcomddx.inl
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
+// Author : Garfield
 // Version : 4.0
 // Creation Date : 2007/1/22
 

@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // stdcolls.h
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 1.2
+// Author : Garfield
 // Creation Date : 2010/4/12
 
 #if (_MSC_VER >= 1020)

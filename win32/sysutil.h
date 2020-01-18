@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // sysutil.h
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 2.0
+// Author : Garfield
 // Creation Date : 2007/9/10
 
 #if (_MSC_VER >= 1020)

@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // strmutil.h
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 1.0
+// Author : Garfield
 // Creation Date : 2015/4/13
 
 #ifndef __STRMUTIL_H__

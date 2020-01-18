@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // atlmiscutil.inl
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 1.0
+// Author : Garfield
 // Creation Date : 2007/12/21
 
 #if (_MSC_VER >= 1020)

@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // image.inl
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 3.0
+// Author : Garfield
 // Creation Date : 2007/9/20
 
 #if (_MSC_VER >= 1020)

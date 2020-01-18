@@ -1,9 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // gestureutil.h
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
 // Author : Garfield
-// Version : 1.0
 // Creation Date : 2010/10/27
 
 #if (_MSC_VER >= 1020)

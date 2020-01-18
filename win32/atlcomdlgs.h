@@ -1,10 +1,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 // atlcomdlgs.h
 //
-// Copyright(c) 2019, Garfield. All rights reserved.
-// Author  : Garfield
-// Version : 1.0
+// Author : Garfield
 // Creation Date : 2009/10/20
+//
 // Summary :
 //  All of CProgressDialog class member function that contains the LPCTSTR
 //  parameters, can pass pointer to a null-terminated string, or resource ID
