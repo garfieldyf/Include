@@ -45,11 +45,9 @@
 // __fopen()
 // __realloc()
 // __localtime()
-// __startswith()
-// __endswith()
-// __todigit()
-// __tobytearray()
-// __tohexstring<_Ty>()
+// __to_digit()
+// __to_byte_array()
+// __to_hex_string<_Ty>()
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -120,6 +118,7 @@ __STATIC_INLINE__ bool __localtime(struct tm& _Tm, int64_t _Time)
 }
 #endif  // defined(_INC_TIME) || defined(TIME64_H) || defined(_TIME_H_)
 
+/*
 __STATIC_INLINE__ bool __startswith(const TCHAR* _Str, const TCHAR* _Prefix, int32_t _Length = INVALID_LENGTH)
 {
     assert(_Str);
@@ -143,13 +142,14 @@ __STATIC_INLINE__ bool __endswith(const TCHAR* _Str, const TCHAR* _Suffix, int32
 
     return (_Length >= _SuffixLength && ::__tstrncmp(_Str + (_Length - _SuffixLength), _Suffix, _SuffixLength) == 0);
 }
+*/
 
-__STATIC_INLINE__ unsigned __todigit(TCHAR _Hex)
+__STATIC_INLINE__ unsigned __to_digit(TCHAR _Hex)
 {
     return (_Hex - (_Hex >= _T('0') && _Hex <= _T('9') ? _T('0') : (_Hex >= _T('a') && _Hex <= _T('f') ? _T('a') - 10 : _T('A') - 10)));
 }
 
-__STATIC_INLINE__ void __tobytearray(unsigned char* _Out, const TCHAR* _Data, int32_t _First = 0, int32_t _Last = INVALID_LENGTH, int32_t _Offset = 0)
+__STATIC_INLINE__ void __to_byte_array(unsigned char* _Out, const TCHAR* _Data, int32_t _First = 0, int32_t _Last = INVALID_LENGTH, int32_t _Offset = 0)
 {
     assert(_Out);
     assert(_Data);
@@ -158,11 +158,11 @@ __STATIC_INLINE__ void __tobytearray(unsigned char* _Out, const TCHAR* _Data, in
         _Last = ::__tstrlen(_Data);
 
     for (; _First < _Last; _First += 2, ++_Offset)
-        _Out[_Offset] = (unsigned char)((__todigit(_Data[_First]) << 4) + __todigit(_Data[_First + 1]));
+        _Out[_Offset] = (unsigned char)((__to_digit(_Data[_First]) << 4) + __to_digit(_Data[_First + 1]));
 }
 
 template <typename _Ty>
-__STATIC_INLINE__ void __tohexstring(const _Ty* _Data, int32_t _Length, TCHAR* _Out, bool _LowerCase = true)
+__STATIC_INLINE__ void __to_hex_string(const _Ty* _Data, int32_t _Length, TCHAR* _Out, bool _LowerCase = true)
 {
     assert(_Out);
     assert(_Data);
