@@ -30,8 +30,16 @@ urls : https://developer.android.google.cn/
        http://ant.apache.org/manual/index.html
        https://www.cs.usfca.edu/~galles/visualization/Algorithms.html
 
+adb -s 172.17.5.46:5555 shell
 adb tcpip 5555
-adb shell dumpsys meminfo -a tv.fun.children
+adb shell dumpsys meminfo -a com.tencent.test
+adb shell pm clear com.tencent.test
+adb shell am force-stop com.tencent.test
+adb shell remount
+adb shell pm list packages com.tencent.test
+adb shell dumpsys package com.tencent.test
+mount -o remount /system
+mount -o rw,remount /system
 D:\Google\android-sdk-windows\platform-tools\hprof-conv E:\hprof\com.tencent.test.hprof E:\hprof\com.tencent.test.android.hprof
 
 ## build keystore
