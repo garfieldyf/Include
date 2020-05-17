@@ -30,6 +30,7 @@ urls : https://developer.android.google.cn/
        http://ant.apache.org/manual/index.html
        https://www.cs.usfca.edu/~galles/visualization/Algorithms.html
 
+ps -p -t|grep u0_a60
 adb -s 172.17.5.46:5555 shell
 adb tcpip 5555
 adb shell dumpsys meminfo -a com.tencent.test
@@ -40,6 +41,8 @@ adb shell pm list packages com.tencent.test
 adb shell dumpsys package com.tencent.test
 mount -o remount /system
 mount -o rw,remount /system
+D:\Google\android-sdk-windows\build-tools\25.0.3\aapt dump badging E:\TVMaster\TVMaster-2.0.0.0-for-dangbei.apk
+D:\Google\android-sdk-windows\build-tools\25.0.3\aapt dump xmltree E:\TVMaster\TVMaster-2.0.0.0-for-dangbei.apk AndroidManifest.xml
 D:\Google\android-sdk-windows\platform-tools\hprof-conv E:\hprof\com.tencent.test.hprof E:\hprof\com.tencent.test.android.hprof
 
 ## build keystore
@@ -67,17 +70,6 @@ Arguments : -p -s -classpath D:\Google\android-sdk-windows\platforms\android-22\
 . build/envsetup.sh
 lunch aosp_arbutus-userdebug
 make update-api
-
-## dump AndroidManifest.xml
-pm list packages com.tencent.test
-dumpsys package com.tencent.test
-ps -p -t|grep u0_a60
-D:\Google\android-sdk-windows\build-tools\25.0.3\aapt dump badging E:\TVMaster\TVMaster-2.0.0.0-for-dangbei.apk
-D:\Google\android-sdk-windows\build-tools\25.0.3\aapt dump xmltree E:\TVMaster\TVMaster-2.0.0.0-for-dangbei.apk AndroidManifest.xml
-
-## /system rw
-mount -o remount /system
-mount -o rw,remount /system
 
 ## 统计目录下面的文件和目录总数
 busybox find | busybox wc -l
