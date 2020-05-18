@@ -11,6 +11,18 @@ git : https://github.com/zxing/zxing.git
 ## vasdolly
 git : https://github.com/Tencent/VasDolly.git
 
+## bookmarks
+http://androidxref.com/
+http://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/jniTOC.html
+http://www.bejson.com/
+https://www.kernel.org/doc/man-pages/
+http://ant.apache.org/manual/index.html
+http://www.cplusplus.com/reference/
+https://developer.android.google.cn/index.html
+https://www.androidos.net.cn/sourcecode
+http://tool.oschina.net/apidocs/apidoc?api=jdk-zh
+https://www.cs.usfca.edu/~galles/visualization/Algorithms.html
+
 ## android sdk proxy
 mirrors.opencas.cn
 mirrors.neusoft.edu.cn
