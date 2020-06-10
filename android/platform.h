@@ -145,8 +145,8 @@ private: \
 
 #ifndef _countof
 template <typename _Ty, size_t _CountOfArray>
-char (&__sizeof_helper(_Ty (&_Array)[_CountOfArray]))[_CountOfArray];
-#define _countof(_Array)                        sizeof(__sizeof_helper(_Array))
+char (&__countof_helper(_Ty (&_Array)[_CountOfArray]))[_CountOfArray];
+#define _countof(_Array)                        sizeof(__countof_helper(_Array))
 #endif
 
 #ifndef __INLINE__
