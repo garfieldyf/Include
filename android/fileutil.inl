@@ -201,6 +201,26 @@ __INLINE__ FileHandle DirectoryBase::getDirFile() const
 
 
 ///////////////////////////////////////////////////////////////////////////////
+// Implementation of the DefaultFilter class
+//
+
+__INLINE__ bool DefaultFilter::operator()(const struct dirent* entry) const
+{
+    return defaultFilter(entry);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the IgnoreHiddenFilter class
+//
+
+__INLINE__ bool IgnoreHiddenFilter::operator()(const struct dirent* entry) const
+{
+    return ignoreHiddenFilter(entry);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
 // Implementation of the Directory class
 //
 

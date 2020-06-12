@@ -18,6 +18,8 @@
 // Directory
 // AssetDir
 // AssetFile
+// DefaultFilter
+// IgnoreHiddenFilter
 //
 // Global functions in this file:
 //
@@ -121,10 +123,30 @@ protected:
 
 
 ///////////////////////////////////////////////////////////////////////////////
+// Interface of the DefaultFilter class
+//
+
+struct DefaultFilter
+{
+    bool operator()(const struct dirent* entry) const;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the IgnoreHiddenFilter class
+//
+
+struct IgnoreHiddenFilter
+{
+    bool operator()(const struct dirent* entry) const;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
 // Interface of the Directory class
 //
 
-template <typename _Filter = int (*)(const struct dirent*)>
+template <typename _Filter = DefaultFilter>
 class Directory : public DirectoryBase
 {
 // Constructors
@@ -138,7 +160,7 @@ public:
 
 // Data members
 public:
-    _Filter filter;
+    const _Filter filter;
 };
 
 
@@ -219,13 +241,13 @@ private:
 // Global functions
 //
 
-__STATIC_INLINE__ int defaultFilter(const struct dirent* entry)
+__STATIC_INLINE__ bool defaultFilter(const struct dirent* entry)
 {
     // Ignores the entry '.' and '..' representing the current and parent directory.
     return !(entry->d_name[0] == '.' && (entry->d_name[1] == '\0' || (entry->d_name[1] == '.' && entry->d_name[2] == '\0')));
 }
 
-__STATIC_INLINE__ int ignoreHiddenFilter(const struct dirent* entry)
+__STATIC_INLINE__ bool ignoreHiddenFilter(const struct dirent* entry)
 {
     // Ignores the hidden files (start with '.', including '.' and '..').
     return (entry->d_name[0] != '.');
@@ -265,7 +287,7 @@ static inline int deleteFiles(const char* path)
 {
     assert(path);
 
-    Directory<> dir(defaultFilter);
+    Directory<> dir;
     int errnum = dir.open(path);
     if (errnum == 0)
     {
