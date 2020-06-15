@@ -204,7 +204,7 @@ __INLINE__ FileHandle DirectoryBase::getDirFile() const
 // Implementation of the DefaultFilter class
 //
 
-__INLINE__ bool DefaultFilter::operator()(const struct dirent* entry) const
+__INLINE__ int DefaultFilter::operator()(const struct dirent* entry) const
 {
     return defaultFilter(entry);
 }
@@ -214,7 +214,7 @@ __INLINE__ bool DefaultFilter::operator()(const struct dirent* entry) const
 // Implementation of the IgnoreHiddenFilter class
 //
 
-__INLINE__ bool IgnoreHiddenFilter::operator()(const struct dirent* entry) const
+__INLINE__ int IgnoreHiddenFilter::operator()(const struct dirent* entry) const
 {
     return ignoreHiddenFilter(entry);
 }

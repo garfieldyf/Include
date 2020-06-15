@@ -128,7 +128,7 @@ protected:
 
 struct DefaultFilter
 {
-    bool operator()(const struct dirent* entry) const;
+    int operator()(const struct dirent* entry) const;
 };
 
 
@@ -138,7 +138,7 @@ struct DefaultFilter
 
 struct IgnoreHiddenFilter
 {
-    bool operator()(const struct dirent* entry) const;
+    int operator()(const struct dirent* entry) const;
 };
 
 
@@ -241,13 +241,13 @@ private:
 // Global functions
 //
 
-__STATIC_INLINE__ bool defaultFilter(const struct dirent* entry)
+__STATIC_INLINE__ int defaultFilter(const struct dirent* entry)
 {
     // Ignores the entry '.' and '..' representing the current and parent directory.
     return !(entry->d_name[0] == '.' && (entry->d_name[1] == '\0' || (entry->d_name[1] == '.' && entry->d_name[2] == '\0')));
 }
 
-__STATIC_INLINE__ bool ignoreHiddenFilter(const struct dirent* entry)
+__STATIC_INLINE__ int ignoreHiddenFilter(const struct dirent* entry)
 {
     // Ignores the hidden files (start with '.', including '.' and '..').
     return (entry->d_name[0] != '.');
