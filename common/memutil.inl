@@ -22,7 +22,7 @@ namespace stdutil {
 //
 
 template <typename _Ty>
-__INLINE__ buffer_ptr<_Ty>::buffer_ptr()
+__INLINE__ constexpr buffer_ptr<_Ty>::buffer_ptr()
     : size(0), data(NULL)
 {
 }

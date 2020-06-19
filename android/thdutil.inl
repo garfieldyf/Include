@@ -17,7 +17,7 @@ __BEGIN_NAMESPACE
 // Implementation of the ThreadBase class
 //
 
-__INLINE__ ThreadBase::ThreadBase()
+__INLINE__ constexpr ThreadBase::ThreadBase()
     : id(0)
 {
 }
@@ -267,7 +267,7 @@ __INLINE__ const MessageQueue* MessageThreadBase::MsgThread_getQueue() const
 // Implementation of the MessageThreadHandle class
 //
 
-__INLINE__ MessageThreadHandle::MessageThreadHandle()
+__INLINE__ constexpr MessageThreadHandle::MessageThreadHandle()
     : mQueue(NULL)
 {
 }

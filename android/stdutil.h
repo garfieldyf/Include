@@ -321,7 +321,7 @@ class TempBuffer
 
 // Constructors/Destructor
 public:
-    TempBuffer();
+    constexpr TempBuffer();
     ~TempBuffer();
 
 // Operations

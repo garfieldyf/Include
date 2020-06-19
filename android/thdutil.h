@@ -31,7 +31,7 @@ class ATL_NO_VTABLE ThreadBase
 
 // Constructors/Destructor
 protected:
-    ThreadBase();
+    constexpr ThreadBase();
     ~ThreadBase();
 
 // Overridables
@@ -207,7 +207,7 @@ class ATL_NO_VTABLE MessageThreadHandle
 {
 // Constructors
 protected:
-    MessageThreadHandle();
+    constexpr MessageThreadHandle();
 
 // Operations
 public:

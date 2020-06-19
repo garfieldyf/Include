@@ -346,7 +346,7 @@ class ATL_NO_VTABLE ThreadKeyBase
 
 // Constructors/Destructor
 protected:
-    ThreadKeyBase();
+    constexpr ThreadKeyBase();
     ~ThreadKeyBase();
 
 // Operations

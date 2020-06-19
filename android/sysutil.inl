@@ -518,7 +518,7 @@ __INLINE__ int ThreadAttr::getStack(void*& addr, size_t& size) const
 // Implementation of the ThreadKeyBase class
 //
 
-__INLINE__ ThreadKeyBase::ThreadKeyBase()
+__INLINE__ constexpr ThreadKeyBase::ThreadKeyBase()
     : mKey(-1)
 {
 }

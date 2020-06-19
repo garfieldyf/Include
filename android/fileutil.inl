@@ -140,7 +140,7 @@ __INLINE__ void File::close()
 // Implementation of the DirectoryBase class
 //
 
-__INLINE__ DirectoryBase::DirectoryBase()
+__INLINE__ constexpr DirectoryBase::DirectoryBase()
     : mDir(NULL)
 {
 }
@@ -255,7 +255,7 @@ __INLINE__ int Directory<_Filter>::read(struct dirent*& entry) const
 // Implementation of the AssetDir class
 //
 
-__INLINE__ AssetDir::AssetDir()
+__INLINE__ constexpr AssetDir::AssetDir()
     : mAssetDir(NULL)
 {
 }
@@ -330,7 +330,7 @@ __INLINE__ bool AssetDir::isEmpty() const
 // Implementation of the AssetFile class
 //
 
-__INLINE__ AssetFile::AssetFile()
+__INLINE__ constexpr AssetFile::AssetFile()
     : mAsset(NULL)
 {
 }

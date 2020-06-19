@@ -99,7 +99,7 @@ class ATL_NO_VTABLE DirectoryBase
 
 // Constructors/Destructor
 public:
-    DirectoryBase();
+    constexpr DirectoryBase();
     ~DirectoryBase();
 
 // Operations
@@ -175,7 +175,7 @@ class AssetDir
 
 // Constructors/Destructor
 public:
-    AssetDir();
+    constexpr AssetDir();
     ~AssetDir();
 
 // Operations
@@ -207,7 +207,7 @@ class AssetFile
 
 // Constructors
 public:
-    AssetFile();
+    constexpr AssetFile();
     ~AssetFile();
 
 // Operations

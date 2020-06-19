@@ -543,7 +543,7 @@ __INLINE__ void CDECL LogPrinter::operator()(const char* format, ...) const
 //
 
 template <typename _Ty, uint32_t t_nFixedBytes>
-__INLINE__ TempBuffer<_Ty, t_nFixedBytes>::TempBuffer()
+__INLINE__ constexpr TempBuffer<_Ty, t_nFixedBytes>::TempBuffer()
 #ifndef NDEBUG
     : mSize(0), mBuffer(NULL)
 #else

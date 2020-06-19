@@ -36,7 +36,7 @@ public:
 
 // Constructors
 public:
-    buffer_ptr();
+    constexpr buffer_ptr();
     buffer_ptr(const_pointer _Ptr, uint32_t _Size);
     buffer_ptr(const_pointer _First, const_pointer _Last);
 
