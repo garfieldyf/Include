@@ -34,7 +34,7 @@
 #ifndef NDEBUG
 #define __jni_s2utf_l(__string, __length, __jstring) \
     __basic_s2utf(__string, __length, __jstring); \
-    LOGD("Release STACK string : %s { length = %d, size = %zu }\n", __string, __length, sizeof(__string))
+    LOGD("Release STACK string : %s { length = %d, capacity = %zu }\n", __string, __length, sizeof(__string))
 #else
 #define __jni_s2utf_l(__string, __length, __jstring) \
     __basic_s2utf(__string, __length, __jstring)
@@ -57,7 +57,7 @@
 #ifndef NDEBUG
 #define __jni_a2a(__array, __length, __jarray, __jtype, __jname) \
     __basic_a2a(__array, __length, __jarray, __jtype, __jname); \
-    LOGD("Release STACK "#__jtype"Array { data = %p, length = %d, size = %zu }\n", __array, __length, sizeof(__array))
+    LOGD("Release STACK "#__jtype"Array { data = %p, length = %d, capacity = %zu }\n", __array, __length, sizeof(__array))
 #else
 #define __jni_a2a(__array, __length, __jarray, __jtype, __jname) \
     __basic_a2a(__array, __length, __jarray, __jtype, __jname)
@@ -297,13 +297,13 @@ __INLINE__ basic_jstring<_Ty, t_length>::~basic_jstring()
 {
     if (cstr != mstr)
     {
-        LOGW("Release HEAP string : %s { length = %d, size = %zu }\n", cstr, length, sizeof(mstr));
+        LOGW("Release HEAP string : %s { length = %d, capacity = %zu }\n", cstr, length, sizeof(mstr));
         ::free(cstr);
     }
 #ifndef NDEBUG
     else
     {
-        LOGD("Release STACK string : %s { length = %d, size = %zu }\n", cstr, length, sizeof(mstr));
+        LOGD("Release STACK string : %s { length = %d, capacity = %zu }\n", cstr, length, sizeof(mstr));
         ::memset(mstr, 0xCCCCCCCC, sizeof(mstr));
     }
 #endif  // NDEBUG
