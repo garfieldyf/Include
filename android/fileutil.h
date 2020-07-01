@@ -29,8 +29,6 @@
 // deleteFile()
 // deleteFiles()
 // createDirectory()
-// defaultFilter()
-// ignoreHiddenFilter()
 
 __BEGIN_NAMESPACE
 
@@ -128,7 +126,7 @@ protected:
 
 struct DefaultFilter
 {
-    int operator()(const struct dirent* entry) const;
+    static bool accept(const struct dirent* entry);
 };
 
 
@@ -138,7 +136,7 @@ struct DefaultFilter
 
 struct IgnoreHiddenFilter
 {
-    int operator()(const struct dirent* entry) const;
+    static bool accept(const struct dirent* entry);
 };
 
 
@@ -152,15 +150,10 @@ class Directory : public DirectoryBase
 // Constructors
 public:
     Directory();
-    explicit Directory(_Filter _filter);
 
 // Operations
 public:
     int read(struct dirent*& entry) const;
-
-// Data members
-public:
-    const _Filter filter;
 };
 
 
@@ -240,18 +233,6 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 // Global functions
 //
-
-__STATIC_INLINE__ int defaultFilter(const struct dirent* entry)
-{
-    // Ignores the entry '.' and '..' representing the current and parent directory.
-    return !(entry->d_name[0] == '.' && (entry->d_name[1] == '\0' || (entry->d_name[1] == '.' && entry->d_name[2] == '\0')));
-}
-
-__STATIC_INLINE__ int ignoreHiddenFilter(const struct dirent* entry)
-{
-    // Ignores the hidden files (start with '.', including '.' and '..').
-    return (entry->d_name[0] != '.');
-}
 
 __STATIC_INLINE__ bool isRootDir(const char* path)
 {

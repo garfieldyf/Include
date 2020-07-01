@@ -204,9 +204,10 @@ __INLINE__ FileHandle DirectoryBase::getDirFile() const
 // Implementation of the DefaultFilter class
 //
 
-__INLINE__ int DefaultFilter::operator()(const struct dirent* entry) const
+__INLINE__ bool DefaultFilter::accept(const struct dirent* entry)
 {
-    return defaultFilter(entry);
+    // Ignores the entry '.' and '..' representing the current and parent directory.
+    return !(entry->d_name[0] == '.' && (entry->d_name[1] == '\0' || (entry->d_name[1] == '.' && entry->d_name[2] == '\0')));
 }
 
 
@@ -214,9 +215,10 @@ __INLINE__ int DefaultFilter::operator()(const struct dirent* entry) const
 // Implementation of the IgnoreHiddenFilter class
 //
 
-__INLINE__ int IgnoreHiddenFilter::operator()(const struct dirent* entry) const
+__INLINE__ bool IgnoreHiddenFilter::accept(const struct dirent* entry)
 {
-    return ignoreHiddenFilter(entry);
+    // Ignores the hidden files (start with '.', including '.' and '..').
+    return (entry->d_name[0] != '.');
 }
 
 
@@ -230,12 +232,6 @@ __INLINE__ Directory<_Filter>::Directory()
 }
 
 template <typename _Filter>
-__INLINE__ Directory<_Filter>::Directory(_Filter _filter)
-    : filter(_filter)
-{
-}
-
-template <typename _Filter>
 __INLINE__ int Directory<_Filter>::read(struct dirent*& entry) const
 {
     assert(!isEmpty());
@@ -244,7 +240,7 @@ __INLINE__ int Directory<_Filter>::read(struct dirent*& entry) const
     do
     {
         entry = ::readdir(mDir);
-    } while (entry != NULL && !filter(entry));
+    } while (entry != NULL && !_Filter::accept(entry));
 
     return __verify(errno, "Couldn't read directory");
 }
