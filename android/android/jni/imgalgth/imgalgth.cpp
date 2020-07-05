@@ -14,6 +14,7 @@ __BEGIN_DECLS
 void Android_grayBitmap(void* pixels, uint32_t width, uint32_t height)
 {
     assert(pixels);
+    LOGD("Android_grayBitmap pixels = %p\n", pixels);
     __NS::handleBitmap((__NS::Color*)pixels, width * height, [](__NS::Color& color) { color.red = color.green = color.blue = (uint8_t)(0.299f * color.red + 0.587f * color.green + 0.114f * color.blue); });
 }
 

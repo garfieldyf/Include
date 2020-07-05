@@ -20,6 +20,10 @@ include $(BUILD_STATIC_LIBRARY)
 # Build shared library
 
 include $(CLEAR_VARS)
+ifeq ($(NDK_DEBUG),1)
+LOCAL_LDLIBS += -llog
+endif
+
 LOCAL_C_INCLUDES += $(LOCAL_MD_C_INCLUDES)
 LOCAL_CPPFLAGS   += $(LOCAL_MD_CPPFLAGS)
 LOCAL_MODULE     := $(LOCAL_MD_MODULE)
