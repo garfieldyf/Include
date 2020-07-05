@@ -14,15 +14,12 @@
 #include "platform.h"
 
 #ifdef WINVER
-
 ///////////////////////////////////////////////////////////////////////////////
 // Windows socket 2 header file.
 //
 
 #include <winsock2.h>
-
-// The _closesocket macro
-#define _closesocket        closesocket
+#define _closesocket    closesocket
 
 #else
 
@@ -39,18 +36,10 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 
-// The socket handle
-typedef int     SOCKET;
-
-// Invalid socket value
-#define INVALID_SOCKET      (-1)
-
-// Socket error
-#define SOCKET_ERROR        (-1)
-
-// The _closesocket macro
-#define _closesocket        close
-
+typedef int SOCKET;
+#define INVALID_SOCKET  (-1)
+#define SOCKET_ERROR    (-1)
+#define _closesocket    close
 #endif  // WINVER
 
 #endif  // __SOCKDEF_H__

@@ -16,25 +16,25 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Classes in this file:
 //
-// _sockaddr_t
-// _socket_t
-// _hostent_t
-// _addrinfo_t
+// sockaddr_t
+// socket_t
+// hostent_t
+// addrinfo_t
 
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the _sockaddr_t class
+// Interface of the sockaddr_t class
 //
 
-class _sockaddr_t : public sockaddr_in
+class sockaddr_t : public sockaddr_in
 {
 // Constructors
 public:
-    _sockaddr_t();
-    _sockaddr_t(u_long addr, u_short port);
-    _sockaddr_t(in_addr addr, u_short port);
-    _sockaddr_t(const char* addr, u_short port);
+    sockaddr_t();
+    sockaddr_t(u_long addr, u_short port);
+    sockaddr_t(in_addr addr, u_short port);
+    sockaddr_t(const char* addr, u_short port);
 
 // Operations
 public:
@@ -52,17 +52,17 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the _socket_t class
+// Interface of the socket_t class
 //
 
-class _socket_t
+class socket_t
 {
-    DECLARE_NONCOPYABLE(_socket_t);
+    DECLARE_NONCOPYABLE(socket_t);
 
 // Constructors/Destructor
 public:
-    explicit _socket_t(SOCKET _Sock = INVALID_SOCKET);
-    ~_socket_t();
+    explicit socket_t(SOCKET _Sock = INVALID_SOCKET);
+    ~socket_t();
 
 // Operations
 public:
@@ -73,7 +73,7 @@ public:
     void attach(SOCKET _Sock);
 
     SOCKET accept(sockaddr* addr = NULL, socklen_t* addrlen = NULL) const;
-    bool accept(_socket_t& client, sockaddr* addr = NULL, socklen_t* addrlen = NULL) const;
+    bool accept(socket_t& client, sockaddr* addr = NULL, socklen_t* addrlen = NULL) const;
 
     int listen(int backlog = 10) const;
     int shutdown(int how) const;
@@ -115,14 +115,14 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the _hostent_t class
+// Interface of the hostent_t class
 //
 
-class _hostent_t
+class hostent_t
 {
 // Constructors
 public:
-    _hostent_t();
+    hostent_t();
 
 // Operations
 public:
@@ -146,17 +146,17 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the _addrinfo_t class
+// Interface of the addrinfo_t class
 //
 
-class _addrinfo_t : public addrinfo
+class addrinfo_t : public addrinfo
 {
-    DECLARE_NONCOPYABLE(_addrinfo_t);
+    DECLARE_NONCOPYABLE(addrinfo_t);
 
 // Constructors/Destructor
 public:
-    explicit _addrinfo_t(int family = AF_INET, int socktype = SOCK_STREAM, int protocol = IPPROTO_TCP);
-    ~_addrinfo_t();
+    explicit addrinfo_t(int family = AF_INET, int socktype = SOCK_STREAM, int protocol = IPPROTO_TCP);
+    ~addrinfo_t();
 
 // Operations
 public:
