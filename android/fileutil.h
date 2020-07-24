@@ -291,14 +291,6 @@ static inline int deleteFiles(const char* path)
     return errnum;
 }
 
-__STATIC_INLINE__ int deleteFiles(const char* path, bool deleteSelf)
-{
-    assert(path);
-
-    const int errnum = deleteFiles(path);
-    return (errnum == 0 && deleteSelf ? deleteFile(path) : errnum);
-}
-
 __STATIC_INLINE__ int createDirectory(const char* path, uint32_t length, mode_t mode = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)
 {
     assert(path);
