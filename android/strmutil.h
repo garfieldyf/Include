@@ -55,6 +55,10 @@ public:
 public:
     int32_t read(void* buf, int32_t size);
 
+// Implementation
+private:
+    jmethodID getMethodID();
+
 // Data members
 private:
     jobject mStream;

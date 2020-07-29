@@ -59,7 +59,7 @@ __INLINE__ int32_t BufferedInputStream::read(void* buf, int32_t size)
     assert(mEnv);
     assert(mData);
 
-    static const jmethodID readID = JNI::jclass_t(mEnv, "java/io/InputStream").getMethodID("read", "([B)I");
+    static const jmethodID readID = getMethodID();
     assert(readID);
 
     int32_t count = 0;
@@ -89,6 +89,13 @@ __INLINE__ int32_t BufferedInputStream::read(void* buf, int32_t size)
     }
 
     return count;
+}
+
+__INLINE__ jmethodID BufferedInputStream::getMethodID()
+{
+    const jmethodID readID = JNI::jclass_t(mEnv, "java/io/InputStream").getMethodID("read", "([B)I");
+    LOGD("obtain InputStream read methodID = %p\n", readID);
+    return readID;
 }
 
 __END_NAMESPACE
