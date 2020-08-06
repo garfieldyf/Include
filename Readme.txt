@@ -23,13 +23,6 @@ https://www.androidos.net.cn/sourcecode
 http://tool.oschina.net/apidocs/apidoc?api=jdk-zh
 https://www.cs.usfca.edu/~galles/visualization/Algorithms.html
 
-## android sdk proxy
-mirrors.opencas.cn
-mirrors.neusoft.edu.cn
-ubuntu.buct.edu.cn
-ubuntu.buct.cn
-mirrors.neusoft.edu.cn:80
-
 ## android resource
 https://lanhuapp.com
 
@@ -64,19 +57,16 @@ password: android
 /D/Java/jdk1.8.0_51/bin/keytool -importkeystore -deststorepass android -destkeypass android -destkeystore debug.keystore -srckeystore platform.pk12 -srcstoretype PKCS12 -srcstorepass android -alias androiddebugkey
 
 ## Build C++ Header
-Location : D:\Java\jdk1.8.0_51\bin\javah.exe
-Working Directoty : ${project_loc}
-Arguments : -classpath D:\Google\android-sdk-windows\platforms\android-22\android.jar;${project_loc}\bin\classes -jni ${java_type_name}
+Name : Build C++ Header
+Program : $JDKPath$\bin\javah
+Arguments : -v -jni -d $ProjectFileDir$ $FileClass$
+Working Directoty : $SourcepathEntry$
 
 ## Build Java Decompile
-Location : D:\Java\jdk1.8.0_51\bin\javap.exe
-Working Directoty : ${project_loc}\bin\classes
-Arguments : -p -s -c -classpath D:\Google\android-sdk-windows\platforms\android-22\android.jar;${project_loc}\bin\classes ${java_type_name}
-
-## Build Java Signature
-Location : D:\Java\jdk1.8.0_51\bin\javap.exe
-Working Directoty : ${project_loc}\bin\classes
-Arguments : -p -s -classpath D:\Google\android-sdk-windows\platforms\android-22\android.jar;${project_loc}\bin\classes ${java_type_name}
+Name : Show Class Bytecode
+Program : $JDKPath$\bin\javap
+Arguments : -p -s -c $FileClass$
+Working Directoty : $OutputPath$
 
 ## Build android ROM
 . build/envsetup.sh
