@@ -30,13 +30,13 @@
 
     <!-- target -post-compile -->
     <target name="-post-compile">
-        <echo level="info">Deletes temp files...</echo>
+        <echo level="info">Deleting temp files...</echo>
         <delete dir="${out.dir}"/>
     </target>
 
     <!-- target -clean -->
     <target name="-clean">
-        <echo level="info">Deletes output files...</echo>
+        <echo level="info">Deleting output files...</echo>
         <delete dir="${out.dir}"/>
         <delete file="${out.jar}"/>
     </target>
