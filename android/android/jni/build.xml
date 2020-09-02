@@ -1,34 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="module" basedir="." default="release">
-    <!-- import ant-contrib jar -->
-    <taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${basedir}/ant-contrib-1.0b3.jar"/>
+    <!-- import ant-contrib.jar -->
+    <taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${basedir}/ant-contrib.jar"/>
 
     <!-- properties -->
     <property name="out.dir" value="${basedir}/../../libs" />
     <property name="lib.dir" value="${basedir}/../libs" />
     <property name="obj.dir" value="${basedir}/../obj" />
-    <property name="ndk.args" value="-B" />
-    <property name="ndk.abi" value="armeabi-v7a,arm64-v8a" />
+    <property name="ndk.abi" value="arm64-v8a,armeabi-v7a,x86_64,x86" />
+    <property name="ndk.args" value="-B NDK_ABI=&quot;arm64-v8a armeabi-v7a x86_64 x86&quot;" />
 
     <!-- target -set-debug-mode -->
     <target name="-set-debug-mode">
         <property name="ndk.debug" value="1" />
         <echo level="info">Build the libs in DEBUG mode.</echo>
-        <echo level="info">ndk-build ${ndk.args} NDK_DEBUG=${ndk.debug}</echo>
+        <echo level="info">ndk-build NDK_DEBUG=${ndk.debug} ${ndk.args}</echo>
     </target>
 
     <!-- target -set-release-mode -->
     <target name="-set-release-mode">
         <property name="ndk.debug" value="0" />
         <echo level="info">Build the libs in RELEASE mode.</echo>
-        <echo level="info">ndk-build ${ndk.args} NDK_DEBUG=${ndk.debug}</echo>
+        <echo level="info">ndk-build NDK_DEBUG=${ndk.debug} ${ndk.args}</echo>
     </target>
 
     <!-- target -compile -->
     <target name="-compile">
         <!-- compile c++ files -->
         <exec executable="cmd.exe">
-            <arg line="/C ndk-build ${ndk.args} NDK_DEBUG=${ndk.debug}" />
+            <arg line="/C ndk-build NDK_DEBUG=${ndk.debug} ${ndk.args}" />
         </exec>
 
         <!-- copy the so files -->
