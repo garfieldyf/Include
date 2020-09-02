@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="module" basedir="." default="release">
     <!-- import ant-contrib.jar -->
-    <taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${basedir}/ant-contrib.jar"/>
+    <taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${basedir}/../../../java/support/ant-contrib.jar"/>
 
     <!-- properties -->
     <property name="out.dir" value="${basedir}/../../libs" />
