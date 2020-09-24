@@ -11,6 +11,10 @@ git : https://github.com/zxing/zxing.git
 ## vasdolly
 git : https://github.com/Tencent/VasDolly.git
 
+## GitHub 文件加速
+git clone https://g.ioiox.com/项目 git 地址
+如：git clone https://g.ioiox.com/https://github.com/garfieldyf/AndroidTest.git
+
 ## bookmarks
 http://androidxref.com/
 http://docs.oracle.com/javase/8/docs/technotes/guides/jni/spec/jniTOC.html
