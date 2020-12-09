@@ -4,3 +4,4 @@
 
 # Don't warn the classes in the android-sdk-stubs.jar.
 -dontwarn android.os.**
+-dontwarn android.util.**
