@@ -17,15 +17,15 @@ __BEGIN_NAMESPACE
 // Implementation of the Mutex class
 //
 
-__INLINE__ Mutex::Mutex(pthread_mutexattr_t* attr/* = NULL*/)
+__INLINE__ Mutex::Mutex(int pshared/* = PTHREAD_PROCESS_PRIVATE*/, int type/* = PTHREAD_MUTEX_NORMAL*/)
 {
-    verify(::pthread_mutex_init(this, attr), 0);
-}
+    pthread_mutexattr_t attr;
+    verify(::pthread_mutexattr_init(&attr), 0);
+    __verify(::pthread_mutexattr_settype(&attr, type), "Couldn't set mutex type (type = %d)", type);
+    __verify(::pthread_mutexattr_setpshared(&attr, pshared), "Couldn't set mutex pshared (pshared = %d)", pshared);
 
-__INLINE__ Mutex::Mutex(int pshared, int type)
-{
-    MutexAttr attr(pshared, type);
-    verify(::pthread_mutex_init(this, attr), 0);
+    verify(::pthread_mutex_init(this, &attr), 0);
+    verify(::pthread_mutexattr_destroy(&attr), 0);
 }
 
 __INLINE__ Mutex::~Mutex()
@@ -85,15 +85,14 @@ __INLINE__ MutexLock::~MutexLock()
 // Implementation of the RWLock class
 //
 
-__INLINE__ RWLock::RWLock(const pthread_rwlockattr_t* attr/* = NULL*/)
+__INLINE__ RWLock::RWLock(int pshared/* = PTHREAD_PROCESS_PRIVATE*/)
 {
-    verify(::pthread_rwlock_init(this, attr), 0);
-}
+    pthread_rwlockattr_t attr;
+    verify(::pthread_rwlockattr_init(&attr), 0);
+    __verify(::pthread_rwlockattr_setpshared(&attr, pshared), "Couldn't set RWLock pshared (pshared = %d)", pshared);
 
-__INLINE__ RWLock::RWLock(int pshared)
-{
-    RWLockAttr attr(pshared);
-    verify(::pthread_rwlock_init(this, attr), 0);
+    verify(::pthread_rwlock_init(this, &attr), 0);
+    verify(::pthread_rwlockattr_destroy(&attr), 0);
 }
 
 __INLINE__ RWLock::~RWLock()
@@ -190,15 +189,14 @@ __INLINE__ WriteLock::WriteLock(RWLock& rwlock)
 // Implementation of the Condition class
 //
 
-__INLINE__ Condition::Condition(pthread_condattr_t* attr/* = NULL*/)
+__INLINE__ Condition::Condition(int pshared/* = PTHREAD_PROCESS_PRIVATE*/)
 {
-    verify(::pthread_cond_init(this, attr), 0);
-}
+    pthread_condattr_t attr;
+    verify(::pthread_condattr_init(&attr), 0);
+    __verify(::pthread_condattr_setpshared(&attr, pshared), "Couldn't set condition pshared (pshared = %d)", pshared);
 
-__INLINE__ Condition::Condition(int pshared)
-{
-    CondAttr attr(pshared);
-    verify(::pthread_cond_init(this, attr), 0);
+    verify(::pthread_cond_init(this, &attr), 0);
+    verify(::pthread_condattr_destroy(&attr), 0);
 }
 
 __INLINE__ Condition::~Condition()
@@ -235,157 +233,6 @@ __INLINE__ int Condition::wait(pthread_mutex_t& mutex, unsigned timeout/* = INFI
     return (timeout == INFINITE ? __verify(::pthread_cond_wait(this, &mutex), "Couldn't wait condition") : ::pthread_cond_timeout_np(this, &mutex, timeout));
 #endif  // __LP64__
 }
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the CondAttr class
-//
-
-__INLINE__ CondAttr::CondAttr(int pshared/* = PTHREAD_PROCESS_PRIVATE*/)
-{
-    verify(::pthread_condattr_init(&mAttr), 0);
-    verify(setShared(pshared), 0);
-}
-
-__INLINE__ CondAttr::~CondAttr()
-{
-    verify(::pthread_condattr_destroy(&mAttr), 0);
-}
-
-__INLINE__ CondAttr::operator pthread_condattr_t*()
-{
-    return &mAttr;
-}
-
-__INLINE__ CondAttr::operator const pthread_condattr_t*() const
-{
-    return &mAttr;
-}
-
-#ifndef NDEBUG
-__INLINE__ void CondAttr::dump() const
-{
-    int pshared = -1;
-    verify(getShared(pshared), 0);
-    LOGI("CondAttr [ pshared = %d ]\n", pshared);
-}
-#endif  // NDEBUG
-
-__INLINE__ int CondAttr::setShared(int pshared)
-{
-    return __verify(::pthread_condattr_setpshared(&mAttr, pshared), "Couldn't set condition pshared (pshared = %d)", pshared);
-}
-
-__INLINE__ int CondAttr::getShared(int& pshared) const
-{
-    return __verify(::pthread_condattr_getpshared(&mAttr, &pshared), "Couldn't get condition pshared");
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the MutexAttr class
-//
-
-__INLINE__ MutexAttr::MutexAttr(int pshared/* = PTHREAD_PROCESS_PRIVATE*/, int type/* = PTHREAD_MUTEX_NORMAL*/)
-{
-    verify(::pthread_mutexattr_init(&mAttr), 0);
-    verify(setType(type), 0);
-    verify(setShared(pshared), 0);
-}
-
-__INLINE__ MutexAttr::~MutexAttr()
-{
-    verify(::pthread_mutexattr_destroy(&mAttr), 0);
-}
-
-__INLINE__ MutexAttr::operator pthread_mutexattr_t*()
-{
-    return &mAttr;
-}
-
-__INLINE__ MutexAttr::operator const pthread_mutexattr_t*() const
-{
-    return &mAttr;
-}
-
-#ifndef NDEBUG
-__INLINE__ void MutexAttr::dump() const
-{
-    int type = -1, pshared = -1;
-    verify(getType(type), 0);
-    verify(getShared(pshared), 0);
-
-    LOGI("MutexAttr [ type = %d, pshared = %d ]\n", type, pshared);
-}
-#endif  // NDEBUG
-
-__INLINE__ int MutexAttr::setType(int type)
-{
-    return __verify(::pthread_mutexattr_settype(&mAttr, type), "Couldn't set mutex type (type = %d)", type);
-}
-
-__INLINE__ int MutexAttr::getType(int& type) const
-{
-    return __verify(::pthread_mutexattr_gettype(&mAttr, &type), "Couldn't get mutex type");
-}
-
-__INLINE__ int MutexAttr::setShared(int pshared)
-{
-    return __verify(::pthread_mutexattr_setpshared(&mAttr, pshared), "Couldn't set mutex pshared (pshared = %d)", pshared);
-}
-
-__INLINE__ int MutexAttr::getShared(int& pshared) const
-{
-    return __verify(::pthread_mutexattr_getpshared(&mAttr, &pshared), "Couldn't get mutex pshared");
-}
-
-
-#if (__ANDROID_API__ >= 9)
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the RWLockAttr class
-//
-
-__INLINE__ RWLockAttr::RWLockAttr(int pshared/* = PTHREAD_PROCESS_PRIVATE*/)
-{
-    verify(::pthread_rwlockattr_init(&mAttr), 0);
-    verify(setShared(pshared), 0);
-}
-
-__INLINE__ RWLockAttr::~RWLockAttr()
-{
-    verify(::pthread_rwlockattr_destroy(&mAttr), 0);
-}
-
-__INLINE__ RWLockAttr::operator pthread_rwlockattr_t*()
-{
-    return &mAttr;
-}
-
-__INLINE__ RWLockAttr::operator const pthread_rwlockattr_t*() const
-{
-    return &mAttr;
-}
-
-#ifndef NDEBUG
-__INLINE__ void RWLockAttr::dump() const
-{
-    int pshared = -1;
-    verify(getShared(pshared), 0);
-
-    LOGI("RWLockAttr [ pshared = %d ]\n", pshared);
-}
-#endif  // NDEBUG
-
-__INLINE__ int RWLockAttr::setShared(int pshared)
-{
-    return __verify(::pthread_rwlockattr_setpshared(&mAttr, pshared), "Couldn't set RWLock pshared (pshared = %d)", pshared);
-}
-
-__INLINE__ int RWLockAttr::getShared(int& pshared) const
-{
-    return __verify(::pthread_rwlockattr_getpshared(&mAttr, &pshared), "Couldn't get RWLock pshared");
-}
-#endif  // (__ANDROID_API__ >= 9)
 
 
 ///////////////////////////////////////////////////////////////////////////////

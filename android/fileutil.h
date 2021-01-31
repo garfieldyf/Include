@@ -126,7 +126,7 @@ protected:
 
 struct DefaultFilter
 {
-    static bool accept(const struct dirent* entry);
+    bool operator()(const struct dirent* entry) const;
 };
 
 
@@ -136,7 +136,7 @@ struct DefaultFilter
 
 struct IgnoreHiddenFilter
 {
-    static bool accept(const struct dirent* entry);
+    bool operator()(const struct dirent* entry) const;
 };
 
 
@@ -149,11 +149,15 @@ class Directory : public DirectoryBase
 {
 // Constructors
 public:
-    Directory();
+    Directory(_Filter _filter = _Filter());
 
 // Operations
 public:
     int read(struct dirent*& entry) const;
+
+// Data members
+public:
+    _Filter filter;
 };
 
 

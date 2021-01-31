@@ -21,9 +21,6 @@
 // ReadLock
 // WriteLock
 // Condition
-// CondAttr
-// MutexAttr
-// RWLockAttr
 // ThreadAttr
 // ThreadKey<_Ty>
 //
@@ -47,8 +44,7 @@ class Mutex : public pthread_mutex_t
 
 // Constructors/Destructor
 public:
-    explicit Mutex(pthread_mutexattr_t* attr = NULL);
-    explicit Mutex(int pshared, int type);
+    explicit Mutex(int pshared = PTHREAD_PROCESS_PRIVATE, int type = PTHREAD_MUTEX_NORMAL);
     ~Mutex();
 
 // Operations
@@ -92,8 +88,7 @@ class RWLock : public pthread_rwlock_t
 
 // Constructors/Destructor
 public:
-    explicit RWLock(const pthread_rwlockattr_t* attr = NULL);
-    explicit RWLock(int pshared);
+    explicit RWLock(int pshared = PTHREAD_PROCESS_PRIVATE);
     ~RWLock();
 
 // Operations
@@ -167,8 +162,7 @@ class Condition : public pthread_cond_t
 
 // Constructors/Destructor
 public:
-    explicit Condition(pthread_condattr_t* attr = NULL);
-    explicit Condition(int pshared);
+    explicit Condition(int pshared = PTHREAD_PROCESS_PRIVATE);
     ~Condition();
 
 // Operations
@@ -180,110 +174,6 @@ public:
     int notifyAll();
     int wait(pthread_mutex_t& mutex, unsigned timeout = INFINITE);
 };
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the CondAttr class
-//
-
-class CondAttr
-{
-    DECLARE_NONCOPYABLE(CondAttr);
-
-// Constructors/Destructor
-public:
-    explicit CondAttr(int pshared = PTHREAD_PROCESS_PRIVATE);
-    ~CondAttr();
-
-// Operations
-public:
-    operator pthread_condattr_t*();
-    operator const pthread_condattr_t*() const;
-
-#ifndef NDEBUG
-    void dump() const;
-#endif
-
-// Attributes
-public:
-    int setShared(int pshared);
-    int getShared(int& pshared) const;
-
-// Data members
-private:
-    mutable pthread_condattr_t mAttr;
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the MutexAttr class
-//
-
-class MutexAttr
-{
-    DECLARE_NONCOPYABLE(MutexAttr);
-
-// Constructors/Destructor
-public:
-    explicit MutexAttr(int pshared = PTHREAD_PROCESS_PRIVATE, int type = PTHREAD_MUTEX_NORMAL);
-    ~MutexAttr();
-
-// Operations
-public:
-    operator pthread_mutexattr_t*();
-    operator const pthread_mutexattr_t*() const;
-
-#ifndef NDEBUG
-    void dump() const;
-#endif
-
-// Attributes
-public:
-    int setType(int type);
-    int getType(int& type) const;
-
-    int setShared(int pshared);
-    int getShared(int& pshared) const;
-
-// Data members
-private:
-    mutable pthread_mutexattr_t mAttr;
-};
-
-
-#if (__ANDROID_API__ >= 9)
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the RWLockAttr class
-//
-
-class RWLockAttr
-{
-    DECLARE_NONCOPYABLE(RWLockAttr);
-
-// Constructors/Destructor
-public:
-    explicit RWLockAttr(int pshared = PTHREAD_PROCESS_PRIVATE);
-    ~RWLockAttr();
-
-// Operations
-public:
-    operator pthread_rwlockattr_t*();
-    operator const pthread_rwlockattr_t*() const;
-
-#ifndef NDEBUG
-    void dump() const;
-#endif
-
-// Attributes
-public:
-    int setShared(int pshared);
-    int getShared(int& pshared) const;
-
-// Data members
-private:
-    mutable pthread_rwlockattr_t mAttr;
-};
-#endif  // (__ANDROID_API__ >= 9)
 
 
 ///////////////////////////////////////////////////////////////////////////////
