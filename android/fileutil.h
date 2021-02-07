@@ -149,7 +149,7 @@ class Directory : public DirectoryBase
 {
 // Constructors
 public:
-    Directory(_Filter _filter = _Filter());
+    Directory(const _Filter& _filter = _Filter());
 
 // Operations
 public:
