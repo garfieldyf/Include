@@ -227,7 +227,12 @@ __INLINE__ bool IgnoreHiddenFilter::operator()(const struct dirent* entry) const
 //
 
 template <typename _Filter>
-__INLINE__ Directory<_Filter>::Directory(const _Filter& _filter/* = _Filter()*/)
+__INLINE__ Directory<_Filter>::Directory()
+{
+}
+
+template <typename _Filter>
+__INLINE__ Directory<_Filter>::Directory(const _Filter& _filter)
     : filter(_filter)
 {
 }
