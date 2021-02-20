@@ -307,7 +307,7 @@ __INLINE__ timeval_t::operator const timeval*() const
 
 __INLINE__ uint64_t timeval_t::toMillis() const
 {
-    return toMillis(tv_sec, tv_usec);
+    return ((uint64_t)tv_sec * MICROSECONDS + (uint64_t)tv_usec) / MILLISECONDS;
 }
 
 __INLINE__ timespec_t timeval_t::toTimespec() const
@@ -382,11 +382,6 @@ __INLINE__ timeval_t timeval_t::getCurrentTime()
     return now;
 }
 
-__INLINE__ uint64_t timeval_t::toMillis(time_t sec, suseconds_t usec)
-{
-    return ((uint64_t)sec * MICROSECONDS + (uint64_t)usec) / MILLISECONDS;
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // Implementation of the timespec_t class
@@ -426,9 +421,14 @@ __INLINE__ timespec_t::operator const timespec*() const
     return this;
 }
 
+__INLINE__ uint64_t timespec_t::toNanos() const
+{
+    return ((uint64_t)tv_sec * NANOSECONDS + tv_nsec);
+}
+
 __INLINE__ uint64_t timespec_t::toMillis() const
 {
-    return toMillis(tv_sec, tv_nsec);
+    return ((uint64_t)tv_sec * NANOSECONDS + (uint64_t)tv_nsec) / MICROSECONDS;
 }
 
 __INLINE__ timeval_t timespec_t::toTimeval() const
@@ -509,11 +509,6 @@ __INLINE__ timespec_t timespec_t::toTimespec(uint64_t millis)
     verify(::clock_gettime(CLOCK_REALTIME, now), 0);
 
     return (now += millis);
-}
-
-__INLINE__ uint64_t timespec_t::toMillis(time_t sec, long nsec)
-{
-    return ((uint64_t)sec * NANOSECONDS + (uint64_t)nsec) / MICROSECONDS;
 }
 
 

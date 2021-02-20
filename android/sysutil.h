@@ -30,7 +30,6 @@
 // getThreadId()
 // getThreadPriority()
 // setThreadPriority()
-// getElapsedCpuTime()
 
 __BEGIN_NAMESPACE
 
@@ -303,14 +302,6 @@ __STATIC_INLINE__ int setThreadPriority(int tid, int priority)
 __STATIC_INLINE__ int setThreadPriority(int priority)
 {
     return setThreadPriority(getThreadId(), priority);
-}
-
-__STATIC_INLINE__ uint64_t getElapsedCpuTime()
-{
-    timespec_t result;
-    verify(::clock_gettime(CLOCK_PROCESS_CPUTIME_ID, result), 0);
-
-    return result.toMillis();
 }
 
 __END_NAMESPACE

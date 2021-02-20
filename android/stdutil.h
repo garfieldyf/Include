@@ -27,8 +27,9 @@
 // Global functions in this file:
 //
 // isEmpty()
-// nanoTime()
 // currentTimeMillis()
+// elapsedRealtime()
+// elapsedRealtimeNanos()
 
 __BEGIN_NAMESPACE
 
@@ -243,7 +244,6 @@ public:
     timeval_t& operator-=(uint64_t millis);
 
     static timeval_t getCurrentTime();
-    static uint64_t toMillis(time_t sec, suseconds_t usec);
 };
 
 
@@ -266,7 +266,9 @@ public:
     operator timespec*();
     operator const timespec*() const;
 
+    uint64_t toNanos() const;
     uint64_t toMillis() const;
+
     timeval_t toTimeval() const;
     void set(time_t sec, long nsec);
 
@@ -282,7 +284,6 @@ public:
 
     static timespec_t getCurrentTime();
     static timespec_t toTimespec(uint64_t millis);
-    static uint64_t toMillis(time_t sec, long nsec);
 };
 
 
@@ -352,16 +353,25 @@ __STATIC_INLINE__ bool isEmpty(const char* str)
     return (str == NULL || *str == '\0');
 }
 
-__STATIC_INLINE__ uint64_t nanoTime()
-{
-    struct timespec now;
-    verify(::clock_gettime(CLOCK_MONOTONIC, &now), 0);
-    return (uint64_t)now.tv_sec * NANOSECONDS + now.tv_nsec;
-}
-
 __STATIC_INLINE__ uint64_t currentTimeMillis()
 {
-    return timeval_t::getCurrentTime().toMillis();
+    return timespec_t::getCurrentTime().toMillis();
+}
+
+__STATIC_INLINE__ uint64_t elapsedRealtime()
+{
+    timespec_t ts;
+    verify(::clock_gettime(CLOCK_MONOTONIC, ts), 0);
+
+    return ts.toMillis();
+}
+
+__STATIC_INLINE__ uint64_t elapsedRealtimeNanos()
+{
+    timespec_t ts;
+    verify(::clock_gettime(CLOCK_MONOTONIC, ts), 0);
+
+    return ts.toNanos();
 }
 
 __END_NAMESPACE
