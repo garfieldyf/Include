@@ -2,7 +2,7 @@
 // stdcolls.inl
 //
 // Author : Garfield
-// Creation Date : 2010/4/12
+// Creation Date : 2020/4/12
 
 #if (_MSC_VER >= 1020)
 #pragma once
@@ -18,40 +18,48 @@
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the _Priority_base class
+// Implementation of the queue class
 //
 
-template <typename _Ty, typename _Comparator>
-__INLINE__ _Priority_base<_Ty, _Comparator>::_Priority_base()
+template <typename _Ty>
+__INLINE__ queue<_Ty>::queue(container_type&& _Cont)
+    : _Mybase(std::move(_Cont))
 {
 }
 
-template <typename _Ty, typename _Comparator>
-__INLINE__ typename _Priority_base<_Ty, _Comparator>::const_iterator _Priority_base<_Ty, _Comparator>::find(const value_type& _Val) const
+template <typename _Ty>
+__INLINE__ queue<_Ty>::queue(const container_type& _Cont)
+    : _Mybase(_Cont)
 {
-    const_iterator _Last  = this->end();
-    const_iterator _Where = std::lower_bound(this->begin(), _Last, _Val, comp);
-
-    return (_Where != _Last && !comp(_Val, *_Where) ? _Where : _Last);
 }
 
-template <typename _Ty, typename _Comparator>
-__INLINE__ typename _Priority_base<_Ty, _Comparator>::iterator _Priority_base<_Ty, _Comparator>::remove(const value_type& _Val)
+template <typename _Ty>
+__INLINE__ void queue<_Ty>::clear()
 {
-    iterator _Last  = this->end();
-    iterator _Where = std::lower_bound(this->begin(), _Last, _Val, comp);
-
-    return (_Where != _Last && !comp(_Val, *_Where) ? this->erase(_Where) : _Last);
+    this->c.clear();
 }
 
-template <typename _Ty, typename _Comparator>
-__INLINE__ typename _Priority_base<_Ty, _Comparator>::size_type _Priority_base<_Ty, _Comparator>::remove_n(const value_type& _Val)
-{
-    size_type _Count = 0;
-    for (iterator _Where = this->begin(); (_Where = std::lower_bound(_Where, this->end(), _Val, comp)) != this->end() && !comp(_Val, *_Where); )
-        _Where = this->erase(_Where), ++_Count;
 
-    return _Count;
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the stack class
+//
+
+template <typename _Ty>
+__INLINE__ stack<_Ty>::stack(container_type&& _Cont)
+    : _Mybase(std::move(_Cont))
+{
+}
+
+template <typename _Ty>
+__INLINE__ stack<_Ty>::stack(const container_type& _Cont)
+    : _Mybase(_Cont)
+{
+}
+
+template <typename _Ty>
+__INLINE__ void stack<_Ty>::clear()
+{
+    this->c.clear();
 }
 
 
@@ -60,342 +68,73 @@ __INLINE__ typename _Priority_base<_Ty, _Comparator>::size_type _Priority_base<_
 //
 
 template <typename _Ty, typename _Comparator>
-__INLINE__ priority_queue<_Ty, _Comparator>::priority_queue()
+__INLINE__ priority_queue<_Ty, _Comparator>::priority_queue(const _Comparator& _Comp, container_type&& _Cont)
+    : _Mybase(_Comp, std::move(_Cont))
 {
 }
 
 template <typename _Ty, typename _Comparator>
-__INLINE__ void priority_queue<_Ty, _Comparator>::push(const value_type& _Val)
+__INLINE__ priority_queue<_Ty, _Comparator>::priority_queue(const _Comparator& _Comp, const container_type& _Cont)
+    : _Mybase(_Comp, _Cont)
 {
-    insert(std::upper_bound(this->begin(), this->end(), _Val, this->comp), _Val);
 }
 
 template <typename _Ty, typename _Comparator>
-__INLINE__ void priority_queue<_Ty, _Comparator>::push(value_type&& _Val)
+__INLINE__ void priority_queue<_Ty, _Comparator>::clear()
 {
-    insert(std::upper_bound(this->begin(), this->end(), _Val, this->comp), _Val);
+    this->c.clear();
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the priority_stack class
+// Implementation of the _Blocking_container class
 //
 
-template <typename _Ty, typename _Comparator>
-__INLINE__ priority_stack<_Ty, _Comparator>::priority_stack()
+template <typename _Container>
+__INLINE__ void _Blocking_container<_Container>::clear()
 {
+    mutex_lock _Lock(_Mymutex);
+    _Mycont.clear();
 }
 
-template <typename _Ty, typename _Comparator>
-__INLINE__ void priority_stack<_Ty, _Comparator>::push(const value_type& _Val)
+template <typename _Container>
+__INLINE__ bool _Blocking_container<_Container>::empty() const
 {
-    insert(std::lower_bound(this->begin(), this->end(), _Val, this->comp), _Val);
+    mutex_lock _Lock(_Mymutex);
+    return _Mycont.empty();
 }
 
-template <typename _Ty, typename _Comparator>
-__INLINE__ void priority_stack<_Ty, _Comparator>::push(value_type&& _Val)
+template <typename _Container>
+__INLINE__ typename _Blocking_container<_Container>::size_type _Blocking_container<_Container>::size() const
 {
-    insert(std::lower_bound(this->begin(), this->end(), _Val, this->comp), _Val);
+    mutex_lock _Lock(_Mymutex);
+    return _Mycont.size();
 }
 
-
-#if defined(__ATLSYNC_H__) || defined(__SYSUTILS_H__)
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the pointer_traits class
-//
-
-template <typename _Ty>
-__INLINE__ void pointer_traits<_Ty>::destroy(_Ty* _Val)
+template <typename _Container> template <typename _Predicate>
+__INLINE__ bool _Blocking_container<_Container>::_Pop(value_type& _Val, uint32_t _Timeout, _Predicate _Pred)
 {
-    delete _Val;
-}
+    bool _Result;
+    auto _Cond = [this]() {
+        return !_Mycont.empty();
+    };
 
-
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the primitive_traits class
-//
-
-template <typename _Ty>
-__INLINE__ void primitive_traits<_Ty>::destroy(_Ty& /*_Val*/)
-{
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the _Blocking_deque class
-//
-
-template <typename _Ty, typename _Container>
-__INLINE__ _Blocking_deque<_Ty, _Container>::_Blocking_deque()
-{
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    ::InitializeSRWLock(&_SRWLock);
-#else
-    // Creates an auto-reset and initial state is nonsignaled event object.
-    ATLVERIFY(_Event.Create(NULL, FALSE, FALSE, NULL));
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#endif  // WINVER
-}
-
-template <typename _Ty, typename _Container>
-__INLINE__ void _Blocking_deque<_Ty, _Container>::push_front(const value_type& _Val)
-{
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CExclusiveSRWLock lock(_SRWLock);
-    _Cont.push_front(_Val);
-    _CondVar.Wake();
-#else
-    ATL::CCritSecLock lock(_CritSec);
-    _Cont.push_front(_Val);
-
-    ATLASSERT(_Event.m_h);
-    ATLVERIFY(_Event.Set());
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(_Mutex);
-    _Cont.push_front(_Val);
-    _Condition.notify();
-#endif  // WINVER
-}
-
-template <typename _Ty, typename _Container>
-__INLINE__ void _Blocking_deque<_Ty, _Container>::push_front(value_type&& _Val)
-{
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CExclusiveSRWLock lock(_SRWLock);
-    _Cont.push_front(_Val);
-    _CondVar.Wake();
-#else
-    ATL::CCritSecLock lock(_CritSec);
-    _Cont.push_front(_Val);
-
-    ATLASSERT(_Event.m_h);
-    ATLVERIFY(_Event.Set());
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(_Mutex);
-    _Cont.push_front(_Val);
-    _Condition.notify();
-#endif  // WINVER
-}
-
-template <typename _Ty, typename _Container>
-__INLINE__ void _Blocking_deque<_Ty, _Container>::push_back(const value_type& _Val)
-{
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CExclusiveSRWLock lock(_SRWLock);
-    _Cont.push_back(_Val);
-    _CondVar.Wake();
-#else
-    ATL::CCritSecLock lock(_CritSec);
-    _Cont.push_back(_Val);
-
-    ATLASSERT(_Event.m_h);
-    ATLVERIFY(_Event.Set());
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(_Mutex);
-    _Cont.push_back(_Val);
-    _Condition.notify();
-#endif  // WINVER
-}
-
-template <typename _Ty, typename _Container>
-__INLINE__ void _Blocking_deque<_Ty, _Container>::push_back(value_type&& _Val)
-{
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CExclusiveSRWLock lock(_SRWLock);
-    _Cont.push_back(_Val);
-    _CondVar.Wake();
-#else
-    ATL::CCritSecLock lock(_CritSec);
-    _Cont.push_back(_Val);
-
-    ATLASSERT(_Event.m_h);
-    ATLVERIFY(_Event.Set());
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(_Mutex);
-    _Cont.push_back(_Val);
-    _Condition.notify();
-#endif  // WINVER
-}
-
-template <typename _Ty, typename _Container>
-__INLINE__ bool _Blocking_deque<_Ty, _Container>::find(const value_type& _Val) const
-{
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CSharedSRWLock lock(_SRWLock);
-#else
-    ATL::CCritSecLock lock(_CritSec);
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(_Mutex);
-#endif  // WINVER
-
-    return (std::find(_Cont.begin(), _Cont.end(), _Val) != _Cont.end());
-}
-
-template <typename _Ty, typename _Container> template <typename _Pr>
-__INLINE__ bool _Blocking_deque<_Ty, _Container>::find(_Pr _Pred) const
-{
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CSharedSRWLock lock(_SRWLock);
-#else
-    ATL::CCritSecLock lock(_CritSec);
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(_Mutex);
-#endif  // WINVER
-
-    return (std::find_if(_Cont.begin(), _Cont.end(), _Pred) != _Cont.end());
-}
-
-template <typename _Ty, typename _Container>
-__INLINE__ int _Blocking_deque<_Ty, _Container>::pop_front(value_type& _Val, unsigned _Timeout/* = INFINITE*/)
-{
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CExclusiveSRWLock lock(_SRWLock);
-
-    // Waiting for _Timeout milliseconds, if container is empty.
-    BOOL _Result = TRUE;
-    while (_Result && _Cont.empty())
-        _Result = _CondVar.Sleep(_SRWLock, _Timeout);
-
-    // Popup the first element of the container, if wait successful.
-    if (_Result)
-    {
-        _Val = std::move(_Cont.front());
-        _Cont.pop_front();
+    unique_lock _Lock(_Mymutex);
+    if (_Timeout == static_cast<uint32_t>(-1)) {
+        // Waiting forever, if _Mycont is empty.
+        _Mycond.wait(_Lock, _Cond);
+        _Result = true;
+    } else {
+        // Waiting for _Timeout milliseconds, if _Mycont is empty.
+        _Result = _Mycond.wait_for(_Lock, std::chrono::milliseconds(_Timeout), _Cond);
     }
-#else
-    ATLASSERT(_Event.m_h);
 
-    // Waiting for _Timeout milliseconds, if event is nonsignaled.
-    DWORD _Result = ::WaitForSingleObject(_Event.m_h, _Timeout);
-    if (_Result == WAIT_OBJECT_0)
-    {
-        // Popup the first element of the container, if wait successful.
-        ATL::CCritSecLock lock(_CritSec);
-        _Val = std::move(_Cont.front());
-        _Cont.pop_front();
-
-        // Set the event to signaled, if container is not empty.
-        if (!_Cont.empty())
-            ATLVERIFY(_Event.Set());
+    // Popup the element from the _Mycont, if waiting successful.
+    if (_Result) {
+        _Pred(_Val);
     }
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(_Mutex);
 
-    // Waiting for _Timeout milliseconds, if container is empty.
-    int _Result = 0;
-    while (_Result == 0 && _Cont.empty())
-        _Result = _Condition.wait(_Mutex, _Timeout);
-
-    // Popup the first element of the container, if wait successful.
-    if (_Result == 0)
-    {
-        _Val = std::move(_Cont.front());
-        _Cont.pop_front();
-    }
-#endif  // WINVER
-
-    return (int)_Result;
-}
-
-template <typename _Ty, typename _Container>
-__INLINE__ int _Blocking_deque<_Ty, _Container>::pop_back(value_type& _Val, unsigned _Timeout/* = INFINITE*/)
-{
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CExclusiveSRWLock lock(_SRWLock);
-
-    // Waiting for _Timeout milliseconds, if container is empty.
-    BOOL _Result = TRUE;
-    while (_Result && _Cont.empty())
-        _Result = _CondVar.Sleep(_SRWLock, _Timeout);
-
-    // Popup the last element of the container, if wait successful.
-    if (_Result)
-    {
-        _Val = std::move(_Cont.back());
-        _Cont.pop_back();
-    }
-#else
-    ATLASSERT(_Event.m_h);
-
-    // Waiting for _Timeout milliseconds, if event is nonsignaled.
-    DWORD _Result = ::WaitForSingleObject(_Event.m_h, _Timeout);
-    if (_Result == WAIT_OBJECT_0)
-    {
-        // Popup the last element of the container, if wait successful.
-        ATL::CCritSecLock lock(_CritSec);
-        _Val = std::move(_Cont.back());
-        _Cont.pop_back();
-
-        // Set the event to signaled, if container is not empty.
-        if (!_Cont.empty())
-            ATLVERIFY(_Event.Set());
-    }
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(_Mutex);
-
-    // Waiting for _Timeout milliseconds, if container is empty.
-    int _Result = 0;
-    while (_Result == 0 && _Cont.empty())
-        _Result = _Condition.wait(_Mutex, _Timeout);
-
-    // Popup the last element of the container, if wait successful.
-    if (_Result == 0)
-    {
-        _Val = std::move(_Cont.back());
-        _Cont.pop_back();
-    }
-#endif  // WINVER
-
-    return (int)_Result;
-}
-
-template <typename _Ty, typename _Container>
-__INLINE__ bool _Blocking_deque<_Ty, _Container>::empty() const
-{
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CSharedSRWLock lock(_SRWLock);
-#else
-    ATL::CCritSecLock lock(_CritSec);
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(_Mutex);
-#endif  // WINVER
-
-    return _Cont.empty();
-}
-
-template <typename _Ty, typename _Container>
-__INLINE__ typename _Blocking_deque<_Ty, _Container>::size_type _Blocking_deque<_Ty, _Container>::size() const
-{
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CSharedSRWLock lock(_SRWLock);
-#else
-    ATL::CCritSecLock lock(_CritSec);
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(_Mutex);
-#endif  // WINVER
-
-    return _Cont.size();
+    return _Result;
 }
 
 
@@ -403,125 +142,136 @@ __INLINE__ typename _Blocking_deque<_Ty, _Container>::size_type _Blocking_deque<
 // Implementation of the blocking_deque class
 //
 
-template <typename _Ty, typename _Traits, typename _Container>
-__INLINE__ blocking_deque<_Ty, _Traits, _Container>::blocking_deque()
+template <typename _Ty>
+__INLINE__ void blocking_deque<_Ty>::push_front(value_type&& _Val)
 {
+    {
+        mutex_lock _Lock(_Mymutex);
+        _Mycont.push_front(std::move(_Val));
+    }
+
+    _Mycond.notify_one();
 }
 
-template <typename _Ty, typename _Traits, typename _Container>
-__INLINE__ blocking_deque<_Ty, _Traits, _Container>::~blocking_deque()
+template <typename _Ty>
+__INLINE__ void blocking_deque<_Ty>::push_front(const value_type& _Val)
 {
-    clear();
+    {
+        mutex_lock _Lock(_Mymutex);
+        _Mycont.push_front(_Val);
+    }
+
+    _Mycond.notify_one();
 }
 
-template <typename _Ty, typename _Traits, typename _Container>
-__INLINE__ void blocking_deque<_Ty, _Traits, _Container>::clear()
+template <typename _Ty>
+__INLINE__ void blocking_deque<_Ty>::push_back(value_type&& _Val)
 {
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CExclusiveSRWLock lock(_SRWLock);
-#else
-    ATL::CCritSecLock lock(_CritSec);
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(this->_Mutex);
-#endif  // WINVER
+    {
+        mutex_lock _Lock(_Mymutex);
+        _Mycont.push_back(std::move(_Val));
+    }
 
-    for (iterator _First = this->_Cont.begin(), _Last = this->_Cont.end(); _First != _Last; ++_First)
-        _Traits::destroy(*_First);
-
-    this->_Cont.clear();
+    _Mycond.notify_one();
 }
 
-template <typename _Ty, typename _Traits, typename _Container>
-__INLINE__ bool blocking_deque<_Ty, _Traits, _Container>::remove(const value_type& _Val)
+template <typename _Ty>
+__INLINE__ void blocking_deque<_Ty>::push_back(const value_type& _Val)
 {
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CExclusiveSRWLock lock(_SRWLock);
-#else
-    ATL::CCritSecLock lock(_CritSec);
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(this->_Mutex);
-#endif  // WINVER
+    {
+        mutex_lock _Lock(_Mymutex);
+        _Mycont.push_back(_Val);
+    }
 
-    iterator _Where  = std::find(this->_Cont.begin(), this->_Cont.end(), _Val);
-    bool _Successful = (_Where != this->_Cont.end());
-    if (_Successful)
-        _Remove(_Where);
-
-    return _Successful;
+    _Mycond.notify_one();
 }
 
-template <typename _Ty, typename _Traits, typename _Container> template <typename _Pr>
-__INLINE__ bool blocking_deque<_Ty, _Traits, _Container>::remove(_Pr _Pred)
+template <typename _Ty> template <typename... _ValArgs>
+__INLINE__ void blocking_deque<_Ty>::emplace_front(_ValArgs&&... _Args)
 {
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CExclusiveSRWLock lock(_SRWLock);
-#else
-    ATL::CCritSecLock lock(_CritSec);
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(this->_Mutex);
-#endif  // WINVER
+    {
+        mutex_lock _Lock(_Mymutex);
+        _Mycont.emplace_front(std::forward<_ValArgs>(_Args)...);
+    }
 
-    iterator _Where  = std::find_if(this->_Cont.begin(), this->_Cont.end(), _Pred);
-    bool _Successful = (_Where != this->_Cont.end());
-    if (_Successful)
-        _Remove(_Where);
-
-    return _Successful;
+    _Mycond.notify_one();
 }
 
-template <typename _Ty, typename _Traits, typename _Container>
-__INLINE__ typename blocking_deque<_Ty, _Traits, _Container>::size_type blocking_deque<_Ty, _Traits, _Container>::remove_n(const value_type& _Val)
+template <typename _Ty> template <typename... _ValArgs>
+__INLINE__ void blocking_deque<_Ty>::emplace_back(_ValArgs&&... _Args)
 {
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CExclusiveSRWLock lock(_SRWLock);
-#else
-    ATL::CCritSecLock lock(_CritSec);
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(this->_Mutex);
-#endif  // WINVER
+    {
+        mutex_lock _Lock(_Mymutex);
+        _Mycont.emplace_back(std::forward<_ValArgs>(_Args)...);
+    }
 
-    size_type _Count = 0;
-    for (iterator _Where = this->_Cont.begin(); (_Where = std::find(_Where, this->_Cont.end(), _Val)) != this->_Cont.end(); )
-        _Where = _Remove(_Where), ++_Count;
-
-    return _Count;
+    _Mycond.notify_one();
 }
 
-template <typename _Ty, typename _Traits, typename _Container> template <typename _Pr>
-__INLINE__ typename blocking_deque<_Ty, _Traits, _Container>::size_type blocking_deque<_Ty, _Traits, _Container>::remove_n(_Pr _Pred)
+template <typename _Ty>
+__INLINE__ bool blocking_deque<_Ty>::pop_front(value_type& _Val, uint32_t _Timeout/* = -1*/)
 {
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    atlutil::CExclusiveSRWLock lock(_SRWLock);
-#else
-    ATL::CCritSecLock lock(_CritSec);
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::MutexLock lock(this->_Mutex);
-#endif  // WINVER
-
-    size_type _Count = 0;
-    for (iterator _Where = this->_Cont.begin(); (_Where = std::find_if(_Where, this->_Cont.end(), _Pred)) != this->_Cont.end(); )
-        _Where = _Remove(_Where), ++_Count;
-
-    return _Count;
+    return this->_Pop(_Val, _Timeout, [this](value_type& _Out) {
+        _Out = std::move(_Mycont.front());
+        _Mycont.pop_front();
+    });
 }
 
-template <typename _Ty, typename _Traits, typename _Container>
-__INLINE__ typename blocking_deque<_Ty, _Traits, _Container>::iterator blocking_deque<_Ty, _Traits, _Container>::_Remove(iterator _Where)
+template <typename _Ty>
+__INLINE__ bool blocking_deque<_Ty>::pop_back(value_type& _Val, uint32_t _Timeout/* = -1*/)
 {
-    _Traits::destroy(*_Where);
-    return this->_Cont.erase(_Where);
+    return this->_Pop(_Val, _Timeout, [this](value_type& _Out) {
+        _Out = std::move(_Mycont.back());
+        _Mycont.pop_back();
+    });
 }
-#endif  // defined(__ATLSYNC_H__) || defined(__SYSUTILS_H__)
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the priority_blocking_queue class
+//
+
+template <typename _Ty, typename _Comparator>
+__INLINE__ void priority_blocking_queue<_Ty, _Comparator>::push(value_type&& _Val)
+{
+    {
+        mutex_lock _Lock(_Mymutex);
+        _Mycont.push(std::move(_Val));
+    }
+
+    _Mycond.notify_one();
+}
+
+template <typename _Ty, typename _Comparator>
+__INLINE__ void priority_blocking_queue<_Ty, _Comparator>::push(const value_type& _Val)
+{
+    {
+        mutex_lock _Lock(_Mymutex);
+        _Mycont.push(_Val);
+    }
+
+    _Mycond.notify_one();
+}
+
+template <typename _Ty, typename _Comparator> template <typename... _ValArgs>
+__INLINE__ void priority_blocking_queue<_Ty, _Comparator>::emplace(_ValArgs&&... _Args)
+{
+    {
+        mutex_lock _Lock(_Mymutex);
+        _Mycont.emplace(std::forward<_ValArgs>(_Args)...);
+    }
+
+    _Mycond.notify_one();
+}
+
+template <typename _Ty, typename _Comparator>
+__INLINE__ bool priority_blocking_queue<_Ty, _Comparator>::pop(value_type& _Val, uint32_t _Timeout/* = -1*/)
+{
+    return this->_Pop(_Val, _Timeout, [this](value_type& _Out) {
+        _Out = std::move(const_cast<value_type&>(_Mycont.top()));
+        _Mycont.pop();
+    });
+}
 
 }  // namespace stdutil
 

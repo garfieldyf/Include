@@ -2,7 +2,7 @@
 // stdcolls.h
 //
 // Author : Garfield
-// Creation Date : 2010/4/12
+// Creation Date : 2020/4/12
 
 #if (_MSC_VER >= 1020)
 #pragma once
@@ -11,60 +11,77 @@
 #ifndef __STDCOLLS_H__
 #define __STDCOLLS_H__
 
-#include "platform.h"
-#include <list>
-#include <deque>
-#include <algorithm>
-#include <functional>
+#include <queue>
+#include <stack>
+#include <mutex>
+#include <condition_variable>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Classes in this file:
 //
+// queue<_Ty>
+// stack<_Ty>
 // priority_queue<_Ty, _Comparator>
-// priority_stack<_Ty, _Comparator>
-// pointer_traits<_Ty>
-// primitive_traits<_Ty>
-// blocking_deque<_Ty, _Traits, _Container>
+// blocking_deque<_Ty>
+// priority_blocking_queue<_Ty, _Comparator>
 
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the _Priority_base class
+// Interface of the queue class
 //
 
-template <typename _Ty, typename _Comparator>
-class ATL_NO_VTABLE _Priority_base : public std::deque<_Ty>
+template <typename _Ty>
+class queue : public std::queue<_Ty>
 {
 public:
-    typedef std::deque<_Ty> _Mybase;
-    typedef _Comparator comparator_type;
-    typedef typename _Mybase::iterator iterator;
-    typedef typename _Mybase::size_type size_type;
-    typedef typename _Mybase::value_type value_type;
-    typedef typename _Mybase::const_iterator const_iterator;
+    using _Mybase = std::queue<_Ty>;
+    using container_type = typename _Mybase::container_type;
 
 // Constructors
-protected:
-    _Priority_base();
+public:
+    queue() = default;
+    explicit queue(container_type&& _Cont);
+    explicit queue(const container_type& _Cont);
+
+    queue(queue&&) = default;
+    queue& operator=(queue&&) = default;
+
+    queue(const queue&) = default;
+    queue& operator=(const queue&) = default;
 
 // Operations
 public:
-    const_iterator find(const value_type& _Val) const;
+    void clear();
+};
 
-    iterator remove(const value_type& _Val);
-    size_type remove_n(const value_type& _Val);
 
-// Implementation
-private:
-    void push_front(const value_type& _Val);
-    void push_front(value_type&& _Val);
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the stack class
+//
 
-    void push_back(const value_type& _Val);
-    void push_back(value_type&& _Val);
-
-// Data members
+template <typename _Ty>
+class stack : public std::stack<_Ty>
+{
 public:
-    _Comparator comp;
+    using _Mybase = std::stack<_Ty>;
+    using container_type = typename _Mybase::container_type;
+
+// Constructors
+public:
+    stack() = default;
+    explicit stack(container_type&& _Cont);
+    explicit stack(const container_type& _Cont);
+
+    stack(stack&&) = default;
+    stack& operator=(stack&&) = default;
+
+    stack(const stack&) = default;
+    stack& operator=(const stack&) = default;
+
+// Operations
+public:
+    void clear();
 };
 
 
@@ -72,131 +89,70 @@ public:
 // Interface of the priority_queue class
 //
 
-template <typename _Ty, typename _Comparator = std::greater<_Ty> >
-class priority_queue : public _Priority_base<_Ty, _Comparator>
+template <typename _Ty, typename _Comparator = std::less<_Ty>>
+class priority_queue : public std::priority_queue<_Ty, std::vector<_Ty>, _Comparator>
 {
 public:
-    typedef _Priority_base<_Ty, _Comparator> _Mybase;
-    typedef typename _Mybase::iterator iterator;
-    typedef typename _Mybase::size_type size_type;
-    typedef typename _Mybase::value_type value_type;
-    typedef typename _Mybase::const_iterator const_iterator;
-    typedef typename _Mybase::comparator_type comparator_type;
+    using _Mybase = std::priority_queue<_Ty, std::vector<_Ty>, _Comparator>;
+    using container_type = typename _Mybase::container_type;
 
 // Constructors
 public:
-    priority_queue();
+    priority_queue() = default;
+    priority_queue(const _Comparator& _Comp, container_type&& _Cont);
+    priority_queue(const _Comparator& _Comp, const container_type& _Cont);
+
+    priority_queue(priority_queue&&) = default;
+    priority_queue& operator=(priority_queue&&) = default;
+
+    priority_queue(const priority_queue&) = default;
+    priority_queue& operator=(const priority_queue&) = default;
 
 // Operations
 public:
-    void push(const value_type& _Val);
-    void push(value_type&& _Val);
+    void clear();
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the priority_stack class
+// Interface of the _Blocking_container class
 //
 
-template <typename _Ty, typename _Comparator = std::greater<_Ty> >
-class priority_stack : public _Priority_base<_Ty, _Comparator>
+template <typename _Container>
+class _Blocking_container
 {
 public:
-    typedef _Priority_base<_Ty, _Comparator> _Mybase;
-    typedef typename _Mybase::iterator iterator;
-    typedef typename _Mybase::size_type size_type;
-    typedef typename _Mybase::value_type value_type;
-    typedef typename _Mybase::const_iterator const_iterator;
-    typedef typename _Mybase::comparator_type comparator_type;
-
-// Constructors
-public:
-    priority_stack();
-
-// Operations
-public:
-    void push(const value_type& _Val);
-    void push(value_type&& _Val);
-};
-
-
-#if defined(__ATLSYNC_H__) || defined(__SYSUTILS_H__)
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the pointer_traits class
-//
-
-template <typename _Ty>
-struct pointer_traits
-{
-    static void destroy(_Ty* _Val);
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the primitive_traits class
-//
-
-template <typename _Ty>
-struct primitive_traits
-{
-    static void destroy(_Ty& _Val);
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the _Blocking_deque class
-//
-
-template <typename _Ty, typename _Container = std::deque<_Ty> >
-class ATL_NO_VTABLE _Blocking_deque
-{
-    DECLARE_NONCOPYABLE(_Blocking_deque);
-
-public:
-    typedef _Container container_type;
-    typedef typename _Container::iterator iterator;
-    typedef typename _Container::size_type size_type;
-    typedef typename _Container::value_type value_type;
+    using size_type  = typename _Container::size_type;
+    using value_type = typename _Container::value_type;
 
 // Constructors
 protected:
-    _Blocking_deque();
+    _Blocking_container() = default;
+    _Blocking_container(const _Blocking_container&) = delete;
+    _Blocking_container& operator=(const _Blocking_container&) = delete;
 
 // Operations
 public:
-    void push_front(const value_type& _Val);
-    void push_front(value_type&& _Val);
-
-    void push_back(const value_type& _Val);
-    void push_back(value_type&& _Val);
-
-    bool find(const value_type& _Val) const;
-    template <typename _Pr> bool find(_Pr _Pred) const;
-
-    int pop_front(value_type& _Val, unsigned _Timeout = INFINITE);
-    int pop_back(value_type& _Val, unsigned _Timeout = INFINITE);
+    void clear();
 
 // Attributes
 public:
     bool empty() const;
     size_type size() const;
 
+// Implementation
+protected:
+    using mutex_lock  = std::lock_guard<std::mutex>;
+    using unique_lock = std::unique_lock<std::mutex>;
+
+    template <typename _Predicate>
+    bool _Pop(value_type& _Val, uint32_t _Timeout, _Predicate _Pred);
+
 // Data members
 protected:
-    _Container _Cont;
-
-#ifdef WINVER
-#ifdef _ATL_NEW_BLOCKING_DEQUE
-    mutable SRWLOCK _SRWLock;
-    atlutil::CConditionVariable _CondVar;
-#else
-    ATL::CEvent _Event;
-    mutable ATL::CCriticalSection _CritSec;
-#endif  // _ATL_NEW_BLOCKING_DEQUE
-#else
-    __NS::Condition _Condition;
-    mutable __NS::Mutex _Mutex;
-#endif  // WINVER
+    _Container _Mycont;
+    mutable std::mutex _Mymutex;
+    std::condition_variable _Mycond;
 };
 
 
@@ -204,37 +160,69 @@ protected:
 // Interface of the blocking_deque class
 //
 
-template <typename _Ty, typename _Traits = primitive_traits<_Ty>, typename _Container = std::deque<_Ty> >
-class blocking_deque : public _Blocking_deque<_Ty, _Container>
+template <typename _Ty>
+class blocking_deque : public _Blocking_container<std::deque<_Ty>>
 {
-public:
-    typedef _Traits traits_type;
-    typedef _Blocking_deque<_Ty, _Container> _Mybase;
-    typedef typename _Mybase::iterator iterator;
-    typedef typename _Mybase::size_type size_type;
-    typedef typename _Mybase::value_type value_type;
-    typedef typename _Mybase::container_type container_type;
+    using _Mybase = _Blocking_container<std::deque<_Ty>>;
+    using _Mybase::_Mycont;
+    using _Mybase::_Mycond;
+    using _Mybase::_Mymutex;
+    using value_type  = typename _Mybase::value_type;
+    using mutex_lock  = typename _Mybase::mutex_lock;
+    using unique_lock = typename _Mybase::unique_lock;
 
-// Constructors/Destructor
+// Constructors
 public:
-    blocking_deque();
-    ~blocking_deque();
+    blocking_deque() = default;
 
 // Operations
 public:
-    void clear();
+    void push_front(value_type&& _Val);
+    void push_front(const value_type& _Val);
 
-    bool remove(const value_type& _Val);
-    template <typename _Pr> bool remove(_Pr _Pred);
+    void push_back(value_type&& _Val);
+    void push_back(const value_type& _Val);
 
-    size_type remove_n(const value_type& _Val);
-    template <typename _Pr> size_type remove_n(_Pr _Pred);
+    template <typename... _ValArgs>
+    void emplace_front(_ValArgs&&... _Args);
 
-// Implementation
-private:
-    iterator _Remove(iterator _Where);
+    template <typename... _ValArgs>
+    void emplace_back(_ValArgs&&... _Args);
+
+    bool pop_front(value_type& _Val, uint32_t _Timeout = -1);
+    bool pop_back(value_type& _Val, uint32_t _Timeout = -1);
 };
-#endif  // defined(__ATLSYNC_H__) || defined(__SYSUTILS_H__)
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the priority_blocking_queue class
+//
+
+template <typename _Ty, typename _Comparator = std::less<_Ty>>
+class priority_blocking_queue : public _Blocking_container<priority_queue<_Ty, _Comparator>>
+{
+    using _Mybase = _Blocking_container<priority_queue<_Ty, _Comparator>>;
+    using _Mybase::_Mycont;
+    using _Mybase::_Mycond;
+    using _Mybase::_Mymutex;
+    using value_type  = typename _Mybase::value_type;
+    using mutex_lock  = typename _Mybase::mutex_lock;
+    using unique_lock = typename _Mybase::unique_lock;
+
+// Constructors
+public:
+    priority_blocking_queue() = default;
+
+// Operations
+public:
+    void push(value_type&& _Val);
+    void push(const value_type& _Val);
+
+    template <typename... _ValArgs>
+    void emplace(_ValArgs&&... _Args);
+
+    bool pop(value_type& _Val, uint32_t _Timeout = -1);
+};
 
 }  // namespace stdutil
 
