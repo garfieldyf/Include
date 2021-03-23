@@ -163,13 +163,8 @@ protected:
 template <typename _Ty>
 class blocking_deque : public _Blocking_container<std::deque<_Ty>>
 {
-    using _Mybase = _Blocking_container<std::deque<_Ty>>;
-    using _Mybase::_Mycont;
-    using _Mybase::_Mycond;
-    using _Mybase::_Mymutex;
-    using value_type  = typename _Mybase::value_type;
-    using mutex_lock  = typename _Mybase::mutex_lock;
-    using unique_lock = typename _Mybase::unique_lock;
+public:
+    using value_type = typename std::deque<_Ty>::value_type;
 
 // Constructors
 public:
@@ -191,6 +186,15 @@ public:
 
     bool pop_front(value_type& _Val, uint32_t _Timeout = -1);
     bool pop_back(value_type& _Val, uint32_t _Timeout = -1);
+
+// Implementation
+private:
+    using _Mybase = _Blocking_container<std::deque<_Ty>>;
+    using _Mybase::_Mycont;
+    using _Mybase::_Mycond;
+    using _Mybase::_Mymutex;
+    using mutex_lock  = typename _Mybase::mutex_lock;
+    using unique_lock = typename _Mybase::unique_lock;
 };
 
 
@@ -201,13 +205,8 @@ public:
 template <typename _Ty, typename _Comparator = std::less<_Ty>>
 class priority_blocking_queue : public _Blocking_container<priority_queue<_Ty, _Comparator>>
 {
-    using _Mybase = _Blocking_container<priority_queue<_Ty, _Comparator>>;
-    using _Mybase::_Mycont;
-    using _Mybase::_Mycond;
-    using _Mybase::_Mymutex;
-    using value_type  = typename _Mybase::value_type;
-    using mutex_lock  = typename _Mybase::mutex_lock;
-    using unique_lock = typename _Mybase::unique_lock;
+public:
+    using value_type = typename priority_queue<_Ty, _Comparator>::value_type;
 
 // Constructors
 public:
@@ -222,6 +221,15 @@ public:
     void emplace(_ValArgs&&... _Args);
 
     bool pop(value_type& _Val, uint32_t _Timeout = -1);
+
+// Implementation
+private:
+    using _Mybase = _Blocking_container<priority_queue<_Ty, _Comparator>>;
+    using _Mybase::_Mycont;
+    using _Mybase::_Mycond;
+    using _Mybase::_Mymutex;
+    using mutex_lock  = typename _Mybase::mutex_lock;
+    using unique_lock = typename _Mybase::unique_lock;
 };
 
 }  // namespace stdutil
