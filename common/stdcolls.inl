@@ -39,6 +39,12 @@ __INLINE__ void queue<_Ty>::clear()
     this->c.clear();
 }
 
+template <typename _Ty>
+__INLINE__ void queue<_Ty>::shrink_to_fit()
+{
+    this->c.shrink_to_fit();
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Implementation of the stack class
@@ -60,6 +66,12 @@ template <typename _Ty>
 __INLINE__ void stack<_Ty>::clear()
 {
     this->c.clear();
+}
+
+template <typename _Ty>
+__INLINE__ void stack<_Ty>::shrink_to_fit()
+{
+    this->c.shrink_to_fit();
 }
 
 
@@ -85,6 +97,12 @@ __INLINE__ void priority_queue<_Ty, _Comparator>::clear()
     this->c.clear();
 }
 
+template <typename _Ty, typename _Comparator>
+__INLINE__ void priority_queue<_Ty, _Comparator>::shrink_to_fit()
+{
+    this->c.shrink_to_fit();
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Implementation of the _Blocking_container class
@@ -95,6 +113,13 @@ __INLINE__ void _Blocking_container<_Container>::clear()
 {
     mutex_lock _Lock(_Mymutex);
     _Mycont.clear();
+}
+
+template <typename _Container>
+__INLINE__ void _Blocking_container<_Container>::shrink_to_fit()
+{
+    mutex_lock _Lock(_Mymutex);
+    _Mycont.shrink_to_fit();
 }
 
 template <typename _Container>

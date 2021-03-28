@@ -53,6 +53,7 @@ public:
 // Operations
 public:
     void clear();
+    void shrink_to_fit();
 };
 
 
@@ -82,6 +83,7 @@ public:
 // Operations
 public:
     void clear();
+    void shrink_to_fit();
 };
 
 
@@ -111,6 +113,7 @@ public:
 // Operations
 public:
     void clear();
+    void shrink_to_fit();
 };
 
 
@@ -134,6 +137,7 @@ protected:
 // Operations
 public:
     void clear();
+    void shrink_to_fit();
 
 // Attributes
 public:
