@@ -70,13 +70,13 @@ public:
 
     template <typename _Callable>
     void post(_Callable&& callable, uint32_t delayMillis = 0);
-    void post(std::nullptr_t, uint32_t delayMillis = 0);
+    void post(std::nullptr_t callable, uint32_t delayMillis = 0);
 
 // Implementation
 private:
     class Task;
     void run();
-    void nextTask(Task& outTask);
+    int nextTask(Task& outTask);
 
     using MutexLock = std::lock_guard<std::mutex>;
     using TimePoint = std::chrono::steady_clock::time_point;
@@ -113,7 +113,7 @@ public:
 public:
     friend class LooperThread;
     bool operator>(const Task& right) const;
-    int duration(const TimePoint& now) const;
+    int getTimeout(const TimePoint& now) const;
 
 // Data members
 private:
