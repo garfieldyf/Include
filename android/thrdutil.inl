@@ -146,12 +146,12 @@ __INLINE__ void LooperThread::run()
             mEpoll.wait(timeout);
         } while (mRunning);
 
-        // Exit the run, if this thread has not stopped.
+        // Exit the run, if this thread has stopped.
         if (!mRunning) {
             break;
         }
 
-        // Run the task.
+        // Run the task and destory it to avoid memory leaks.
         task.mRunnable();
     }
     LOGD("LooperThread::stop()\n");

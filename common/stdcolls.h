@@ -28,62 +28,44 @@
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the queue class
+// Interface of the container class
 //
 
-template <typename _Ty>
-class queue : public std::queue<_Ty>
+template <typename _TBase>
+class container : public _TBase
 {
 public:
-    using _Mybase = std::queue<_Ty>;
-    using container_type = typename _Mybase::container_type;
+    using value_type = typename _TBase::value_type;
+    using container_type = typename _TBase::container_type;
 
 // Constructors
 public:
-    queue() = default;
-    explicit queue(container_type&& _Cont);
-    explicit queue(const container_type& _Cont);
+    container() = default;
+    explicit container(container_type&& _Cont);
+    explicit container(const container_type& _Cont);
 
-    queue(queue&&) = default;
-    queue& operator=(queue&&) = default;
+    container(container&&) = default;
+    container& operator=(container&&) = default;
 
-    queue(const queue&) = default;
-    queue& operator=(const queue&) = default;
+    container(const container&) = default;
+    container& operator=(const container&) = default;
 
 // Operations
 public:
     void clear();
     void shrink_to_fit();
-};
 
+    template <typename _Predicate>
+    void erase_if(_Predicate _Pred);
+    void erase(const value_type& _Val);
 
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the stack class
-//
+    template <typename _Predicate>
+    void remove_if(_Predicate _Pred);
+    void remove(const value_type& _Val);
 
-template <typename _Ty>
-class stack : public std::stack<_Ty>
-{
-public:
-    using _Mybase = std::stack<_Ty>;
-    using container_type = typename _Mybase::container_type;
-
-// Constructors
-public:
-    stack() = default;
-    explicit stack(container_type&& _Cont);
-    explicit stack(const container_type& _Cont);
-
-    stack(stack&&) = default;
-    stack& operator=(stack&&) = default;
-
-    stack(const stack&) = default;
-    stack& operator=(const stack&) = default;
-
-// Operations
-public:
-    void clear();
-    void shrink_to_fit();
+// Implementation
+private:
+    using _TBase::c;
 };
 
 

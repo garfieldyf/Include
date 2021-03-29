@@ -18,60 +18,76 @@
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the queue class
+// Implementation of the queue / stack class
 //
 
 template <typename _Ty>
-__INLINE__ queue<_Ty>::queue(container_type&& _Cont)
-    : _Mybase(std::move(_Cont))
-{
-}
+using queue = container<std::queue<_Ty>>;
 
 template <typename _Ty>
-__INLINE__ queue<_Ty>::queue(const container_type& _Cont)
-    : _Mybase(_Cont)
-{
-}
-
-template <typename _Ty>
-__INLINE__ void queue<_Ty>::clear()
-{
-    this->c.clear();
-}
-
-template <typename _Ty>
-__INLINE__ void queue<_Ty>::shrink_to_fit()
-{
-    this->c.shrink_to_fit();
-}
+using stack = container<std::stack<_Ty>>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the stack class
+// Implementation of the container class
 //
 
-template <typename _Ty>
-__INLINE__ stack<_Ty>::stack(container_type&& _Cont)
-    : _Mybase(std::move(_Cont))
+template <typename _TBase>
+__INLINE__ container<_TBase>::container(container_type&& _Cont)
+    : _TBase(std::move(_Cont))
 {
 }
 
-template <typename _Ty>
-__INLINE__ stack<_Ty>::stack(const container_type& _Cont)
-    : _Mybase(_Cont)
+template <typename _TBase>
+__INLINE__ container<_TBase>::container(const container_type& _Cont)
+    : _TBase(_Cont)
 {
 }
 
-template <typename _Ty>
-__INLINE__ void stack<_Ty>::clear()
+template <typename _TBase>
+__INLINE__ void container<_TBase>::clear()
 {
-    this->c.clear();
+    c.clear();
 }
 
-template <typename _Ty>
-__INLINE__ void stack<_Ty>::shrink_to_fit()
+template <typename _TBase>
+__INLINE__ void container<_TBase>::shrink_to_fit()
 {
-    this->c.shrink_to_fit();
+    c.shrink_to_fit();
+}
+
+template <typename _TBase> template <typename _Predicate>
+__INLINE__ void container<_TBase>::erase_if(_Predicate _Pred)
+{
+    auto _Last  = c.end();
+    auto _Where = std::find_if(c.begin(), _Last, _Pred);
+    if (_Where != _Last) {
+        c.erase(_Where);
+    }
+}
+
+template <typename _TBase>
+__INLINE__ void container<_TBase>::erase(const value_type& _Val)
+{
+    auto _Last  = c.end();
+    auto _Where = std::find(c.begin(), _Last, _Val);
+    if (_Where != _Last) {
+        c.erase(_Where);
+    }
+}
+
+template <typename _TBase> template <typename _Predicate>
+__INLINE__ void container<_TBase>::remove_if(_Predicate _Pred)
+{
+    auto _Last = c.end();
+    c.erase(std::remove_if(c.begin(), _Last, _Pred), _Last);
+}
+
+template <typename _TBase>
+__INLINE__ void container<_TBase>::remove(const value_type& _Val)
+{
+    auto _Last = c.end();
+    c.erase(std::remove(c.begin(), _Last, _Val), _Last);
 }
 
 
