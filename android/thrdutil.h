@@ -55,9 +55,6 @@ private:
 
 class LooperThread
 {
-public:
-    using Runnable = std::function<void()>;
-
 // Constructors/Destructor
 public:
     LooperThread();
@@ -65,12 +62,26 @@ public:
 
 // Operations
 public:
+    /**
+     * Starts this thread to begin execution.
+     */
     void start();
+
+    /**
+     * Forces this thread to stop executing.
+     */
     void stop();
 
-    template <typename _Callable>
-    void post(_Callable&& callable, uint32_t delayMillis = 0);
-    void post(std::nullptr_t callable, uint32_t delayMillis = 0);
+    /**
+     * Posts the runnable to the task queue, to be run after 
+     * the specified amount of time elapses.
+     * @param runnable The runnable that will be executed.
+     * @param delayMillis The delay in milliseconds until
+     * the runnable will be executed.
+     */
+    template <typename _Runnable>
+    void post(_Runnable&& runnable, uint32_t delayMillis = 0);
+    void post(std::nullptr_t runnable, uint32_t delayMillis = 0);
 
 // Implementation
 private:
@@ -98,6 +109,9 @@ private:
 
 class LooperThread::Task final
 {
+private:
+    using Runnable = std::function<void()>;
+
 // Constructors
 public:
     Task() = default;

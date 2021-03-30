@@ -108,13 +108,13 @@ __INLINE__ void LooperThread::stop()
     }
 }
 
-template <typename _Callable>
-__INLINE__ void LooperThread::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
+template <typename _Runnable>
+__INLINE__ void LooperThread::post(_Runnable&& runnable, uint32_t delayMillis/* = 0*/)
 {
     if (mRunning) {
         {
             MutexLock lock(mMutex);
-            mTaskQueue.emplace(std::forward<_Callable>(callable), delayMillis);
+            mTaskQueue.emplace(std::forward<_Runnable>(runnable), delayMillis);
         }
 
         mEpoll.notify();
@@ -125,7 +125,7 @@ __INLINE__ void LooperThread::post(_Callable&& callable, uint32_t delayMillis/* 
     }
 }
 
-__INLINE__ void LooperThread::post(std::nullptr_t /*callable*/, uint32_t /*delayMillis = 0*/)
+__INLINE__ void LooperThread::post(std::nullptr_t /*runnable*/, uint32_t /*delayMillis = 0*/)
 {
     assert_log(false, "LooperThread::post() does not accept a nullptr.\n");
 }

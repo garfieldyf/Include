@@ -52,15 +52,40 @@ public:
 
 // Operations
 public:
+    /**
+     * Removes all elements from this container, leaving it empty.
+     */
     void clear();
+
+    /**
+     * Requests this container to reduce its memory usage to fit its size.
+     */
     void shrink_to_fit();
 
+    /**
+     * Removes the specified element from this container.
+     * @param _Pred The predicate to apply to all elements.
+     */
     template <typename _Predicate>
     void erase_if(_Predicate _Pred);
+
+    /**
+     * Removes the specified element from this container.
+     * @param _Val The element that is to be removed.
+     */
     void erase(const value_type& _Val);
 
+    /**
+     * Removes elements from this container.
+     * @param _Pred The predicate to apply to all elements.
+     */
     template <typename _Predicate>
     void remove_if(_Predicate _Pred);
+
+    /**
+     * Removes elements from this container.
+     * @param _Val The element that is to be removed.
+     */
     void remove(const value_type& _Val);
 
 // Implementation
@@ -94,7 +119,14 @@ public:
 
 // Operations
 public:
+    /**
+     * Removes all elements from this container, leaving it empty.
+     */
     void clear();
+
+    /**
+     * Requests this container to reduce its memory usage to fit its size.
+     */
     void shrink_to_fit();
 };
 
@@ -118,12 +150,28 @@ protected:
 
 // Operations
 public:
+    /**
+     * Removes all elements from this container, leaving it empty.
+     */
     void clear();
+
+    /**
+     * Requests this container to reduce its memory usage to fit its size.
+     */
     void shrink_to_fit();
 
 // Attributes
 public:
+    /**
+     * Tests if this container is empty.
+     * @return true if this container is empty, false otherwise.
+     */
     bool empty() const;
+
+    /**
+     * Returns the number of elements in this container.
+     * @return The number of elements.
+     */
     size_type size() const;
 
 // Implementation
@@ -158,19 +206,52 @@ public:
 
 // Operations
 public:
+    /**
+     * Adds an element to the beginning of this container.
+     * @param _Val The element add.
+     */
     void push_front(value_type&& _Val);
     void push_front(const value_type& _Val);
 
+    /**
+     * Adds an element to the end of this container.
+     * @param _Val The element add.
+     */
     void push_back(value_type&& _Val);
     void push_back(const value_type& _Val);
 
+    /**
+     * Adds an element constructed in place to the beginning of this container.
+     * @param _Args The arguments forwarded to construct the element.
+     */
     template <typename... _ValArgs>
     void emplace_front(_ValArgs&&... _Args);
 
+    /**
+     * Adds an element constructed in place to the end of this container.
+     * @param _Args The arguments forwarded to construct the element.
+     */
     template <typename... _ValArgs>
     void emplace_back(_ValArgs&&... _Args);
 
+    /**
+     * Retrieves and removes the element at the beginning of this container, waiting 
+     * up to the specified _Timeout if necessary for an element to become available.
+     * @param _Val The _Val to store the returned result.
+     * @param _Timeout How long in milliseconds to wait before giving up, -1 causes
+     * wait to indefinitely.
+     * @return true if retrieve the element successful, false otherwise.
+     */
     bool pop_front(value_type& _Val, uint32_t _Timeout = -1);
+
+    /**
+     * Retrieves and removes the element at the end of this container, waiting up 
+     * to the specified _Timeout if necessary for an element to become available.
+     * @param _Val The _Val to store the returned result.
+     * @param _Timeout How long in milliseconds to wait before giving up, -1 causes
+     * wait to indefinitely.
+     * @return true if retrieve the element successful, false otherwise.
+     */
     bool pop_back(value_type& _Val, uint32_t _Timeout = -1);
 
 // Implementation
@@ -200,12 +281,28 @@ public:
 
 // Operations
 public:
+    /**
+     * Inserts an element to this container.
+     * @param _Val The element insert.
+     */
     void push(value_type&& _Val);
     void push(const value_type& _Val);
 
+    /**
+     * Inserts an element constructed in place to this container.
+     * @param _Args The arguments forwarded to construct the element.
+     */
     template <typename... _ValArgs>
     void emplace(_ValArgs&&... _Args);
 
+    /**
+     * Retrieves and removes the element on top of this container, waiting up to 
+     * the specified _Timeout if necessary for an element to become available.
+     * @param _Val The _Val to store the returned result.
+     * @param _Timeout How long in milliseconds to wait before giving up, -1 causes
+     * wait to indefinitely.
+     * @return true if retrieve the element successful, false otherwise.
+     */
     bool pop(value_type& _Val, uint32_t _Timeout = -1);
 
 // Implementation
