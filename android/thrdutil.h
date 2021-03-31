@@ -17,8 +17,66 @@
 // Classes in this file:
 //
 // LooperThread
+// HandlerThread
 
 __BEGIN_NAMESPACE
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the LooperThread class
+//
+
+class LooperThread final
+{
+// Constructors/Destructor
+public:
+    LooperThread();
+    ~LooperThread();
+
+    LooperThread(const LooperThread&) = delete;
+    LooperThread& operator=(const LooperThread&) = delete;
+
+// Operations
+public:
+    /**
+     * Starts this thread to begin execution.
+     */
+    void start();
+
+    /**
+     * Forces this thread to stop executing.
+     */
+    void stop();
+
+    /**
+     * Posts a callable to the end of the task queue. The 
+     * callable will be run on this thread.
+     * @param callable The callable that will be executed.
+     */
+    template <typename _Callable>
+    void post(_Callable&& callable);
+
+    /**
+     * Posts a callable to the beginning of the task queue. 
+     * The runnable will be run on this thread.
+     * @param callable The callable that will be executed.
+     */
+    template <typename _Callable>
+    void postAtFront(_Callable&& callable);
+
+// Implementation
+private:
+    void run();
+
+    using Runnable  = std::function<void()>;
+    using TaskQueue = stdutil::blocking_deque<Runnable>;
+
+// Data members
+private:
+    std::thread mThread;
+    TaskQueue mTaskQueue;
+    std::atomic_bool mRunning;
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Interface of the Epoll  class
@@ -50,15 +108,18 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the LooperThread class
+// Interface of the HandlerThread class
 //
 
-class LooperThread
+class HandlerThread final
 {
 // Constructors/Destructor
 public:
-    LooperThread();
-    ~LooperThread();
+    HandlerThread();
+    ~HandlerThread();
+
+    HandlerThread(const HandlerThread&) = delete;
+    HandlerThread& operator=(const HandlerThread&) = delete;
 
 // Operations
 public:
@@ -73,15 +134,14 @@ public:
     void stop();
 
     /**
-     * Posts the runnable to the task queue, to be run after 
+     * Posts a callable to the task queue, to be run after 
      * the specified amount of time elapses.
-     * @param runnable The runnable that will be executed.
+     * @param callable The callable that will be executed.
      * @param delayMillis The delay in milliseconds until
-     * the runnable will be executed.
+     * the callable will be executed.
      */
-    template <typename _Runnable>
-    void post(_Runnable&& runnable, uint32_t delayMillis = 0);
-    void post(std::nullptr_t runnable, uint32_t delayMillis = 0);
+    template <typename _Callable>
+    void post(_Callable&& callable, uint32_t delayMillis = 0);
 
 // Implementation
 private:
@@ -89,6 +149,7 @@ private:
     void run();
     int nextTask(Task& outTask);
 
+    using Runnable  = std::function<void()>;
     using MutexLock = std::lock_guard<std::mutex>;
     using TimePoint = std::chrono::steady_clock::time_point;
     using TaskQueue = stdutil::priority_queue<Task, std::greater<Task>>;
@@ -107,11 +168,8 @@ private:
 // Interface of the Task class
 //
 
-class LooperThread::Task final
+class HandlerThread::Task final
 {
-private:
-    using Runnable = std::function<void()>;
-
 // Constructors
 public:
     Task() = default;
@@ -125,7 +183,7 @@ public:
 
 // Operations
 public:
-    friend class LooperThread;
+    friend class HandlerThread;
     bool operator>(const Task& right) const;
     int getTimeout(const TimePoint& now) const;
 

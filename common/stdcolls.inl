@@ -92,35 +92,6 @@ __INLINE__ void container<_TBase>::remove(const value_type& _Val)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the priority_queue class
-//
-
-template <typename _Ty, typename _Comparator>
-__INLINE__ priority_queue<_Ty, _Comparator>::priority_queue(const _Comparator& _Comp, container_type&& _Cont)
-    : _Mybase(_Comp, std::move(_Cont))
-{
-}
-
-template <typename _Ty, typename _Comparator>
-__INLINE__ priority_queue<_Ty, _Comparator>::priority_queue(const _Comparator& _Comp, const container_type& _Cont)
-    : _Mybase(_Comp, _Cont)
-{
-}
-
-template <typename _Ty, typename _Comparator>
-__INLINE__ void priority_queue<_Ty, _Comparator>::clear()
-{
-    this->c.clear();
-}
-
-template <typename _Ty, typename _Comparator>
-__INLINE__ void priority_queue<_Ty, _Comparator>::shrink_to_fit()
-{
-    this->c.shrink_to_fit();
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
 // Implementation of the _Blocking_container class
 //
 
@@ -265,6 +236,35 @@ __INLINE__ bool blocking_deque<_Ty>::pop_back(value_type& _Val, uint32_t _Timeou
         _Out = std::move(_Mycont.back());
         _Mycont.pop_back();
     });
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the priority_queue class
+//
+
+template <typename _Ty, typename _Comparator>
+__INLINE__ priority_queue<_Ty, _Comparator>::priority_queue(const _Comparator& _Comp, container_type&& _Cont)
+    : _Mybase(_Comp, std::move(_Cont))
+{
+}
+
+template <typename _Ty, typename _Comparator>
+__INLINE__ priority_queue<_Ty, _Comparator>::priority_queue(const _Comparator& _Comp, const container_type& _Cont)
+    : _Mybase(_Comp, _Cont)
+{
+}
+
+template <typename _Ty, typename _Comparator>
+__INLINE__ void priority_queue<_Ty, _Comparator>::clear()
+{
+    this->c.clear();
+}
+
+template <typename _Ty, typename _Comparator>
+__INLINE__ void priority_queue<_Ty, _Comparator>::shrink_to_fit()
+{
+    this->c.shrink_to_fit();
 }
 
 

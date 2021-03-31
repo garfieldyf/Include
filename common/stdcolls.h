@@ -21,8 +21,8 @@
 //
 // queue<_Ty>
 // stack<_Ty>
-// priority_queue<_Ty, _Comparator>
 // blocking_deque<_Ty>
+// priority_queue<_Ty, _Comparator>
 // priority_blocking_queue<_Ty, _Comparator>
 
 namespace stdutil {
@@ -91,43 +91,6 @@ public:
 // Implementation
 private:
     using _TBase::c;
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the priority_queue class
-//
-
-template <typename _Ty, typename _Comparator = std::less<_Ty>>
-class priority_queue : public std::priority_queue<_Ty, std::vector<_Ty>, _Comparator>
-{
-public:
-    using _Mybase = std::priority_queue<_Ty, std::vector<_Ty>, _Comparator>;
-    using container_type = typename _Mybase::container_type;
-
-// Constructors
-public:
-    priority_queue() = default;
-    priority_queue(const _Comparator& _Comp, container_type&& _Cont);
-    priority_queue(const _Comparator& _Comp, const container_type& _Cont);
-
-    priority_queue(priority_queue&&) = default;
-    priority_queue& operator=(priority_queue&&) = default;
-
-    priority_queue(const priority_queue&) = default;
-    priority_queue& operator=(const priority_queue&) = default;
-
-// Operations
-public:
-    /**
-     * Removes all elements from this container, leaving it empty.
-     */
-    void clear();
-
-    /**
-     * Requests this container to reduce its memory usage to fit its size.
-     */
-    void shrink_to_fit();
 };
 
 
@@ -262,6 +225,43 @@ private:
     using _Mybase::_Mymutex;
     using mutex_lock  = typename _Mybase::mutex_lock;
     using unique_lock = typename _Mybase::unique_lock;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the priority_queue class
+//
+
+template <typename _Ty, typename _Comparator = std::less<_Ty>>
+class priority_queue : public std::priority_queue<_Ty, std::vector<_Ty>, _Comparator>
+{
+public:
+    using _Mybase = std::priority_queue<_Ty, std::vector<_Ty>, _Comparator>;
+    using container_type = typename _Mybase::container_type;
+
+// Constructors
+public:
+    priority_queue() = default;
+    priority_queue(const _Comparator& _Comp, container_type&& _Cont);
+    priority_queue(const _Comparator& _Comp, const container_type& _Cont);
+
+    priority_queue(priority_queue&&) = default;
+    priority_queue& operator=(priority_queue&&) = default;
+
+    priority_queue(const priority_queue&) = default;
+    priority_queue& operator=(const priority_queue&) = default;
+
+// Operations
+public:
+    /**
+     * Removes all elements from this container, leaving it empty.
+     */
+    void clear();
+
+    /**
+     * Requests this container to reduce its memory usage to fit its size.
+     */
+    void shrink_to_fit();
 };
 
 
