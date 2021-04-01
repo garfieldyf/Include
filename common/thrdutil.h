@@ -19,7 +19,53 @@
 // LooperThread
 // HandlerThread
 
-__BEGIN_NAMESPACE
+namespace stdutil {
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the Epoll class
+//
+
+class Epoll final
+{
+// Constructors/Destructor
+public:
+    Epoll();
+    ~Epoll();
+
+    Epoll(const Epoll&) = delete;
+    Epoll& operator=(const Epoll&) = delete;
+
+// Operations
+public:
+    /**
+     * Opens a new epoll file descriptor.
+     * @return returns 0 if opens successful, -1 otherwise.
+     */
+    int open();
+
+    /**
+     * Closes this epoll file descriptor.
+     */
+    void close();
+
+    /**
+     * Unblocks a thread currently waiting for this epoll.
+     */
+    void notify();
+
+    /**
+     * Blocks a thread, and sets a timeout after which the thread unblocks.
+     * @param timeout The waiting timeout in milliseconds, -1 causes wait to 
+     * indefinitely.
+     */
+    void wait(int timeout);
+
+// Data members
+private:
+    int mEpollFd;
+    int mEventFd;
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Interface of the LooperThread class
@@ -48,62 +94,40 @@ public:
     void stop();
 
     /**
-     * Posts a callable to the end of the task queue. The 
-     * callable will be run on this thread.
+     * Posts a callable to the end of the task queue. The callable will be run 
+     * on this thread.
      * @param callable The callable that will be executed.
+     * @return Returns true if the callable was successfully added into the task
+     * queue. Returns false on failure, usually because this thread is exiting.
      */
     template <typename _Callable>
-    void post(_Callable&& callable);
+    bool post(_Callable&& callable);
 
     /**
-     * Posts a callable to the beginning of the task queue. 
-     * The runnable will be run on this thread.
+     * Posts a callable to the beginning of the task queue. The callable will be 
+     * run on this thread.
      * @param callable The callable that will be executed.
+     * @return Returns true if the callable was successfully added into the task
+     * queue. Returns false on failure, usually because this thread is exiting.
      */
     template <typename _Callable>
-    void postAtFront(_Callable&& callable);
+    bool postAtFront(_Callable&& callable);
 
 // Implementation
 private:
+    /**
+     * This thread start entry point.
+     */
     void run();
 
     using Runnable  = std::function<void()>;
-    using TaskQueue = stdutil::blocking_deque<Runnable>;
+    using TaskQueue = blocking_deque<Runnable>;
 
 // Data members
 private:
     std::thread mThread;
     TaskQueue mTaskQueue;
     std::atomic_bool mRunning;
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the Epoll  class
-//
-
-class Epoll final
-{
-// Constructors/Destructor
-public:
-    Epoll();
-    ~Epoll();
-
-    Epoll(const Epoll&) = delete;
-    Epoll& operator=(const Epoll&) = delete;
-
-// Operations
-public:
-    int open();
-    void close();
-
-    void notify();
-    void wait(int timeout);
-
-// Data members
-private:
-    int mEpollFd;
-    int mEventFd;
 };
 
 
@@ -134,25 +158,37 @@ public:
     void stop();
 
     /**
-     * Posts a callable to the task queue, to be run after 
-     * the specified amount of time elapses.
+     * Posts a callable to the task queue, to be run after the specified amount 
+     * of time elapses.
      * @param callable The callable that will be executed.
-     * @param delayMillis The delay in milliseconds until
-     * the callable will be executed.
+     * @param delayMillis The delay in milliseconds until the callable will be
+     * executed.
+     * @return Returns true if the callable was successfully added in to the task
+     * queue. Returns false on failure, usually because this thread is exiting.
      */
     template <typename _Callable>
-    void post(_Callable&& callable, uint32_t delayMillis = 0);
+    bool post(_Callable&& callable, uint32_t delayMillis = 0);
 
 // Implementation
 private:
     class Task;
+
+    /**
+     * This thread start entry point.
+     */
     void run();
+
+    /**
+     * Retrieves and removes the task on top of the task queue.
+     * @param outTask The outTask to store the returned task.
+     * @return The waiting timeout in milliseconds.
+     */
     int nextTask(Task& outTask);
 
     using Runnable  = std::function<void()>;
     using MutexLock = std::lock_guard<std::mutex>;
     using TimePoint = std::chrono::steady_clock::time_point;
-    using TaskQueue = stdutil::priority_queue<Task, std::greater<Task>>;
+    using TaskQueue = priority_queue<Task, std::greater<Task>>;
 
 // Data members
 private:
@@ -165,7 +201,7 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the Task class
+// Interface of the HandlerThread::Task class
 //
 
 class HandlerThread::Task final
@@ -173,7 +209,8 @@ class HandlerThread::Task final
 // Constructors
 public:
     Task() = default;
-    Task(Runnable&& runnable, uint32_t delayMillis);
+    template <typename _Callable>
+    Task(_Callable&& callable, uint32_t delayMillis);
 
     Task(Task&&) = default;
     Task& operator=(Task&&) = default;
@@ -184,8 +221,20 @@ public:
 // Operations
 public:
     friend class HandlerThread;
+
+    /**
+     * Tests if this task is greater than right.
+     * @return true if this task is greater than
+     * right, false otherwise.
+     */
     bool operator>(const Task& right) const;
-    int getTimeout(const TimePoint& now) const;
+
+    /**
+     * Returns the wake up time in milliseconds since now.
+     * @param now The current time of the std::steady_clock.
+     * @return The wake up time in milliseconds.
+     */
+    int getWakeupTime(const TimePoint& now) const;
 
 // Data members
 private:
@@ -193,7 +242,7 @@ private:
     Runnable mRunnable;
 };
 
-__END_NAMESPACE
+}  // namespace stdutil
 
 #include "thrdutil.inl"
 

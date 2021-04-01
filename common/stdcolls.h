@@ -4,10 +4,6 @@
 // Author : Garfield
 // Creation Date : 2020/4/12
 
-#if (_MSC_VER >= 1020)
-#pragma once
-#endif
-
 #ifndef __STDCOLLS_H__
 #define __STDCOLLS_H__
 
@@ -170,32 +166,18 @@ public:
 // Operations
 public:
     /**
-     * Adds an element to the beginning of this container.
-     * @param _Val The element add.
-     */
-    void push_front(value_type&& _Val);
-    void push_front(const value_type& _Val);
-
-    /**
-     * Adds an element to the end of this container.
-     * @param _Val The element add.
-     */
-    void push_back(value_type&& _Val);
-    void push_back(const value_type& _Val);
-
-    /**
      * Adds an element constructed in place to the beginning of this container.
      * @param _Args The arguments forwarded to construct the element.
      */
     template <typename... _ValArgs>
-    void emplace_front(_ValArgs&&... _Args);
+    void push_front(_ValArgs&&... _Args);
 
     /**
      * Adds an element constructed in place to the end of this container.
      * @param _Args The arguments forwarded to construct the element.
      */
     template <typename... _ValArgs>
-    void emplace_back(_ValArgs&&... _Args);
+    void push_back(_ValArgs&&... _Args);
 
     /**
      * Retrieves and removes the element at the beginning of this container, waiting 
@@ -282,18 +264,11 @@ public:
 // Operations
 public:
     /**
-     * Inserts an element to this container.
-     * @param _Val The element insert.
-     */
-    void push(value_type&& _Val);
-    void push(const value_type& _Val);
-
-    /**
      * Inserts an element constructed in place to this container.
      * @param _Args The arguments forwarded to construct the element.
      */
     template <typename... _ValArgs>
-    void emplace(_ValArgs&&... _Args);
+    void push(_ValArgs&&... _Args);
 
     /**
      * Retrieves and removes the element on top of this container, waiting up to 

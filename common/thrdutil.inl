@@ -11,85 +11,7 @@
     #error thrdutil.inl requires thrdutil.h to be included first
 #endif
 
-__BEGIN_NAMESPACE
-
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the LooperThread class
-//
-
-__INLINE__ LooperThread::LooperThread()
-    : mRunning(false)
-{
-}
-
-__INLINE__ LooperThread::~LooperThread()
-{
-    assert_log(!mRunning, "The LooperThread has not stopped.");
-}
-
-__INLINE__ void LooperThread::start()
-{
-    if (!mRunning.exchange(true)) {
-        mThread = std::thread(&LooperThread::run, this);
-    }
-}
-
-__INLINE__ void LooperThread::stop()
-{
-    if (mRunning.exchange(false)) {
-        // Posts an empty task to exit this thread.
-        mTaskQueue.emplace_front(nullptr);
-        mThread.join();
-        LOGD("The pending tasks [size = %zu]\n", mTaskQueue.size());
-        mTaskQueue.clear();
-    }
-}
-
-template <typename _Callable>
-__INLINE__ void LooperThread::post(_Callable&& callable)
-{
-    assert_log(typeid(callable) != typeid(std::nullptr_t), "LooperThread::post() does not accept a nullptr.");
-
-    if (mRunning) {
-        mTaskQueue.emplace_back(std::forward<_Callable>(callable));
-#ifndef NDEBUG
-    } else {
-        LOGE("The LooperThread has not started.\n");
-#endif  // NDEBUG
-    }
-}
-
-template <typename _Callable>
-__INLINE__ void LooperThread::postAtFront(_Callable&& callable)
-{
-    assert_log(typeid(callable) != typeid(std::nullptr_t), "LooperThread::postAtFront() does not accept a nullptr.");
-
-    if (mRunning) {
-        mTaskQueue.emplace_front(std::forward<_Callable>(callable));
-#ifndef NDEBUG
-    } else {
-        LOGE("The LooperThread has not started.\n");
-#endif  // NDEBUG
-    }
-}
-
-__INLINE__ void LooperThread::run()
-{
-    LOGD("LooperThread::start()\n");
-    Runnable task;
-    while (mTaskQueue.pop_front(task)) {    // might block
-        // Exit the run, if the task is empty.
-        if (!task) {
-            break;
-        }
-
-        // Run the task.
-        task();
-    }
-
-    LOGD("LooperThread::stop()\n");
-}
-
+namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
 // Implementation of the Epoll class
@@ -121,7 +43,13 @@ __INLINE__ int Epoll::open()
         result = ::epoll_ctl(mEpollFd, EPOLL_CTL_ADD, mEventFd, &event);
     }
 
-    __check_error2(mEpollFd == -1 || mEventFd == -1 || result == -1, "The epoll open failed");
+#ifndef NDEBUG
+    if (mEpollFd == -1 || mEventFd == -1 || result == -1) {
+        LOGE("The epoll open failed - errno = %d\n", errno);
+        assert(false);
+    }
+#endif  // NDEBUG
+
     return result;
 }
 
@@ -138,19 +66,132 @@ __INLINE__ void Epoll::close()
 __INLINE__ void Epoll::notify()
 {
     uint64_t value = 1;
-    verify(::write(mEventFd, &value, sizeof(uint64_t)), sizeof(uint64_t));
+    ::write(mEventFd, &value, sizeof(uint64_t));
 }
 
 __INLINE__ void Epoll::wait(int timeout)
 {
     struct epoll_event event;
     int result = ::epoll_wait(mEpollFd, &event, 1, timeout);
-    __check_error2(result == -1, "The epoll wait failed");
+
+#ifndef NDEBUG
+    if (result == -1) {
+        LOGE("The epoll wait failed - errno = %d\n", errno);
+        assert(false);
+    }
+#endif  // NDEBUG
 
     if (result > 0 && event.data.fd == mEventFd && (event.events & EPOLLIN)) {
         uint64_t value;
-        verify(::read(mEventFd, &value, sizeof(uint64_t)), sizeof(uint64_t));
+        ::read(mEventFd, &value, sizeof(uint64_t));
     }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the LooperThread class
+//
+
+__INLINE__ LooperThread::LooperThread()
+    : mRunning(false)
+{
+}
+
+__INLINE__ LooperThread::~LooperThread()
+{
+#ifndef NDEBUG
+    if (mRunning) {
+        LOGE("The LooperThread has not stopped.\n");
+        assert(false);
+    }
+#endif  // NDEBUG
+}
+
+__INLINE__ void LooperThread::start()
+{
+    if (!mRunning.exchange(true)) {
+        mThread = std::thread(&LooperThread::run, this);
+    }
+}
+
+__INLINE__ void LooperThread::stop()
+{
+    if (mRunning.exchange(false)) {
+        // Posts an empty task to exit this thread.
+        mTaskQueue.push_front(nullptr);
+        mThread.join();
+        LOGD("The pending tasks [size = %zu]\n", mTaskQueue.size());
+        mTaskQueue.clear();
+    }
+}
+
+template <typename _Callable>
+__INLINE__ bool LooperThread::post(_Callable&& callable)
+{
+    const bool running = mRunning;
+
+#ifndef NDEBUG
+    Runnable task = std::forward<_Callable>(callable);
+    if (!task) {
+        LOGE("LooperThread::post() does not accept a nullptr.\n");
+        assert(false);
+    }
+
+    if (running) {
+        mTaskQueue.push_back(std::move(task));
+    } else {
+        LOGE("The LooperThread has not started.\n");
+    }
+#else
+    if (running) {
+        mTaskQueue.push_back(std::forward<_Callable>(callable));
+    }
+#endif  // NDEBUG
+
+    return running;
+}
+
+template <typename _Callable>
+__INLINE__ bool LooperThread::postAtFront(_Callable&& callable)
+{
+    const bool running = mRunning;
+
+#ifndef NDEBUG
+    Runnable task = std::forward<_Callable>(callable);
+    if (!task) {
+        LOGE("LooperThread::postAtFront() does not accept a nullptr.\n");
+        assert(false);
+    }
+
+    if (running) {
+        mTaskQueue.push_front(std::move(task));
+    } else {
+        LOGE("The LooperThread has not started.\n");
+    }
+#else
+    if (running) {
+        mTaskQueue.push_front(std::forward<_Callable>(callable));
+    }
+#endif  // NDEBUG
+
+    return running;
+}
+
+__INLINE__ void LooperThread::run()
+{
+    LOGD("LooperThread::start()\n");
+    Runnable task;
+    while (mTaskQueue.pop_front(task)) {    // might block
+        // Exit the run, if the task is empty.
+        if (!task) {
+            break;
+        }
+
+        // Run the task.
+        task();
+    }
+
+    LOGD("LooperThread::stop()\n");
 }
 
 
@@ -165,7 +206,12 @@ __INLINE__ HandlerThread::HandlerThread()
 
 __INLINE__ HandlerThread::~HandlerThread()
 {
-    assert_log(!mRunning, "The HandlerThread has not stopped.");
+#ifndef NDEBUG
+    if (mRunning) {
+        LOGE("The HandlerThread has not stopped.\n");
+        assert(false);
+    }
+#endif  // NDEBUG
 }
 
 __INLINE__ void HandlerThread::start()
@@ -187,22 +233,39 @@ __INLINE__ void HandlerThread::stop()
 }
 
 template <typename _Callable>
-__INLINE__ void HandlerThread::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
+__INLINE__ bool HandlerThread::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
 {
-    assert_log(typeid(callable) != typeid(std::nullptr_t), "HandlerThread::post() does not accept a nullptr.");
+    const bool running = mRunning;
 
-    if (mRunning) {
+#ifndef NDEBUG
+    Runnable task = std::forward<_Callable>(callable);
+    if (!task) {
+        LOGE("HandlerThread::post() does not accept a nullptr.\n");
+        assert(false);
+    }
+
+    if (running) {
+        {
+            MutexLock lock(mMutex);
+            mTaskQueue.emplace(std::move(task), delayMillis);
+        }
+
+        mEpoll.notify();
+    } else {
+        LOGE("The HandlerThread has not started.\n");
+    }
+#else
+    if (running) {
         {
             MutexLock lock(mMutex);
             mTaskQueue.emplace(std::forward<_Callable>(callable), delayMillis);
         }
 
         mEpoll.notify();
-#ifndef NDEBUG
-    } else {
-        LOGE("The HandlerThread has not started.\n");
-#endif  // NDEBUG
     }
+#endif  // NDEBUG
+
+    return running;
 }
 
 __INLINE__ void HandlerThread::run()
@@ -245,7 +308,7 @@ __INLINE__ int HandlerThread::nextTask(Task& outTask)
         const Task& task = mTaskQueue.top();
         if (now < task.mWhen) {
             // Next task is not ready. Set a timeout to wake up when it is ready.
-            timeout = task.getTimeout(now);
+            timeout = task.getWakeupTime(now);
         } else {
             // Got a task.
             outTask = std::move(const_cast<Task&>(task));
@@ -258,12 +321,13 @@ __INLINE__ int HandlerThread::nextTask(Task& outTask)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the Task class
+// Implementation of the HandlerThread::Task class
 //
 
-__INLINE__ HandlerThread::Task::Task(Runnable&& runnable, uint32_t delayMillis)
+template <typename _Callable>
+__INLINE__ HandlerThread::Task::Task(_Callable&& callable, uint32_t delayMillis)
     : mWhen(std::chrono::steady_clock::now() + std::chrono::milliseconds(delayMillis))
-    , mRunnable(std::move(runnable))
+    , mRunnable(std::forward<_Callable>(callable))
 {
 }
 
@@ -272,12 +336,12 @@ __INLINE__ bool HandlerThread::Task::operator>(const Task& right) const
     return (mWhen > right.mWhen);
 }
 
-__INLINE__ int HandlerThread::Task::getTimeout(const TimePoint& now) const
+__INLINE__ int HandlerThread::Task::getWakeupTime(const TimePoint& now) const
 {
     const uint64_t timeout = std::chrono::duration_cast<std::chrono::milliseconds>(mWhen - now).count();
     return static_cast<int>(std::min(timeout, static_cast<uint64_t>(INT_MAX)));
 }
 
-__END_NAMESPACE
+}  // namespace stdutil
 
 #endif  // __THRDUTIL_INL__

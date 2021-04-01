@@ -4,10 +4,6 @@
 // Author : Garfield
 // Creation Date : 2020/4/12
 
-#if (_MSC_VER >= 1020)
-#pragma once
-#endif
-
 #ifndef __STDCOLLS_INL__
 #define __STDCOLLS_INL__
 
@@ -154,52 +150,8 @@ __INLINE__ bool _Blocking_container<_Container>::_Pop(value_type& _Val, uint32_t
 // Implementation of the blocking_deque class
 //
 
-template <typename _Ty>
-__INLINE__ void blocking_deque<_Ty>::push_front(value_type&& _Val)
-{
-    {
-        mutex_lock _Lock(_Mymutex);
-        _Mycont.push_front(std::move(_Val));
-    }
-
-    _Mycond.notify_one();
-}
-
-template <typename _Ty>
-__INLINE__ void blocking_deque<_Ty>::push_front(const value_type& _Val)
-{
-    {
-        mutex_lock _Lock(_Mymutex);
-        _Mycont.push_front(_Val);
-    }
-
-    _Mycond.notify_one();
-}
-
-template <typename _Ty>
-__INLINE__ void blocking_deque<_Ty>::push_back(value_type&& _Val)
-{
-    {
-        mutex_lock _Lock(_Mymutex);
-        _Mycont.push_back(std::move(_Val));
-    }
-
-    _Mycond.notify_one();
-}
-
-template <typename _Ty>
-__INLINE__ void blocking_deque<_Ty>::push_back(const value_type& _Val)
-{
-    {
-        mutex_lock _Lock(_Mymutex);
-        _Mycont.push_back(_Val);
-    }
-
-    _Mycond.notify_one();
-}
-
 template <typename _Ty> template <typename... _ValArgs>
-__INLINE__ void blocking_deque<_Ty>::emplace_front(_ValArgs&&... _Args)
+__INLINE__ void blocking_deque<_Ty>::push_front(_ValArgs&&... _Args)
 {
     {
         mutex_lock _Lock(_Mymutex);
@@ -210,7 +162,7 @@ __INLINE__ void blocking_deque<_Ty>::emplace_front(_ValArgs&&... _Args)
 }
 
 template <typename _Ty> template <typename... _ValArgs>
-__INLINE__ void blocking_deque<_Ty>::emplace_back(_ValArgs&&... _Args)
+__INLINE__ void blocking_deque<_Ty>::push_back(_ValArgs&&... _Args)
 {
     {
         mutex_lock _Lock(_Mymutex);
@@ -272,30 +224,8 @@ __INLINE__ void priority_queue<_Ty, _Comparator>::shrink_to_fit()
 // Implementation of the priority_blocking_queue class
 //
 
-template <typename _Ty, typename _Comparator>
-__INLINE__ void priority_blocking_queue<_Ty, _Comparator>::push(value_type&& _Val)
-{
-    {
-        mutex_lock _Lock(_Mymutex);
-        _Mycont.push(std::move(_Val));
-    }
-
-    _Mycond.notify_one();
-}
-
-template <typename _Ty, typename _Comparator>
-__INLINE__ void priority_blocking_queue<_Ty, _Comparator>::push(const value_type& _Val)
-{
-    {
-        mutex_lock _Lock(_Mymutex);
-        _Mycont.push(_Val);
-    }
-
-    _Mycond.notify_one();
-}
-
 template <typename _Ty, typename _Comparator> template <typename... _ValArgs>
-__INLINE__ void priority_blocking_queue<_Ty, _Comparator>::emplace(_ValArgs&&... _Args)
+__INLINE__ void priority_blocking_queue<_Ty, _Comparator>::push(_ValArgs&&... _Args)
 {
     {
         mutex_lock _Lock(_Mymutex);
