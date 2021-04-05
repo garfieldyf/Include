@@ -72,7 +72,7 @@ __INLINE__ void Epoll::notify()
 __INLINE__ void Epoll::wait(int timeout)
 {
     struct epoll_event event;
-    int result = ::epoll_wait(mEpollFd, &event, 1, timeout);
+    const int result = ::epoll_wait(mEpollFd, &event, 1, timeout);
 
 #ifndef NDEBUG
     if (result == -1) {
@@ -120,7 +120,15 @@ __INLINE__ void LooperThread::stop()
         // Posts an empty task to exit this thread.
         mTaskQueue.push_front(nullptr);
         mThread.join();
-        LOGD("The pending tasks [size = %zu]\n", mTaskQueue.size());
+
+    #ifndef NDEBUG
+        const size_t size = mTaskQueue.size();
+        if (size > 0) {
+            LOGW("The number of %zu pending tasks will be discard.\n", size);
+        }
+    #endif  // NDEBUG
+
+        // Clears all pending tasks.
         mTaskQueue.clear();
     }
 }
@@ -133,7 +141,7 @@ __INLINE__ bool LooperThread::post(_Callable&& callable)
 #ifndef NDEBUG
     Runnable task = std::forward<_Callable>(callable);
     if (!task) {
-        LOGE("LooperThread::post() does not accept a nullptr.\n");
+        LOGE("LooperThread::post() does not accept an empty callable.\n");
         assert(false);
     }
 
@@ -159,7 +167,7 @@ __INLINE__ bool LooperThread::postAtFront(_Callable&& callable)
 #ifndef NDEBUG
     Runnable task = std::forward<_Callable>(callable);
     if (!task) {
-        LOGE("LooperThread::postAtFront() does not accept a nullptr.\n");
+        LOGE("LooperThread::postAtFront() does not accept an empty callable.\n");
         assert(false);
     }
 
@@ -227,7 +235,15 @@ __INLINE__ void HandlerThread::stop()
         mEpoll.notify();
         mThread.join();
         mEpoll.close();
-        LOGD("The pending tasks [size = %zu]\n", mTaskQueue.size());
+
+    #ifndef NDEBUG
+        const size_t size = mTaskQueue.size();
+        if (size > 0) {
+            LOGW("The number of %zu pending tasks will be discard.\n", size);
+        }
+    #endif  // NDEBUG
+
+        // Clears all pending tasks.
         mTaskQueue.clear();
     }
 }
@@ -240,7 +256,7 @@ __INLINE__ bool HandlerThread::post(_Callable&& callable, uint32_t delayMillis/*
 #ifndef NDEBUG
     Runnable task = std::forward<_Callable>(callable);
     if (!task) {
-        LOGE("HandlerThread::post() does not accept a nullptr.\n");
+        LOGE("HandlerThread::post() does not accept an empty callable.\n");
         assert(false);
     }
 
@@ -274,7 +290,7 @@ __INLINE__ void HandlerThread::run()
     Task task;
     for (;;) {
         do {
-            int timeout = nextTask(task);   // might block
+            const int timeout = nextTask(task);   // might block
             if (timeout == -2) {
                 // Got a task.
                 break;
@@ -304,7 +320,7 @@ __INLINE__ int HandlerThread::nextTask(Task& outTask)
         // No more tasks.
         timeout = -1;
     } else {
-        const auto now = std::chrono::steady_clock::now();
+        const TimePoint now = std::chrono::steady_clock::now();
         const Task& task = mTaskQueue.top();
         if (now < task.mWhen) {
             // Next task is not ready. Set a timeout to wake up when it is ready.

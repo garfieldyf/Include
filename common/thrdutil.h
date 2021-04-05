@@ -96,9 +96,11 @@ public:
     /**
      * Posts a callable to the end of the task queue. The callable will be run 
      * on this thread.
-     * @param callable The callable that will be executed.
+     * @param callable The callable that will be executed, Maybe a pointer to
+     * function, pointer to member function, lambda expression, or any kind of
+     * move-constructible function object.
      * @return Returns true if the callable was successfully added into the task
-     * queue. Returns false on failure, usually because this thread is exiting.
+     * queue. Returns false on failure, usually because this thread was exited.
      */
     template <typename _Callable>
     bool post(_Callable&& callable);
@@ -106,9 +108,11 @@ public:
     /**
      * Posts a callable to the beginning of the task queue. The callable will be 
      * run on this thread.
-     * @param callable The callable that will be executed.
+     * @param callable The callable that will be executed, Maybe a pointer to
+     * function, pointer to member function, lambda expression, or any kind of
+     * move-constructible function object.
      * @return Returns true if the callable was successfully added into the task
-     * queue. Returns false on failure, usually because this thread is exiting.
+     * queue. Returns false on failure, usually because this thread was exited.
      */
     template <typename _Callable>
     bool postAtFront(_Callable&& callable);
@@ -160,11 +164,13 @@ public:
     /**
      * Posts a callable to the task queue, to be run after the specified amount 
      * of time elapses.
-     * @param callable The callable that will be executed.
+     * @param callable The callable that will be executed, Maybe a pointer to
+     * function, pointer to member function, lambda expression, or any kind of
+     * move-constructible function object.
      * @param delayMillis The delay in milliseconds until the callable will be
      * executed.
      * @return Returns true if the callable was successfully added in to the task
-     * queue. Returns false on failure, usually because this thread is exiting.
+     * queue. Returns false on failure, usually because this thread was exited.
      */
     template <typename _Callable>
     bool post(_Callable&& callable, uint32_t delayMillis = 0);
