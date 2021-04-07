@@ -175,7 +175,7 @@ __INLINE__ void blocking_deque<_Ty>::push_back(_ValArgs&&... _Args)
 template <typename _Ty>
 __INLINE__ bool blocking_deque<_Ty>::pop_front(value_type& _Val, uint32_t _Timeout/* = -1*/)
 {
-    return this->_Pop(_Val, _Timeout, [this](value_type& _Out) {
+    return _Pop(_Val, _Timeout, [this](value_type& _Out) {
         _Out = std::move(_Mycont.front());
         _Mycont.pop_front();
     });
@@ -184,7 +184,7 @@ __INLINE__ bool blocking_deque<_Ty>::pop_front(value_type& _Val, uint32_t _Timeo
 template <typename _Ty>
 __INLINE__ bool blocking_deque<_Ty>::pop_back(value_type& _Val, uint32_t _Timeout/* = -1*/)
 {
-    return this->_Pop(_Val, _Timeout, [this](value_type& _Out) {
+    return _Pop(_Val, _Timeout, [this](value_type& _Out) {
         _Out = std::move(_Mycont.back());
         _Mycont.pop_back();
     });
@@ -210,13 +210,13 @@ __INLINE__ priority_queue<_Ty, _Comparator>::priority_queue(const _Comparator& _
 template <typename _Ty, typename _Comparator>
 __INLINE__ void priority_queue<_Ty, _Comparator>::clear()
 {
-    this->c.clear();
+    c.clear();
 }
 
 template <typename _Ty, typename _Comparator>
 __INLINE__ void priority_queue<_Ty, _Comparator>::shrink_to_fit()
 {
-    this->c.shrink_to_fit();
+    c.shrink_to_fit();
 }
 
 
@@ -238,8 +238,8 @@ __INLINE__ void priority_blocking_queue<_Ty, _Comparator>::push(_ValArgs&&... _A
 template <typename _Ty, typename _Comparator>
 __INLINE__ bool priority_blocking_queue<_Ty, _Comparator>::pop(value_type& _Val, uint32_t _Timeout/* = -1*/)
 {
-    return this->_Pop(_Val, _Timeout, [this](value_type& _Out) {
-        _Out = std::move(const_cast<value_type&>(_Mycont.top()));
+    return _Pop(_Val, _Timeout, [this](value_type& _Out) {
+        _Out = const_cast<value_type&&>(_Mycont.top());
         _Mycont.pop();
     });
 }

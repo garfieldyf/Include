@@ -99,7 +99,9 @@ class _Blocking_container
 {
 public:
     using size_type  = typename _Container::size_type;
+    using reference  = typename _Container::reference;
     using value_type = typename _Container::value_type;
+    using const_reference = typename _Container::const_reference;
 
 // Constructors
 protected:
@@ -202,11 +204,12 @@ public:
 // Implementation
 private:
     using _Mybase = _Blocking_container<std::deque<_Ty>>;
+    using _Mybase::_Pop;
     using _Mybase::_Mycont;
     using _Mybase::_Mycond;
     using _Mybase::_Mymutex;
-    using mutex_lock  = typename _Mybase::mutex_lock;
-    using unique_lock = typename _Mybase::unique_lock;
+    using typename _Mybase::mutex_lock;
+    using typename _Mybase::unique_lock;
 };
 
 
@@ -218,8 +221,7 @@ template <typename _Ty, typename _Comparator = std::less<_Ty>>
 class priority_queue : public std::priority_queue<_Ty, std::vector<_Ty>, _Comparator>
 {
 public:
-    using _Mybase = std::priority_queue<_Ty, std::vector<_Ty>, _Comparator>;
-    using container_type = typename _Mybase::container_type;
+    using container_type = std::vector<_Ty>;
 
 // Constructors
 public:
@@ -244,6 +246,11 @@ public:
      * Requests this container to reduce its memory usage to fit its size.
      */
     void shrink_to_fit();
+
+// Implementation
+private:
+    using _Mybase = std::priority_queue<_Ty, std::vector<_Ty>, _Comparator>;
+    using _Mybase::c;
 };
 
 
@@ -283,11 +290,12 @@ public:
 // Implementation
 private:
     using _Mybase = _Blocking_container<priority_queue<_Ty, _Comparator>>;
+    using _Mybase::_Pop;
     using _Mybase::_Mycont;
     using _Mybase::_Mycond;
     using _Mybase::_Mymutex;
-    using mutex_lock  = typename _Mybase::mutex_lock;
-    using unique_lock = typename _Mybase::unique_lock;
+    using typename _Mybase::mutex_lock;
+    using typename _Mybase::unique_lock;
 };
 
 }  // namespace stdutil

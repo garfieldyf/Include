@@ -16,24 +16,24 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Classes in this file:
 //
-// QueueThread
+// TaskThread
 // LooperThread
 
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the QueueThread class
+// Interface of the TaskThread class
 //
 
-class QueueThread final
+class TaskThread final
 {
 // Constructors/Destructor
 public:
-    QueueThread();
-    ~QueueThread();
+    TaskThread();
+    ~TaskThread();
 
-    QueueThread(const QueueThread&) = delete;
-    QueueThread& operator=(const QueueThread&) = delete;
+    TaskThread(const TaskThread&) = delete;
+    TaskThread& operator=(const TaskThread&) = delete;
 
 // Operations
 public:

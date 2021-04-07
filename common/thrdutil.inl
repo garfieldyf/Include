@@ -14,32 +14,32 @@
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the QueueThread class
+// Implementation of the TaskThread class
 //
 
-__INLINE__ QueueThread::QueueThread()
+__INLINE__ TaskThread::TaskThread()
     : mRunning(false)
 {
 }
 
-__INLINE__ QueueThread::~QueueThread()
+__INLINE__ TaskThread::~TaskThread()
 {
 #ifndef NDEBUG
     if (mRunning) {
-        LOGE("The QueueThread has not stopped.\n");
+        LOGE("The TaskThread has not stopped.\n");
         assert(false);
     }
 #endif  // NDEBUG
 }
 
-__INLINE__ void QueueThread::start()
+__INLINE__ void TaskThread::start()
 {
     if (!mRunning.exchange(true)) {
-        mThread = std::thread(&QueueThread::run, this);
+        mThread = std::thread(&TaskThread::run, this);
     }
 }
 
-__INLINE__ void QueueThread::stop()
+__INLINE__ void TaskThread::stop()
 {
     if (mRunning.exchange(false)) {
         // Posts an empty task to exit this thread.
@@ -59,21 +59,21 @@ __INLINE__ void QueueThread::stop()
 }
 
 template <typename _Callable>
-__INLINE__ bool QueueThread::post(_Callable&& callable)
+__INLINE__ bool TaskThread::post(_Callable&& callable)
 {
     const bool running = mRunning;
 
 #ifndef NDEBUG
     Runnable task = std::forward<_Callable>(callable);
     if (!task) {
-        LOGE("QueueThread::post() does not accept an empty callable.\n");
+        LOGE("TaskThread::post() does not accept an empty callable.\n");
         assert(false);
     }
 
     if (running) {
         mTaskQueue.push_back(std::move(task));
     } else {
-        LOGE("The QueueThread has not started.\n");
+        LOGE("The TaskThread has not started.\n");
     }
 #else
     if (running) {
@@ -85,21 +85,21 @@ __INLINE__ bool QueueThread::post(_Callable&& callable)
 }
 
 template <typename _Callable>
-__INLINE__ bool QueueThread::postAtFront(_Callable&& callable)
+__INLINE__ bool TaskThread::postAtFront(_Callable&& callable)
 {
     const bool running = mRunning;
 
 #ifndef NDEBUG
     Runnable task = std::forward<_Callable>(callable);
     if (!task) {
-        LOGE("QueueThread::postAtFront() does not accept an empty callable.\n");
+        LOGE("TaskThread::postAtFront() does not accept an empty callable.\n");
         assert(false);
     }
 
     if (running) {
         mTaskQueue.push_front(std::move(task));
     } else {
-        LOGE("The QueueThread has not started.\n");
+        LOGE("The TaskThread has not started.\n");
     }
 #else
     if (running) {
@@ -110,9 +110,9 @@ __INLINE__ bool QueueThread::postAtFront(_Callable&& callable)
     return running;
 }
 
-__INLINE__ void QueueThread::run()
+__INLINE__ void TaskThread::run()
 {
-    LOGD("QueueThread::start()\n");
+    LOGD("TaskThread::start()\n");
     Runnable task;
     while (mTaskQueue.pop_front(task)) {    // might block
         // Exit the run, if the task is empty.
@@ -124,7 +124,7 @@ __INLINE__ void QueueThread::run()
         task();
     }
 
-    LOGD("QueueThread::stop()\n");
+    LOGD("TaskThread::stop()\n");
 }
 
 
@@ -296,7 +296,7 @@ __INLINE__ void LooperThread::run()
                 break;
             }
 
-            // The next task is not ready. Set a timeout to wake up when it is ready.
+            // The next task is not ready. Waiting a timeout to wake up when it is ready.
             mEpoll.wait(timeout);
         } while (mRunning);
 
@@ -322,7 +322,7 @@ __INLINE__ int LooperThread::nextTask(Task& outTask)
     } else {
         const Task& task = mTaskQueue.top();
         if ((timeout = task.getTimeout()) == 0) {
-            outTask = std::move(const_cast<Task&>(task));
+            outTask = const_cast<Task&&>(task);
             mTaskQueue.pop();
         }
     }

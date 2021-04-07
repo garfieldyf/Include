@@ -251,18 +251,6 @@ static inline void CDECL __android_assert(const char* file, int line, const char
 // Global functions in this file:
 //
 
-#if __cplusplus >= 201103L
-template <typename T> struct __remove_reference      { typedef T type; };
-template <typename T> struct __remove_reference<T&>  { typedef T type; };
-template <typename T> struct __remove_reference<T&&> { typedef T type; };
-
-template <typename T>
-__STATIC_INLINE__ constexpr typename __remove_reference<T>::type&& __move(T&& t) noexcept
-{
-    return static_cast<typename __remove_reference<T>::type&&>(t);
-}
-#endif  // __cplusplus
-
 static inline const char* __android_build_tag(const char* func, char (&tag)[MAX_PATH])
 {
     // Finds the function name end pointer (including return type).
