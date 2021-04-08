@@ -139,12 +139,13 @@ protected:
 template <jsize t_length = MAX_PATH>
 class _jstring_t : public basic_jstring<char, t_length>
 {
-public:
-    typedef basic_jstring<char, t_length> _Mybase;
-
 // Constructors
 public:
     _jstring_t(JNIEnv* env, jstring str);
+
+// Implementation
+private:
+    using _Mybase = basic_jstring<char, t_length>;
 };
 
 
@@ -155,12 +156,13 @@ public:
 template <jsize t_length = MAX_PATH>
 class _jwstring_t : public basic_jstring<jchar, t_length>
 {
-public:
-    typedef basic_jstring<jchar, t_length> _Mybase;
-
 // Constructors
 public:
     _jwstring_t(JNIEnv* env, jstring str);
+
+// Implementation
+private:
+    using _Mybase = basic_jstring<jchar, t_length>;
 };
 
 

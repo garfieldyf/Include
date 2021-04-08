@@ -162,10 +162,11 @@ __INLINE__ int MessageQueue::next(Message*& msg, uint32_t timeout/* = INFINITE*/
 
 __INLINE__ void MessageQueue::quit(bool postAtFront/* = true*/)
 {
-    if (postAtFront)
+    if (postAtFront) {
         mMessages.push_front(NULL);
-    else
+    } else {
         mMessages.push_back(NULL);
+    }
 }
 
 __INLINE__ void MessageQueue::enqueueMessage(Message* msg)
@@ -408,21 +409,20 @@ __INLINE__ void MessageThreadImpl<T, TBase>::MsgThread_runMessageLoop()
 #endif  // NDEBUG
     {
         // Exit message loop, if the msg is NULL.
-        if (msg == NULL)
+        if (msg == NULL) {
             break;
+        }
 
         // Destroy message, if MsgThread_handleMessage returns true.
-        if (_This->MsgThread_handleMessage(msg))
+        if (_This->MsgThread_handleMessage(msg)) {
             MessageQueue::MessageTraits::destroy(msg);
+        }
     }
 
 #ifndef NDEBUG
-    if (errnum == ETIMEDOUT)
-    {
+    if (errnum == ETIMEDOUT) {
         LOGD("Get message from message queue time out, timeout = %u\n", mAliveTime);
-    }
-    else if (errnum != 0)
-    {
+    } else if (errnum != 0) {
         char error[MAX_PATH];
         ::strerror_r(errnum, error, _countof(error));
         LOGE("Couldn't obtain message from message queue, errno = %d, error = %s\n", errnum, error);

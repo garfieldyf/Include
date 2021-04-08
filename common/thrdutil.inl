@@ -139,7 +139,12 @@ __INLINE__ Epoll::Epoll()
 
 __INLINE__ Epoll::~Epoll()
 {
-    close();
+#ifndef NDEBUG
+    if (mEpollFd != -1) {
+        LOGE("The epoll has not closed.\n");
+        assert(false);
+    }
+#endif  // NDEBUG
 }
 
 __INLINE__ int Epoll::open()

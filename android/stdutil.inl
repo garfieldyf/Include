@@ -194,8 +194,9 @@ __INLINE__ int regex::match(const char* input, int flags/* = 0*/) const
     regmatch result;
 #ifndef NDEBUG
     const int errcode = regerror(::regexec(&mRegex, input, 1, &result, flags), "Couldn't match (input = '%s', flags = 0x%08x", input, flags);
-    if (errcode == 0)
+    if (errcode == 0) {
         result.dump(input);
+    }
 
     return errcode;
 #else
@@ -351,8 +352,7 @@ __INLINE__ timeval_t& timeval_t::operator+=(uint64_t millis)
     tv_sec  += (time_t)(millis / MILLISECONDS);
     tv_usec += (suseconds_t)((millis % MILLISECONDS) * MILLISECONDS);
 
-    if (tv_usec >= MICROSECONDS)
-    {
+    if (tv_usec >= MICROSECONDS) {
         tv_sec  += 1;
         tv_usec -= MICROSECONDS;
     }
@@ -365,8 +365,7 @@ __INLINE__ timeval_t& timeval_t::operator-=(uint64_t millis)
     tv_sec  -= (time_t)(millis / MILLISECONDS);
     tv_usec -= (suseconds_t)((millis % MILLISECONDS) * MILLISECONDS);
 
-    if (tv_usec < 0)
-    {
+    if (tv_usec < 0) {
         tv_sec  -= 1;
         tv_usec += MICROSECONDS;
     }
@@ -472,8 +471,7 @@ __INLINE__ timespec_t& timespec_t::operator+=(uint64_t millis)
     tv_sec  += (time_t)(millis / MILLISECONDS);
     tv_nsec += (long)((millis % MILLISECONDS) * MICROSECONDS);
 
-    if (tv_nsec >= NANOSECONDS)
-    {
+    if (tv_nsec >= NANOSECONDS) {
         tv_sec  += 1;
         tv_nsec -= NANOSECONDS;
     }
@@ -486,8 +484,7 @@ __INLINE__ timespec_t& timespec_t::operator-=(uint64_t millis)
     tv_sec  -= (time_t)(millis / MILLISECONDS);
     tv_nsec -= (long)((millis % MILLISECONDS) * MICROSECONDS);
 
-    if (tv_nsec < 0)
-    {
+    if (tv_nsec < 0) {
         tv_sec  -= 1;
         tv_nsec += NANOSECONDS;
     }

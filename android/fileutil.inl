@@ -278,10 +278,11 @@ __INLINE__ AAssetDir* AssetDir::open(JNIEnv* env, jobject assetManager, const ch
 
 #ifndef NDEBUG
     AAssetDir* dir = NULL;
-    if (am != NULL)
+    if (am != NULL) {
         dir = open(am, dirName);
-    else
+    } else {
         LOGE("Couldn't get native AssetManager (directory = '%s')\n", dirName);
+    }
 
     return dir;
 #else
@@ -353,10 +354,11 @@ __INLINE__ AAsset* AssetFile::open(JNIEnv* env, jobject assetManager, const char
 
 #ifndef NDEBUG
     AAsset* asset = NULL;
-    if (am != NULL)
+    if (am != NULL) {
         asset = open(am, filename, mode);
-    else
+    } else {
         LOGE("Couldn't get native AssetManager (filename = '%s')\n", filename);
+    }
 
     return asset;
 #else

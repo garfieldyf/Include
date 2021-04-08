@@ -78,8 +78,9 @@ __INLINE__ int32_t BufferedInputStream::read(void* buf, int32_t size)
             }
 
             LOGI("Read the data from java InputStream - read bytes = %d\n", mLength);
-            if (mLength <= 0)
+            if (mLength <= 0) {
                 break;      // read the end of the stream (EOF).
+            }
 
             mOffset = 0;    // reset the mOffset.
         }

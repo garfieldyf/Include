@@ -118,8 +118,9 @@ __INLINE__ jmutex_t::jmutex_t(JNIEnv* env, jobject lock)
     assert(mLock);
 
 #ifndef NDEBUG
-    if (mStatus != JNI_OK)
+    if (mStatus != JNI_OK) {
         LOGE("Couldn't lock object (object = %p, error = %d)\n", mLock, mStatus);
+    }
 #endif  // NDEBUG
 }
 
@@ -138,8 +139,9 @@ __INLINE__ void jmutex_t::unlock()
         mStatus = JNI_ERR;
     #ifndef NDEBUG
         jint result = mEnv->MonitorExit(mLock);
-        if (result != JNI_OK)
+        if (result != JNI_OK) {
             LOGE("Couldn't unlock object (object = %p, error = %d)\n", mLock, result);
+        }
     #else
         mEnv->MonitorExit(mLock);
     #endif  // NDEBUG
@@ -158,13 +160,10 @@ __INLINE__ jclass_t::jclass_t(JNIEnv* env, jobject object)
     assert(object);
 
 #ifndef NDEBUG
-    if (mClass == NULL)
-    {
+    if (mClass == NULL) {
         LOGE("Unable to get object class - %p\n", object);
         assert(mClass);
-    }
-    else
-    {
+    } else {
         LOGI("The object %p className - '%s'\n", object, ::__android_class_name(env, object, mClassName));
     }
 #endif  // NDEBUG
@@ -178,8 +177,7 @@ __INLINE__ jclass_t::jclass_t(JNIEnv* env, const char* className)
 
 #ifndef NDEBUG
     ::__strncpy(mClassName, className, _countof(mClassName));
-    if (mClass == NULL)
-    {
+    if (mClass == NULL) {
         LOGE("Unable to find class - '%s'\n", className);
         assert(mClass);
     }

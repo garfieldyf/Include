@@ -453,10 +453,11 @@ __INLINE__ GIFImage::~GIFImage()
 {
 #ifndef NDEBUG
     int32_t error = D_GIF_SUCCEEDED;
-    if (::DGifCloseFile(mGIF, &error) == GIF_OK)
+    if (::DGifCloseFile(mGIF, &error) == GIF_OK) {
         LOGI("The GIF resource was released (mGIF = %p)\n", mGIF);
-    else
+    } else {
         LOGE("Couldn't release GIF resource, error = %d, error message = %s\n", error, ::GifErrorString(error));
+    }
 #else
     ::DGifCloseFile(mGIF, NULL);
 #endif  // NDEBUG
@@ -472,10 +473,11 @@ __INLINE__ void GIFImage::draw(uint32_t* canvas, int32_t frameIndex)
     ::DGifSavedExtensionToGCB(mGIF, frameIndex, &gcb);
 
     const uint32_t bgColor = getBackgroundColor();
-    if (frameIndex == 0)
+    if (frameIndex == 0) {
         ::memset(canvas, bgColor, mGIF->SWidth * mGIF->SHeight * sizeof(uint32_t));
-    else
+    } else {
         disposeFrame(canvas, frameIndex - 1, gcb, bgColor);
+    }
 
     drawFrame(canvas, mGIF->SavedImages[frameIndex], gcb.TransparentColor);
 }
@@ -596,10 +598,11 @@ __INLINE__ void GIFImage::disposeFrame(uint32_t* canvas, int32_t prevIndex, cons
 #ifndef NDEBUG
 __INLINE__ const char* GIFImage::formatColorMap(const ColorMapObject* colorMap, char (&result)[MAX_PATH])
 {
-    if (colorMap != NULL)
+    if (colorMap != NULL) {
         ::snprintf(result, _countof(result), "[ ColorCount = %d, BitsPerPixel = %d, SortFlag = %s, Colors = %p ]", colorMap->ColorCount, colorMap->BitsPerPixel, (colorMap->SortFlag ? "true" : "false"), colorMap->Colors);
-    else
+    } else {
         ::snprintf(result, _countof(result), "%p", colorMap);
+    }
 
     return result;
 }

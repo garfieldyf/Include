@@ -226,8 +226,6 @@ public:
 
 // Operations
 public:
-    friend class LooperThread;
-
     /**
      * Returns the timeout in milliseconds since std::steady_clock::now().
      * @return The timeout in milliseconds.
@@ -241,7 +239,7 @@ public:
     bool operator>(const Task& right) const;
 
 // Data members
-private:
+public:
     TimePoint mWhen;
     Runnable mRunnable;
 };
