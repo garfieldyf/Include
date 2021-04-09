@@ -14,23 +14,38 @@
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the TaskThread class
+// Implementation of the ThreadBase class
 //
 
-__INLINE__ TaskThread::TaskThread()
+__INLINE__ ThreadBase::ThreadBase()
     : mRunning(false)
 {
 }
 
-__INLINE__ TaskThread::~TaskThread()
+__INLINE__ ThreadBase::~ThreadBase()
 {
 #ifndef NDEBUG
     if (mRunning) {
-        LOGE("The TaskThread has not stopped.\n");
+        LOGE("This thread has not stopped.\n");
         assert(false);
     }
 #endif  // NDEBUG
 }
+
+__INLINE__ bool ThreadBase::isRunning() const
+{
+    return mRunning;
+}
+
+__INLINE__ std::thread::id ThreadBase::getId() const
+{
+    return mThread.get_id();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the TaskThread class
+//
 
 __INLINE__ void TaskThread::start()
 {
@@ -212,21 +227,6 @@ __INLINE__ void Epoll::wait(int timeout)
 // Implementation of the LooperThread class
 //
 
-__INLINE__ LooperThread::LooperThread()
-    : mRunning(false)
-{
-}
-
-__INLINE__ LooperThread::~LooperThread()
-{
-#ifndef NDEBUG
-    if (mRunning) {
-        LOGE("The LooperThread has not stopped.\n");
-        assert(false);
-    }
-#endif  // NDEBUG
-}
-
 __INLINE__ void LooperThread::start()
 {
     if (!mRunning.exchange(true) && mEpoll.open() == 0) {
@@ -259,8 +259,8 @@ __INLINE__ bool LooperThread::post(_Callable&& callable, uint32_t delayMillis/* 
     const bool running = mRunning;
 
 #ifndef NDEBUG
-    Runnable task = std::forward<_Callable>(callable);
-    if (!task) {
+    Runnable runnable = std::forward<_Callable>(callable);
+    if (!runnable) {
         LOGE("LooperThread::post() does not accept an empty callable.\n");
         assert(false);
     }
@@ -268,7 +268,7 @@ __INLINE__ bool LooperThread::post(_Callable&& callable, uint32_t delayMillis/* 
     if (running) {
         {
             MutexLock lock(mMutex);
-            mTaskQueue.emplace(std::move(task), delayMillis);
+            mTaskQueue.emplace(std::move(runnable), delayMillis);
         }
 
         mEpoll.notify();

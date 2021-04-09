@@ -22,18 +22,49 @@
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
+// Interface of the ThreadBase class
+//
+
+class ThreadBase
+{
+// Constructors/Destructor
+protected:
+    ThreadBase();
+    ~ThreadBase();
+
+    ThreadBase(const ThreadBase&) = delete;
+    ThreadBase& operator=(const ThreadBase&) = delete;
+
+// Attributes
+public:
+    /**
+     * Tests if this thread is running.
+     * @return true if this thread is running, false otherwise.
+     */
+    bool isRunning() const;
+
+    /**
+     * Returns this thread id.
+     * @return An object of type std::thread::id of this thread.
+     */
+    std::thread::id getId() const;
+
+// Data members
+protected:
+    std::thread mThread;
+    std::atomic_bool mRunning;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
 // Interface of the TaskThread class
 //
 
-class TaskThread final
+class TaskThread final : public ThreadBase
 {
-// Constructors/Destructor
+// Constructors
 public:
-    TaskThread();
-    ~TaskThread();
-
-    TaskThread(const TaskThread&) = delete;
-    TaskThread& operator=(const TaskThread&) = delete;
+    TaskThread() = default;
 
 // Operations
 public:
@@ -83,9 +114,7 @@ private:
 
 // Data members
 private:
-    std::thread mThread;
     TaskQueue mTaskQueue;
-    std::atomic_bool mRunning;
 };
 
 
@@ -139,15 +168,11 @@ private:
 // Interface of the LooperThread class
 //
 
-class LooperThread final
+class LooperThread final : public ThreadBase
 {
-// Constructors/Destructor
+// Constructors
 public:
-    LooperThread();
-    ~LooperThread();
-
-    LooperThread(const LooperThread&) = delete;
-    LooperThread& operator=(const LooperThread&) = delete;
+    LooperThread() = default;
 
 // Operations
 public:
@@ -200,9 +225,7 @@ private:
 private:
     Epoll mEpoll;
     std::mutex mMutex;
-    std::thread mThread;
     TaskQueue mTaskQueue;
-    std::atomic_bool mRunning;
 };
 
 
