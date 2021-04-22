@@ -7,10 +7,10 @@
 #ifndef __THRDUTIL_H__
 #define __THRDUTIL_H__
 
-#include "platform.h"
+#include "ipcutil.h"
 #include "stdcolls.h"
 #include <thread>
-#include <sys/epoll.h>
+#include <poll.h>
 #include <sys/eventfd.h>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -18,6 +18,8 @@
 //
 // TaskThread
 // LooperThread
+// LocalSocketThread
+// LocalServerThread
 
 namespace stdutil {
 
@@ -48,6 +50,11 @@ public:
      * @return An object of type std::thread::id of this thread.
      */
     std::thread::id getId() const;
+
+// Implementation
+protected:
+    template <typename _Callable>
+    using _Check_callable_t = typename std::enable_if<!std::is_same<typename std::decay<_Callable>::type, std::nullptr_t>::value, int>::type;
 
 // Data members
 protected:
@@ -84,10 +91,10 @@ public:
      * @param callable The callable that will be executed, Maybe a pointer to
      * function, pointer to member function, lambda expression, or any kind of
      * move-constructible function object.
-     * @return Returns true if the callable was successfully added into the task
+     * @return Returns true if the callable was successfully added to the task
      * queue. Returns false on failure, usually because this thread was exited.
      */
-    template <typename _Callable>
+    template <typename _Callable, _Check_callable_t<_Callable> = 0>
     bool post(_Callable&& callable);
 
     /**
@@ -96,10 +103,10 @@ public:
      * @param callable The callable that will be executed, Maybe a pointer to
      * function, pointer to member function, lambda expression, or any kind of
      * move-constructible function object.
-     * @return Returns true if the callable was successfully added into the task
+     * @return Returns true if the callable was successfully added to the task
      * queue. Returns false on failure, usually because this thread was exited.
      */
-    template <typename _Callable>
+    template <typename _Callable, _Check_callable_t<_Callable> = 0>
     bool postAtFront(_Callable&& callable);
 
 // Implementation
@@ -115,52 +122,6 @@ private:
 // Data members
 private:
     TaskQueue mTaskQueue;
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the Epoll class
-//
-
-class Epoll final
-{
-// Constructors/Destructor
-public:
-    Epoll();
-    ~Epoll();
-
-    Epoll(const Epoll&) = delete;
-    Epoll& operator=(const Epoll&) = delete;
-
-// Operations
-public:
-    /**
-     * Opens a new epoll file descriptor.
-     * @return returns 0 if opens successful, -1 otherwise.
-     */
-    int open();
-
-    /**
-     * Closes this epoll file descriptor.
-     */
-    void close();
-
-    /**
-     * Unblocks a thread currently waiting for this epoll.
-     */
-    void notify();
-
-    /**
-     * Blocks a thread, and sets a timeout after which the thread unblocks.
-     * @param timeout The waiting timeout in milliseconds, -1 causes wait to 
-     * indefinitely.
-     */
-    void wait(int timeout);
-
-// Data members
-private:
-    int mEpollFd;
-    int mEventFd;
 };
 
 
@@ -194,10 +155,10 @@ public:
      * move-constructible function object.
      * @param delayMillis The delay in milliseconds until the callable will be
      * executed.
-     * @return Returns true if the callable was successfully added in to the task
+     * @return Returns true if the callable was successfully added to the task
      * queue. Returns false on failure, usually because this thread was exited.
      */
-    template <typename _Callable>
+    template <typename _Callable, _Check_callable_t<_Callable> = 0>
     bool post(_Callable&& callable, uint32_t delayMillis = 0);
 
 // Implementation
@@ -212,59 +173,232 @@ private:
     /**
      * Retrieves and removes the task on top of the task queue.
      * @param outTask The outTask to store the returned task.
-     * @return The waiting timeout in milliseconds.
+     * @return returns true if retrieves successful, false otherwise.
      */
-    int nextTask(Task& outTask);
+    bool nextTask(Task& outTask);
 
+// Nested classes
+private:
     using Runnable  = std::function<void()>;
     using MutexLock = std::lock_guard<std::mutex>;
     using TimePoint = std::chrono::steady_clock::time_point;
-    using TaskQueue = priority_queue<Task, std::greater<Task>>;
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Interface of the Poll class
+    //
+
+    class Poll final
+    {
+    // Constructors/Destructor
+    public:
+        Poll();
+        ~Poll();
+
+        Poll(const Poll&) = delete;
+        Poll& operator=(const Poll&) = delete;
+
+    // Operations
+    public:
+        /**
+         * Creates a new poll file descriptor.
+         * @return returns a new poll file descriptor, -1 otherwise.
+         */
+        int create();
+
+        /**
+         * Closes this poll file descriptor.
+         */
+        void close();
+
+        /**
+         * Unblocks a thread currently waiting for this poll.
+         */
+        void notify();
+
+        /**
+         * Blocks a thread, and sets a timeout after which the thread unblocks.
+         * @param timeout The waiting timeout in milliseconds, -1 causes wait to 
+         * indefinitely.
+         */
+        void wait(int timeout);
+
+    // Data members
+    private:
+        int mEventFd;
+    };
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Interface of the Task class
+    //
+
+    class Task final
+    {
+    // Constructors
+    public:
+        Task() = default;
+        template <typename _Callable>
+        Task(_Callable&& callable, uint32_t delayMillis);
+
+        Task(Task&&) = default;
+        Task& operator=(Task&&) = default;
+
+        Task(const Task&) = delete;
+        Task& operator=(const Task&) = delete;
+
+    // Operations
+    public:
+        /**
+         * Returns the timeout in milliseconds since std::steady_clock::now().
+         * @return The timeout in milliseconds.
+         */
+        int getTimeout() const;
+
+        /**
+         * Tests if this task is greater than right.
+         * @return true if this task is greater than right, false otherwise.
+         */
+        bool operator>(const Task& right) const;
+
+    // Data members
+    public:
+        TimePoint mWhen;
+        Runnable mRunnable;
+    };
+
+    ///////////////////////////////////////////////////////////////////////////
+    // Interface of the TaskQueue class
+    //
+
+    class TaskQueue final : private priority_queue<Task, std::greater<Task>>
+    {
+    // Constructors
+    public:
+        TaskQueue() = default;
+
+    // Operations
+    public:
+        /**
+         * Removes all tasks from this queue, leaving it empty.
+         */
+        void clear();
+
+        /**
+         * Adds a callable to this queue, to be run after the 
+         * specified amount of time elapses.
+         * @param callable The callable that will be executed.
+         * @param delayMillis The delay in milliseconds until 
+         * the callable will be executed.
+         */
+        template <typename _Callable>
+        void push(_Callable&& callable, uint32_t delayMillis);
+
+        /**
+         * Retrieves and removes the task on top of this queue.
+         * @param outTask The outTask to store the returned task.
+         * @return The waiting timeout in milliseconds.
+         */
+        int pop(Task& outTask);
+
+    // Implementation
+    private:
+        using super = priority_queue<Task, std::greater<Task>>;
+
+    // Data members
+    private:
+        std::mutex mMutex;
+    };
 
 // Data members
 private:
-    Epoll mEpoll;
-    std::mutex mMutex;
+    Poll mPoll;
     TaskQueue mTaskQueue;
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the LooperThread::Task class
+// Interface of the LocalSocketThread class
 //
 
-class LooperThread::Task final
+class LocalSocketThread : public ThreadBase
+{
+public:
+    using Callback = std::function<void(const uint8_t*, ssize_t)>;
+
+// Constructors
+public:
+    LocalSocketThread() = default;
+
+public:
+    /**
+     * Starts this thread to begin execution.
+     * @param name The name of the address.
+     * @param callback The callback to handle the receive data, or nullptr.
+     */
+    template <typename _Callback>
+    void start(const char* name, _Callback&& callback);
+
+    /**
+     * Forces this thread to stop executing.
+     */
+    void stop();
+
+    /**
+     * Sends data to a connected socket.
+     * @param buf A pointer to a buffer containing the data.
+     * @param size The number of bytes of the buffer.
+     * @return The total number of bytes sent, -1 otherwise.
+     */
+    ssize_t send(const void* buf, size_t size) const;
+
+// Implementation
+protected:
+    /**
+     * This thread start entry point.
+     */
+    void run();
+
+// Data members
+protected:
+    Callback mCallback;
+    LocalSocket mSocket;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the LocalServerThread class
+//
+
+class LocalServerThread final : public LocalSocketThread
 {
 // Constructors
 public:
-    Task() = default;
-    template <typename _Callable>
-    Task(_Callable&& callable, uint32_t delayMillis);
-
-    Task(Task&&) = default;
-    Task& operator=(Task&&) = default;
-
-    Task(const Task&) = delete;
-    Task& operator=(const Task&) = delete;
+    LocalServerThread() = default;
 
 // Operations
 public:
     /**
-     * Returns the timeout in milliseconds since std::steady_clock::now().
-     * @return The timeout in milliseconds.
+     * Starts this thread to begin execution.
+     * @param name The name of the address.
+     * @param callback The callback to handle the receive data, or nullptr.
      */
-    int getTimeout() const;
+    template <typename _Callback>
+    void start(const char* name, _Callback&& callback);
 
     /**
-     * Tests if this task is greater than right.
-     * @return true if this task is greater than right, false otherwise.
+     * Forces this thread to stop executing.
      */
-    bool operator>(const Task& right) const;
+    void stop();
+
+// Implementation
+private:
+    /**
+     * This thread start entry point.
+     */
+    void run();
 
 // Data members
-public:
-    TimePoint mWhen;
-    Runnable mRunnable;
+private:
+    LocalSocket mServer;
 };
 
 }  // namespace stdutil

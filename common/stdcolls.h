@@ -8,15 +8,14 @@
 #define __STDCOLLS_H__
 
 #include <queue>
-#include <stack>
 #include <mutex>
 #include <condition_variable>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Classes in this file:
 //
-// queue<_Ty>
-// stack<_Ty>
+// deque<_Ty>
+// vector<_Ty>
 // blocking_deque<_Ty>
 // priority_queue<_Ty, _Comparator>
 // priority_blocking_queue<_Ty, _Comparator>
@@ -28,17 +27,20 @@ namespace stdutil {
 //
 
 template <typename _TBase>
-class container : public _TBase
+class container final : public _TBase
 {
 public:
     using value_type = typename _TBase::value_type;
-    using container_type = typename _TBase::container_type;
+    using _TBase::begin;
+    using _TBase::end;
+    using _TBase::erase;
 
 // Constructors
 public:
     container() = default;
-    explicit container(container_type&& _Cont);
-    explicit container(const container_type& _Cont);
+    template <typename _Iter>
+    container(_Iter _First, _Iter _Last);
+    container(std::initializer_list<value_type> _List);
 
     container(container&&) = default;
     container& operator=(container&&) = default;
@@ -46,48 +48,48 @@ public:
     container(const container&) = default;
     container& operator=(const container&) = default;
 
-// Operations
 public:
     /**
-     * Removes all elements from this container, leaving it empty.
+     * Removes the specified element from this container.
+     * @param _Val The element that is to be removed.
+     * @return true if removes the element successful, false otherwise.
      */
-    void clear();
-
-    /**
-     * Requests this container to reduce its memory usage to fit its size.
-     */
-    void shrink_to_fit();
+    bool erase(const value_type& _Val);
 
     /**
      * Removes the specified element from this container.
      * @param _Pred The predicate to apply to all elements.
+     * @return true if removes the element successful, false otherwise.
      */
     template <typename _Predicate>
-    void erase_if(_Predicate _Pred);
+    bool erase_if(_Predicate _Pred);
 
     /**
-     * Removes the specified element from this container.
+     * Removes elements from this container.
      * @param _Val The element that is to be removed.
+     * @return true if removes elements successful, false otherwise.
      */
-    void erase(const value_type& _Val);
+    bool remove(const value_type& _Val);
 
     /**
      * Removes elements from this container.
      * @param _Pred The predicate to apply to all elements.
+     * @return true if removes elements successful, false otherwise.
      */
     template <typename _Predicate>
-    void remove_if(_Predicate _Pred);
-
-    /**
-     * Removes elements from this container.
-     * @param _Val The element that is to be removed.
-     */
-    void remove(const value_type& _Val);
-
-// Implementation
-private:
-    using _TBase::c;
+    bool remove_if(_Predicate _Pred);
 };
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the deque / vector class
+//
+
+template <typename _Ty, typename _Alloc = std::allocator<_Ty>>
+using deque = container<std::deque<_Ty, _Alloc>>;
+
+template <typename _Ty, typename _Alloc = std::allocator<_Ty>>
+using vector = container<std::vector<_Ty, _Alloc>>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -120,6 +122,42 @@ public:
      * Requests this container to reduce its memory usage to fit its size.
      */
     void shrink_to_fit();
+
+    /**
+     * Removes the specified element from this container.
+     * @param _Val The element that is to be removed.
+     * @return true if removes the element successful, false otherwise.
+     */
+    bool erase(const value_type& _Val);
+
+    /**
+     * Removes the specified element from this container.
+     * @param _Pred The predicate to apply to all elements.
+     * @return true if removes the element successful, false otherwise.
+     */
+    template <typename _Predicate>
+    bool erase_if(_Predicate _Pred);
+
+    /**
+     * Removes elements from this container.
+     * @param _Val The element that is to be removed.
+     * @return true if removes elements successful, false otherwise.
+     */
+    bool remove(const value_type& _Val);
+
+    /**
+     * Removes elements from this container.
+     * @param _Pred The predicate to apply to all elements.
+     * @return true if removes elements successful, false otherwise.
+     */
+    template <typename _Predicate>
+    bool remove_if(_Predicate _Pred);
+
+    /**
+     * Swaps the contents of this container with another container.
+     * @param _Right The container to swap contents with.
+     */
+    void swap(_Blocking_container& _Right);
 
 // Attributes
 public:
@@ -156,10 +194,10 @@ protected:
 //
 
 template <typename _Ty>
-class blocking_deque : public _Blocking_container<std::deque<_Ty>>
+class blocking_deque : public _Blocking_container<deque<_Ty>>
 {
 public:
-    using value_type = typename std::deque<_Ty>::value_type;
+    using value_type = typename deque<_Ty>::value_type;
 
 // Constructors
 public:
@@ -203,13 +241,13 @@ public:
 
 // Implementation
 private:
-    using _Mybase = _Blocking_container<std::deque<_Ty>>;
-    using _Mybase::_Pop;
-    using _Mybase::_Mycont;
-    using _Mybase::_Mycond;
-    using _Mybase::_Mymutex;
-    using typename _Mybase::mutex_lock;
-    using typename _Mybase::unique_lock;
+    using super = _Blocking_container<deque<_Ty>>;
+    using super::_Pop;
+    using super::_Mycont;
+    using super::_Mycond;
+    using super::_Mymutex;
+    using typename super::mutex_lock;
+    using typename super::unique_lock;
 };
 
 
@@ -218,16 +256,17 @@ private:
 //
 
 template <typename _Ty, typename _Comparator = std::less<_Ty>>
-class priority_queue : public std::priority_queue<_Ty, std::vector<_Ty>, _Comparator>
+class priority_queue : public std::priority_queue<_Ty, vector<_Ty>, _Comparator>
 {
 public:
-    using container_type = std::vector<_Ty>;
+    using value_type = typename vector<_Ty>::value_type;
 
 // Constructors
 public:
     priority_queue() = default;
-    priority_queue(const _Comparator& _Comp, container_type&& _Cont);
-    priority_queue(const _Comparator& _Comp, const container_type& _Cont);
+    template <typename _Iter>
+    priority_queue(_Iter _First, _Iter _Last);
+    priority_queue(std::initializer_list<_Ty> _List, const _Comparator& _Comp = _Comparator());
 
     priority_queue(priority_queue&&) = default;
     priority_queue& operator=(priority_queue&&) = default;
@@ -247,10 +286,41 @@ public:
      */
     void shrink_to_fit();
 
+    /**
+     * Removes the specified element from this container.
+     * @param _Val The element that is to be removed.
+     * @return true if removes the element successful, false otherwise.
+     */
+    bool erase(const value_type& _Val);
+
+    /**
+     * Removes the specified element from this container.
+     * @param _Pred The predicate to apply to all elements.
+     * @return true if removes the element successful, false otherwise.
+     */
+    template <typename _Predicate>
+    bool erase_if(_Predicate _Pred);
+
+    /**
+     * Removes elements from this container.
+     * @param _Val The element that is to be removed.
+     * @return true if removes elements successful, false otherwise.
+     */
+    bool remove(const value_type& _Val);
+
+    /**
+     * Removes elements from this container.
+     * @param _Pred The predicate to apply to all elements.
+     * @return true if removes elements successful, false otherwise.
+     */
+    template <typename _Predicate>
+    bool remove_if(_Predicate _Pred);
+
 // Implementation
 private:
-    using _Mybase = std::priority_queue<_Ty, std::vector<_Ty>, _Comparator>;
-    using _Mybase::c;
+    using super = std::priority_queue<_Ty, vector<_Ty>, _Comparator>;
+    using super::c;
+    using super::comp;
 };
 
 
@@ -289,13 +359,13 @@ public:
 
 // Implementation
 private:
-    using _Mybase = _Blocking_container<priority_queue<_Ty, _Comparator>>;
-    using _Mybase::_Pop;
-    using _Mybase::_Mycont;
-    using _Mybase::_Mycond;
-    using _Mybase::_Mymutex;
-    using typename _Mybase::mutex_lock;
-    using typename _Mybase::unique_lock;
+    using super = _Blocking_container<priority_queue<_Ty, _Comparator>>;
+    using super::_Pop;
+    using super::_Mycont;
+    using super::_Mycond;
+    using super::_Mymutex;
+    using typename super::mutex_lock;
+    using typename super::unique_lock;
 };
 
 }  // namespace stdutil

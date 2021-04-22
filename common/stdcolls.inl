@@ -14,76 +14,71 @@
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the queue / stack class
-//
-
-template <typename _Ty>
-using queue = container<std::queue<_Ty>>;
-
-template <typename _Ty>
-using stack = container<std::stack<_Ty>>;
-
-
-///////////////////////////////////////////////////////////////////////////////
 // Implementation of the container class
 //
 
-template <typename _TBase>
-__INLINE__ container<_TBase>::container(container_type&& _Cont)
-    : _TBase(std::move(_Cont))
+template <typename _TBase> template <typename _Iter>
+inline container<_TBase>::container(_Iter _First, _Iter _Last)
+    : _TBase(_First, _Last)
 {
 }
 
 template <typename _TBase>
-__INLINE__ container<_TBase>::container(const container_type& _Cont)
-    : _TBase(_Cont)
+inline container<_TBase>::container(std::initializer_list<value_type> _List)
+    : _TBase(_List)
 {
 }
 
 template <typename _TBase>
-__INLINE__ void container<_TBase>::clear()
+inline bool container<_TBase>::erase(const value_type& _Val)
 {
-    c.clear();
-}
+    const auto _Last  = end();
+    const auto _Where = std::find(begin(), _Last, _Val);
+    const bool _Found = (_Where != _Last);
+    if (_Found) {
+        erase(_Where);
+    }
 
-template <typename _TBase>
-__INLINE__ void container<_TBase>::shrink_to_fit()
-{
-    c.shrink_to_fit();
+    return _Found;
 }
 
 template <typename _TBase> template <typename _Predicate>
-__INLINE__ void container<_TBase>::erase_if(_Predicate _Pred)
+inline bool container<_TBase>::erase_if(_Predicate _Pred)
 {
-    auto _Last  = c.end();
-    auto _Where = std::find_if(c.begin(), _Last, _Pred);
-    if (_Where != _Last) {
-        c.erase(_Where);
+    const auto _Last  = end();
+    const auto _Where = std::find_if(begin(), _Last, _Pred);
+    const bool _Found = (_Where != _Last);
+    if (_Found) {
+        erase(_Where);
     }
+
+    return _Found;
 }
 
 template <typename _TBase>
-__INLINE__ void container<_TBase>::erase(const value_type& _Val)
+inline bool container<_TBase>::remove(const value_type& _Val)
 {
-    auto _Last  = c.end();
-    auto _Where = std::find(c.begin(), _Last, _Val);
-    if (_Where != _Last) {
-        c.erase(_Where);
+    const auto _Last  = end();
+    const auto _First = std::remove(begin(), _Last, _Val);
+    const bool _Found = (_First != _Last);
+    if (_Found) {
+        erase(_First, _Last);
     }
+
+    return _Found;
 }
 
 template <typename _TBase> template <typename _Predicate>
-__INLINE__ void container<_TBase>::remove_if(_Predicate _Pred)
+inline bool container<_TBase>::remove_if(_Predicate _Pred)
 {
-    auto _Last = c.end();
-    c.erase(std::remove_if(c.begin(), _Last, _Pred), _Last);
-}
+    const auto _Last  = end();
+    const auto _First = std::remove_if(begin(), _Last, _Pred);
+    const bool _Found = (_First != _Last);
+    if (_Found) {
+        erase(_First, _Last);
+    }
 
-template <typename _TBase>
-__INLINE__ void container<_TBase>::remove(const value_type& _Val)
-{
-    auto _Last = c.end();
-    c.erase(std::remove(c.begin(), _Last, _Val), _Last);
+    return _Found;
 }
 
 
@@ -92,35 +87,74 @@ __INLINE__ void container<_TBase>::remove(const value_type& _Val)
 //
 
 template <typename _Container>
-__INLINE__ void _Blocking_container<_Container>::clear()
+inline void _Blocking_container<_Container>::clear()
 {
     mutex_lock _Lock(_Mymutex);
     _Mycont.clear();
 }
 
 template <typename _Container>
-__INLINE__ void _Blocking_container<_Container>::shrink_to_fit()
+inline void _Blocking_container<_Container>::shrink_to_fit()
 {
     mutex_lock _Lock(_Mymutex);
     _Mycont.shrink_to_fit();
 }
 
 template <typename _Container>
-__INLINE__ bool _Blocking_container<_Container>::empty() const
+inline bool _Blocking_container<_Container>::erase(const value_type& _Val)
+{
+    mutex_lock _Lock(_Mymutex);
+    return _Mycont.erase(_Val);
+}
+
+template <typename _Container> template <typename _Predicate>
+inline bool _Blocking_container<_Container>::erase_if(_Predicate _Pred)
+{
+    mutex_lock _Lock(_Mymutex);
+    return _Mycont.erase_if(_Pred);
+}
+
+template <typename _Container>
+inline bool _Blocking_container<_Container>::remove(const value_type& _Val)
+{
+    mutex_lock _Lock(_Mymutex);
+    return _Mycont.remove(_Val);
+}
+
+template <typename _Container> template <typename _Predicate>
+inline bool _Blocking_container<_Container>::remove_if(_Predicate _Pred)
+{
+    mutex_lock _Lock(_Mymutex);
+    return _Mycont.remove_if(_Pred);
+}
+
+template <typename _Container>
+inline void _Blocking_container<_Container>::swap(_Blocking_container& _Right)
+{
+    if (this != &_Right) {
+        std::lock(_Mymutex, _Right._Mymutex);
+        mutex_lock _Lock1(_Mymutex, std::adopt_lock);
+        mutex_lock _Lock2(_Right._Mymutex, std::adopt_lock);
+        _Mycont.swap(_Right._Mycont);
+    }
+}
+
+template <typename _Container>
+inline bool _Blocking_container<_Container>::empty() const
 {
     mutex_lock _Lock(_Mymutex);
     return _Mycont.empty();
 }
 
 template <typename _Container>
-__INLINE__ typename _Blocking_container<_Container>::size_type _Blocking_container<_Container>::size() const
+inline typename _Blocking_container<_Container>::size_type _Blocking_container<_Container>::size() const
 {
     mutex_lock _Lock(_Mymutex);
     return _Mycont.size();
 }
 
 template <typename _Container> template <typename _Predicate>
-__INLINE__ bool _Blocking_container<_Container>::_Pop(value_type& _Val, uint32_t _Timeout, _Predicate _Pred)
+inline bool _Blocking_container<_Container>::_Pop(value_type& _Val, uint32_t _Timeout, _Predicate _Pred)
 {
     bool _Result;
     auto _Cond = [this]() {
@@ -151,7 +185,7 @@ __INLINE__ bool _Blocking_container<_Container>::_Pop(value_type& _Val, uint32_t
 //
 
 template <typename _Ty> template <typename... _ValArgs>
-__INLINE__ void blocking_deque<_Ty>::push_front(_ValArgs&&... _Args)
+inline void blocking_deque<_Ty>::push_front(_ValArgs&&... _Args)
 {
     {
         mutex_lock _Lock(_Mymutex);
@@ -162,7 +196,7 @@ __INLINE__ void blocking_deque<_Ty>::push_front(_ValArgs&&... _Args)
 }
 
 template <typename _Ty> template <typename... _ValArgs>
-__INLINE__ void blocking_deque<_Ty>::push_back(_ValArgs&&... _Args)
+inline void blocking_deque<_Ty>::push_back(_ValArgs&&... _Args)
 {
     {
         mutex_lock _Lock(_Mymutex);
@@ -173,7 +207,7 @@ __INLINE__ void blocking_deque<_Ty>::push_back(_ValArgs&&... _Args)
 }
 
 template <typename _Ty>
-__INLINE__ bool blocking_deque<_Ty>::pop_front(value_type& _Val, uint32_t _Timeout/* = -1*/)
+inline bool blocking_deque<_Ty>::pop_front(value_type& _Val, uint32_t _Timeout/* = -1*/)
 {
     return _Pop(_Val, _Timeout, [this](value_type& _Out) {
         _Out = std::move(_Mycont.front());
@@ -182,7 +216,7 @@ __INLINE__ bool blocking_deque<_Ty>::pop_front(value_type& _Val, uint32_t _Timeo
 }
 
 template <typename _Ty>
-__INLINE__ bool blocking_deque<_Ty>::pop_back(value_type& _Val, uint32_t _Timeout/* = -1*/)
+inline bool blocking_deque<_Ty>::pop_back(value_type& _Val, uint32_t _Timeout/* = -1*/)
 {
     return _Pop(_Val, _Timeout, [this](value_type& _Out) {
         _Out = std::move(_Mycont.back());
@@ -195,28 +229,72 @@ __INLINE__ bool blocking_deque<_Ty>::pop_back(value_type& _Val, uint32_t _Timeou
 // Implementation of the priority_queue class
 //
 
-template <typename _Ty, typename _Comparator>
-__INLINE__ priority_queue<_Ty, _Comparator>::priority_queue(const _Comparator& _Comp, container_type&& _Cont)
-    : _Mybase(_Comp, std::move(_Cont))
+template <typename _Ty, typename _Comparator> template <typename _Iter>
+inline priority_queue<_Ty, _Comparator>::priority_queue(_Iter _First, _Iter _Last)
+    : super(_First, _Last)
 {
 }
 
 template <typename _Ty, typename _Comparator>
-__INLINE__ priority_queue<_Ty, _Comparator>::priority_queue(const _Comparator& _Comp, const container_type& _Cont)
-    : _Mybase(_Comp, _Cont)
+inline priority_queue<_Ty, _Comparator>::priority_queue(std::initializer_list<_Ty> _List, const _Comparator& _Comp/* = _Comparator()*/)
+    : super(_Comp, _List)
 {
 }
 
 template <typename _Ty, typename _Comparator>
-__INLINE__ void priority_queue<_Ty, _Comparator>::clear()
+inline void priority_queue<_Ty, _Comparator>::clear()
 {
     c.clear();
 }
 
 template <typename _Ty, typename _Comparator>
-__INLINE__ void priority_queue<_Ty, _Comparator>::shrink_to_fit()
+inline void priority_queue<_Ty, _Comparator>::shrink_to_fit()
 {
     c.shrink_to_fit();
+}
+
+template <typename _Ty, typename _Comparator>
+inline bool priority_queue<_Ty, _Comparator>::erase(const value_type& _Val)
+{
+    const bool _Result = c.erase(_Val);
+    if (_Result) {
+        std::make_heap(c.begin(), c.end(), comp);
+    }
+
+    return _Result;
+}
+
+template <typename _Ty, typename _Comparator> template <typename _Predicate>
+inline bool priority_queue<_Ty, _Comparator>::erase_if(_Predicate _Pred)
+{
+    const bool _Result = c.erase_if(_Pred);
+    if (_Result) {
+        std::make_heap(c.begin(), c.end(), comp);
+    }
+
+    return _Result;
+}
+
+template <typename _Ty, typename _Comparator>
+inline bool priority_queue<_Ty, _Comparator>::remove(const value_type& _Val)
+{
+    const bool _Result = c.remove(_Val);
+    if (_Result) {
+        std::make_heap(c.begin(), c.end(), comp);
+    }
+
+    return _Result;
+}
+
+template <typename _Ty, typename _Comparator> template <typename _Predicate>
+inline bool priority_queue<_Ty, _Comparator>::remove_if(_Predicate _Pred)
+{
+    const bool _Result = c.remove_if(_Pred);
+    if (_Result) {
+        std::make_heap(c.begin(), c.end(), comp);
+    }
+
+    return _Result;
 }
 
 
@@ -225,7 +303,7 @@ __INLINE__ void priority_queue<_Ty, _Comparator>::shrink_to_fit()
 //
 
 template <typename _Ty, typename _Comparator> template <typename... _ValArgs>
-__INLINE__ void priority_blocking_queue<_Ty, _Comparator>::push(_ValArgs&&... _Args)
+inline void priority_blocking_queue<_Ty, _Comparator>::push(_ValArgs&&... _Args)
 {
     {
         mutex_lock _Lock(_Mymutex);
@@ -236,7 +314,7 @@ __INLINE__ void priority_blocking_queue<_Ty, _Comparator>::push(_ValArgs&&... _A
 }
 
 template <typename _Ty, typename _Comparator>
-__INLINE__ bool priority_blocking_queue<_Ty, _Comparator>::pop(value_type& _Val, uint32_t _Timeout/* = -1*/)
+inline bool priority_blocking_queue<_Ty, _Comparator>::pop(value_type& _Val, uint32_t _Timeout/* = -1*/)
 {
     return _Pop(_Val, _Timeout, [this](value_type& _Out) {
         _Out = const_cast<value_type&&>(_Mycont.top());

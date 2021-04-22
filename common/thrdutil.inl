@@ -73,7 +73,7 @@ __INLINE__ void TaskThread::stop()
     }
 }
 
-template <typename _Callable>
+template <typename _Callable, ThreadBase::_Check_callable_t<_Callable>>
 __INLINE__ bool TaskThread::post(_Callable&& callable)
 {
     const bool running = mRunning;
@@ -99,7 +99,7 @@ __INLINE__ bool TaskThread::post(_Callable&& callable)
     return running;
 }
 
-template <typename _Callable>
+template <typename _Callable, ThreadBase::_Check_callable_t<_Callable>>
 __INLINE__ bool TaskThread::postAtFront(_Callable&& callable)
 {
     const bool running = mRunning;
@@ -144,92 +144,12 @@ __INLINE__ void TaskThread::run()
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the Epoll class
-//
-
-__INLINE__ Epoll::Epoll()
-    : mEpollFd(-1), mEventFd(-1)
-{
-}
-
-__INLINE__ Epoll::~Epoll()
-{
-#ifndef NDEBUG
-    if (mEpollFd != -1) {
-        LOGE("The epoll has not closed.\n");
-        assert(false);
-    }
-#endif  // NDEBUG
-}
-
-__INLINE__ int Epoll::open()
-{
-    assert(mEpollFd == -1);
-    assert(mEventFd == -1);
-
-    mEpollFd = ::epoll_create(1);
-    mEventFd = ::eventfd(0, EFD_NONBLOCK);
-
-    int result = -1;
-    if (mEpollFd != -1 && mEventFd != -1) {
-        struct epoll_event event = { 0 };
-        event.events  = EPOLLIN;
-        event.data.fd = mEventFd;
-        result = ::epoll_ctl(mEpollFd, EPOLL_CTL_ADD, mEventFd, &event);
-    }
-
-#ifndef NDEBUG
-    if (mEpollFd == -1 || mEventFd == -1 || result == -1) {
-        LOGE("The epoll open failed - errno = %d\n", errno);
-        assert(false);
-    }
-#endif  // NDEBUG
-
-    return result;
-}
-
-__INLINE__ void Epoll::close()
-{
-    if (mEpollFd != -1) {
-        LOGD("The epoll was closed [%d, %d]\n", mEpollFd, mEventFd);
-        ::close(mEpollFd);
-        ::close(mEventFd);
-        mEpollFd = mEventFd = -1;
-    }
-}
-
-__INLINE__ void Epoll::notify()
-{
-    uint64_t value = 1;
-    ::write(mEventFd, &value, sizeof(uint64_t));
-}
-
-__INLINE__ void Epoll::wait(int timeout)
-{
-    struct epoll_event event;
-    const int result = ::epoll_wait(mEpollFd, &event, 1, timeout);
-
-#ifndef NDEBUG
-    if (result == -1) {
-        LOGE("The epoll wait failed - errno = %d\n", errno);
-        assert(false);
-    }
-#endif  // NDEBUG
-
-    if (result > 0 && event.data.fd == mEventFd && (event.events & EPOLLIN)) {
-        uint64_t value;
-        ::read(mEventFd, &value, sizeof(uint64_t));
-    }
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
 // Implementation of the LooperThread class
 //
 
 __INLINE__ void LooperThread::start()
 {
-    if (!mRunning.exchange(true) && mEpoll.open() == 0) {
+    if (!mRunning.exchange(true) && mPoll.create() != -1) {
         mThread = std::thread(&LooperThread::run, this);
     }
 }
@@ -237,23 +157,14 @@ __INLINE__ void LooperThread::start()
 __INLINE__ void LooperThread::stop()
 {
     if (mRunning.exchange(false)) {
-        mEpoll.notify();
+        mPoll.notify();
         mThread.join();
-        mEpoll.close();
-
-    #ifndef NDEBUG
-        const size_t size = mTaskQueue.size();
-        if (size > 0) {
-            LOGW("The number of %zu pending tasks will be discard.\n", size);
-        }
-    #endif  // NDEBUG
-
-        // Clears all pending tasks.
-        mTaskQueue.clear();
+        mPoll.close();
+        mTaskQueue.clear();  // Clears all pending tasks.
     }
 }
 
-template <typename _Callable>
+template <typename _Callable, ThreadBase::_Check_callable_t<_Callable>>
 __INLINE__ bool LooperThread::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
 {
     const bool running = mRunning;
@@ -266,23 +177,15 @@ __INLINE__ bool LooperThread::post(_Callable&& callable, uint32_t delayMillis/* 
     }
 
     if (running) {
-        {
-            MutexLock lock(mMutex);
-            mTaskQueue.emplace(std::move(runnable), delayMillis);
-        }
-
-        mEpoll.notify();
+        mTaskQueue.push(std::move(runnable), delayMillis);
+        mPoll.notify();
     } else {
         LOGE("The LooperThread has not started.\n");
     }
 #else
     if (running) {
-        {
-            MutexLock lock(mMutex);
-            mTaskQueue.emplace(std::forward<_Callable>(callable), delayMillis);
-        }
-
-        mEpoll.notify();
+        mTaskQueue.push(std::forward<_Callable>(callable), delayMillis);
+        mPoll.notify();
     }
 #endif  // NDEBUG
 
@@ -293,46 +196,96 @@ __INLINE__ void LooperThread::run()
 {
     LOGD("LooperThread::start()\n");
     Task task;
-    for (;;) {
-        do {
-            const int timeout = nextTask(task);   // might block
-            if (timeout == 0) {
-                // Got a task.
-                break;
-            }
-
-            // The next task is not ready. Waiting a timeout to wake up when it is ready.
-            mEpoll.wait(timeout);
-        } while (mRunning);
-
-        // Exit the run, if this thread has stopped.
-        if (!mRunning) {
-            break;
-        }
-
-        // Run the task.
+    while (nextTask(task)) {    // might block
         task.mRunnable();
     }
 
     LOGD("LooperThread::stop()\n");
 }
 
-__INLINE__ int LooperThread::nextTask(Task& outTask)
+__INLINE__ bool LooperThread::nextTask(Task& outTask)
 {
-    MutexLock lock(mMutex);
-    int timeout;
-    if (mTaskQueue.empty()) {
-        // No more tasks.
-        timeout = -1;
-    } else {
-        const Task& task = mTaskQueue.top();
-        if ((timeout = task.getTimeout()) == 0) {
-            outTask = const_cast<Task&&>(task);
-            mTaskQueue.pop();
+    while (mRunning) {
+        const int timeout = mTaskQueue.pop(outTask);
+        if (timeout == 0) {
+            // Got a task.
+            break;
         }
+
+        // The next task is not ready. Waiting
+        // a timeout to wake up when it is ready.
+        mPoll.wait(timeout);
     }
 
-    return timeout;
+    return mRunning;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the LooperThread::Poll class
+//
+
+__INLINE__ LooperThread::Poll::Poll()
+    : mEventFd(-1)
+{
+}
+
+__INLINE__ LooperThread::Poll::~Poll()
+{
+#ifndef NDEBUG
+    if (mEventFd != -1) {
+        LOGE("The Poll has not closed.\n");
+        assert(false);
+    }
+#endif  // NDEBUG
+}
+
+__INLINE__ int LooperThread::Poll::create()
+{
+    assert(mEventFd == -1);
+    mEventFd = ::eventfd(0, EFD_NONBLOCK);
+
+#ifndef NDEBUG
+    if (mEventFd == -1) {
+        logError("The Poll create failed");
+        assert(false);
+    }
+#endif  // NDEBUG
+
+    return mEventFd;
+}
+
+__INLINE__ void LooperThread::Poll::close()
+{
+    if (mEventFd != -1) {
+        LOGD("The Poll was closed [%d]\n", mEventFd);
+        ::close(mEventFd);
+        mEventFd = -1;
+    }
+}
+
+__INLINE__ void LooperThread::Poll::notify()
+{
+    constexpr uint64_t value = 1;
+    ::write(mEventFd, &value, sizeof(uint64_t));
+}
+
+__INLINE__ void LooperThread::Poll::wait(int timeout)
+{
+    struct pollfd pfd = { mEventFd, POLLIN };
+    const int result = ::poll(&pfd, 1, timeout);
+
+#ifndef NDEBUG
+    if (result == -1) {
+        logError("The Poll wait failed");
+        assert(false);
+    }
+#endif  // NDEBUG
+
+    if (result > 0 && pfd.fd == mEventFd && (pfd.revents & POLLIN)) {
+        uint64_t value;
+        ::read(mEventFd, &value, sizeof(uint64_t));
+    }
 }
 
 
@@ -362,6 +315,140 @@ __INLINE__ int LooperThread::Task::getTimeout() const
 __INLINE__ bool LooperThread::Task::operator>(const Task& right) const
 {
     return (mWhen > right.mWhen);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the LooperThread::TaskQueue class
+//
+
+__INLINE__ void LooperThread::TaskQueue::clear()
+{
+    MutexLock lock(mMutex);
+
+#ifndef NDEBUG
+    const size_t size = super::size();
+    if (size > 0) {
+        LOGW("The number of %zu pending tasks will be discard.\n", size);
+    }
+#endif // NDEBUG
+
+    super::clear();
+}
+
+template <typename _Callable>
+__INLINE__ void LooperThread::TaskQueue::push(_Callable&& callable, uint32_t delayMillis)
+{
+    MutexLock lock(mMutex);
+    super::emplace(std::forward<_Callable>(callable), delayMillis);
+}
+
+__INLINE__ int LooperThread::TaskQueue::pop(Task& outTask)
+{
+    MutexLock lock(mMutex);
+    int timeout;
+    if (super::empty()) {
+        // No more tasks.
+        timeout = -1;
+    } else {
+        const Task& task = super::top();
+        if ((timeout = task.getTimeout()) == 0) {
+            outTask = const_cast<Task&&>(task);
+            super::pop();
+        }
+    }
+
+    return timeout;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the LocalSocketThread class
+//
+
+template <typename _Callback>
+__INLINE__ void LocalSocketThread::start(const char* name, _Callback&& callback)
+{
+    if (!mRunning.exchange(true) && mSocket.connect(name) == 0) {
+        mCallback = std::forward<_Callback>(callback);
+        mThread = std::thread(&LocalSocketThread::run, this);
+        LOGD("LocalSocketThread::start()\n");
+    }
+}
+
+__INLINE__ void LocalSocketThread::stop()
+{
+    if (mRunning.exchange(false)) {
+        mSocket.close();
+        mThread.join();
+        LOGD("LocalSocketThread::stop()\n");
+    }
+}
+
+__INLINE__ ssize_t LocalSocketThread::send(const void* buf, size_t size) const
+{
+    assert(buf);
+    assert(size > 0);
+
+#ifndef NDEBUG
+    ssize_t sendBytes = -1;
+    if (mRunning && !mSocket.isEmpty()) {
+        sendBytes = mSocket.send(buf, size);
+    } else {
+        LOGE("The LocalSocketThread has not started.\n");
+    }
+
+    return sendBytes;
+#else
+    return (mRunning && !mSocket.isEmpty() ? mSocket.send(buf, size) : -1);
+#endif  // NDEBUG
+}
+
+__INLINE__ void LocalSocketThread::run()
+{
+    uint8_t buf[8192];
+    while (true) {
+        const ssize_t size = mSocket.recv(buf, sizeof(buf));
+        if (size == 0) {
+            break;
+        }
+
+        mCallback(buf, size);
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the LocalServerThread class
+//
+
+template <typename _Callback>
+__INLINE__ void LocalServerThread::start(const char* name, _Callback&& callback)
+{
+    if (!mRunning.exchange(true) && mServer.listen(name) == 0) {
+        mCallback = std::forward<_Callback>(callback);
+        mThread = std::thread(&LocalServerThread::run, this);
+        LOGD("LocalServerThread::start()\n");
+    }
+}
+
+__INLINE__ void LocalServerThread::stop()
+{
+    if (mRunning.exchange(false)) {
+        mSocket.close();
+        mServer.close();
+        mThread.join();
+        LOGD("LocalServerThread::stop()\n");
+    }
+}
+
+__INLINE__ void LocalServerThread::run()
+{
+    const int sockFd = mServer.accept();
+    if (sockFd != -1) {
+        mSocket.attach(sockFd);
+        LocalSocketThread::run();
+    }
 }
 
 }  // namespace stdutil
