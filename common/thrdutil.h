@@ -7,11 +7,10 @@
 #ifndef __THRDUTIL_H__
 #define __THRDUTIL_H__
 
+#include <poll.h>
+#include <thread>
 #include "ipcutil.h"
 #include "stdcolls.h"
-#include <thread>
-#include <poll.h>
-#include <sys/eventfd.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Classes in this file:
@@ -171,6 +170,13 @@ private:
     void run();
 
     /**
+     * Blocks this thread, and sets a timeout after this thread unblocks.
+     * @param timeout The waiting timeout in milliseconds, -1 causes wait
+     * to indefinitely.
+     */
+    void pollWait(int timeout);
+
+    /**
      * Retrieves and removes the task on top of the task queue.
      * @param outTask The outTask to store the returned task.
      * @return returns true if retrieves successful, false otherwise.
@@ -182,50 +188,6 @@ private:
     using Runnable  = std::function<void()>;
     using MutexLock = std::lock_guard<std::mutex>;
     using TimePoint = std::chrono::steady_clock::time_point;
-
-    ///////////////////////////////////////////////////////////////////////////
-    // Interface of the Poll class
-    //
-
-    class Poll final
-    {
-    // Constructors/Destructor
-    public:
-        Poll();
-        ~Poll();
-
-        Poll(const Poll&) = delete;
-        Poll& operator=(const Poll&) = delete;
-
-    // Operations
-    public:
-        /**
-         * Creates a new poll file descriptor.
-         * @return returns a new poll file descriptor, -1 otherwise.
-         */
-        int create();
-
-        /**
-         * Closes this poll file descriptor.
-         */
-        void close();
-
-        /**
-         * Unblocks a thread currently waiting for this poll.
-         */
-        void notify();
-
-        /**
-         * Blocks a thread, and sets a timeout after which the thread unblocks.
-         * @param timeout The waiting timeout in milliseconds, -1 causes wait to 
-         * indefinitely.
-         */
-        void wait(int timeout);
-
-    // Data members
-    private:
-        int mEventFd;
-    };
 
     ///////////////////////////////////////////////////////////////////////////
     // Interface of the Task class
@@ -310,7 +272,7 @@ private:
 
 // Data members
 private:
-    Poll mPoll;
+    EventFd mEventFd;
     TaskQueue mTaskQueue;
 };
 

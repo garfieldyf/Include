@@ -10,28 +10,176 @@
 #include "platform.h"
 #include <unistd.h>
 #include <sys/un.h>
+#include <sys/epoll.h>
 #include <sys/socket.h>
+#include <sys/eventfd.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 // Classes in this file:
 //
+// Epoll
+// EventFd
 // LocalSocket
 
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
+// Interface of the FileDescriptor class
+//
+
+class FileDescriptor
+{
+// Constructors/Destructor
+protected:
+    explicit FileDescriptor(int fd = -1);
+    ~FileDescriptor();
+
+    FileDescriptor(const FileDescriptor&) = delete;
+    FileDescriptor& operator=(const FileDescriptor&) = delete;
+
+// Operations
+public:
+    /**
+     * Returns the file descriptor of this object.
+     */
+    operator int() const;
+
+    /**
+     * Closes the file descriptor of this object.
+     */
+    void close();
+
+    /**
+     * Attachs a file descriptor to this object.
+     * @param fd A file descriptor to attach.
+     */
+    void attach(int fd);
+
+    /**
+     * Reads the count bytes from the file descriptor into the buffer.
+     * @param buf A pointer to the buffer to receive the data.
+     * @param count The number of bytes of the buffer.
+     * @return The number of bytes to read, -1 otherwise.
+     */
+    ssize_t read(void* buf, size_t count) const;
+
+    /**
+     * Writes the count bytes from the buffer to the file descriptor.
+     * @param buf A pointer to a buffer containing the data.
+     * @param count The number of bytes of the buffer.
+     * @return The number of bytes to write, -1 otherwise.
+     */
+    ssize_t write(const void* buf, size_t count) const;
+
+// Attributes
+public:
+    /**
+     * Tests if this object is empty.
+     * @return true if this object is empty, false otherwise.
+     */
+    bool isEmpty() const;
+
+// Data members
+protected:
+    int mFd;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the Epoll class
+//
+
+class Epoll final : public FileDescriptor
+{
+// Constructors
+public:
+    explicit Epoll(int epollFd = -1);
+
+// Operations
+public:
+    /**
+     * Creates a new epoll file descriptor.
+     * @param size The number of file descriptors that the caller
+     * expected to add to this epoll.
+     * @return returns a new epoll file descriptor, -1 otherwise.
+     */
+    int create(int size = 1);
+
+    /**
+     * Adds a file descriptor to this epoll.
+     * @param fd The file descriptor to add.
+     * @param events The events to add.
+     * @return returns 0 if adds successful, -1 otherwise.
+     */
+    int addFd(int fd, uint32_t events = EPOLLIN) const;
+
+    /**
+     * Removes a file descriptor from this epoll.
+     * @param fd The file descriptor to remove.
+     * @return returns 0 if removes successful, -1 otherwise.
+     */
+    int removeFd(int fd) const;
+
+    /**
+     * Waits for events on this epoll.
+     * @param events A pointer to the epoll_event is used to return
+     * information from the ready list about file descriptors.
+     * @param count The number of epoll_events.
+     * @param timeout The waiting timeout in milliseconds, -1 causes
+     * wait to indefinitely.
+     * @return The number of file descriptors ready for the requested
+     * I/O, or 0 if no file descriptor became ready during the requested
+     * timeout milliseconds, -1 otherwise.
+     */
+    int wait(struct epoll_event* events, int count = 1, int timeout = -1) const;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the EventFd class
+//
+
+class EventFd final : public FileDescriptor
+{
+// Constructors
+public:
+    explicit EventFd(int eventFd = -1);
+
+// Operations
+public:
+    /**
+     * Creates a new eventfd object.
+     * @param initval The initial counter of this eventfd.
+     * @param flags The flags to create.
+     * @return returns a new file descriptor of this object, -1 otherwise.
+     */
+    int create(uint32_t initval = 0, int flags = EFD_NONBLOCK);
+
+    /**
+     * Reads an 8-byte unsigned integer from this eventfd.
+     * @param value The value to store the read result.
+     * @return The number of bytes to read, -1 otherwise.
+     */
+    ssize_t read(uint64_t& value) const;
+
+    /**
+     * Writes an 8-byte unsigned integer to this eventfd.
+     * @param value The value to write.
+     * @return The number of bytes to write, -1 otherwise.
+     */
+    ssize_t write(uint64_t value = 1) const;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
 // Interface of the LocalSocket class
 //
 
-class LocalSocket final
+class LocalSocket final : public FileDescriptor
 {
-// Constructors/Destructor
+// Constructors
 public:
-    LocalSocket();
-    ~LocalSocket();
-
-    LocalSocket(const LocalSocket&) = delete;
-    LocalSocket& operator=(const LocalSocket&) = delete;
+    explicit LocalSocket(int sockFd = -1);
 
 // Operations
 public:
@@ -61,6 +209,12 @@ public:
     int listen(const char* name, Namespace ns = Namespace::abstract);
 
     /**
+     * Permits an incoming connection attempt on this socket.
+     * @return returns a file descriptor for the accepted socket, -1 otherwise.
+     */
+    int accept() const;
+
+    /**
      * Establishes a connection to a UNIX-domain socket.
      * @param name The name of the address.
      * @param ns The namespace of the UNIX-domain socket.
@@ -68,54 +222,9 @@ public:
      */
     int connect(const char* name, Namespace ns = Namespace::abstract);
 
-    /**
-     * Sends data to a connected socket.
-     * @param buf A pointer to a buffer containing the data.
-     * @param size The number of bytes of the buffer.
-     * @return The total number of bytes sent, -1 otherwise.
-     */
-    ssize_t send(const void* buf, size_t size) const;
-
-    /**
-     * Receives data from a connected socket.
-     * @param buf A pointer to the buffer to receive the incoming data.
-     * @param size The number of bytes of the buffer.
-     * @return The number of bytes received, -1 otherwise.
-     */
-    ssize_t recv(void* buf, size_t size) const;
-
-    /**
-     * Permits an incoming connection attempt on this socket.
-     * @return returns a file descriptor for the accepted socket, -1 otherwise.
-     */
-    int accept();
-
-    /**
-     * Closes this socket file descriptor.
-     */
-    void close();
-
-    /**
-     * Attachs a file descriptor of the socket.
-     * @param sockFd A file descriptor of the socket.
-     */
-    void attach(int sockFd);
-
-// Attributes
-public:
-    /**
-     * Tests if this socket is empty.
-     * @return true if this socket is empty, false otherwise.
-     */
-    bool isEmpty() const;
-
 // Implementation
 private:
     static socklen_t buildSockAddr(struct sockaddr_un& addr, const char* name, Namespace ns);
-
-// Data members
-private:
-    int mSockFd;
 };
 
 }  // namespace stdutil

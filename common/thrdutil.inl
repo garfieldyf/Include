@@ -149,7 +149,7 @@ __INLINE__ void TaskThread::run()
 
 __INLINE__ void LooperThread::start()
 {
-    if (!mRunning.exchange(true) && mPoll.create() != -1) {
+    if (!mRunning.exchange(true) && mEventFd.create() != -1) {
         mThread = std::thread(&LooperThread::run, this);
     }
 }
@@ -157,9 +157,9 @@ __INLINE__ void LooperThread::start()
 __INLINE__ void LooperThread::stop()
 {
     if (mRunning.exchange(false)) {
-        mPoll.notify();
+        mEventFd.write(1);
         mThread.join();
-        mPoll.close();
+        mEventFd.close();
         mTaskQueue.clear();  // Clears all pending tasks.
     }
 }
@@ -178,14 +178,14 @@ __INLINE__ bool LooperThread::post(_Callable&& callable, uint32_t delayMillis/* 
 
     if (running) {
         mTaskQueue.push(std::move(runnable), delayMillis);
-        mPoll.notify();
+        mEventFd.write(1);
     } else {
         LOGE("The LooperThread has not started.\n");
     }
 #else
     if (running) {
         mTaskQueue.push(std::forward<_Callable>(callable), delayMillis);
-        mPoll.notify();
+        mEventFd.write(1);
     }
 #endif  // NDEBUG
 
@@ -203,6 +203,24 @@ __INLINE__ void LooperThread::run()
     LOGD("LooperThread::stop()\n");
 }
 
+__INLINE__ void LooperThread::pollWait(int timeout)
+{
+    struct pollfd pfd = { mEventFd, POLLIN };
+    const int result = ::poll(&pfd, 1, timeout);
+
+#ifndef NDEBUG
+    if (result == -1) {
+        logError("The poll wait failed");
+        assert(false);
+    }
+#endif  // NDEBUG
+
+    if (result > 0 && pfd.fd == mEventFd && (pfd.revents & POLLIN)) {
+        uint64_t value;
+        mEventFd.read(value);
+    }
+}
+
 __INLINE__ bool LooperThread::nextTask(Task& outTask)
 {
     while (mRunning) {
@@ -214,78 +232,10 @@ __INLINE__ bool LooperThread::nextTask(Task& outTask)
 
         // The next task is not ready. Waiting
         // a timeout to wake up when it is ready.
-        mPoll.wait(timeout);
+        pollWait(timeout);
     }
 
     return mRunning;
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the LooperThread::Poll class
-//
-
-__INLINE__ LooperThread::Poll::Poll()
-    : mEventFd(-1)
-{
-}
-
-__INLINE__ LooperThread::Poll::~Poll()
-{
-#ifndef NDEBUG
-    if (mEventFd != -1) {
-        LOGE("The Poll has not closed.\n");
-        assert(false);
-    }
-#endif  // NDEBUG
-}
-
-__INLINE__ int LooperThread::Poll::create()
-{
-    assert(mEventFd == -1);
-    mEventFd = ::eventfd(0, EFD_NONBLOCK);
-
-#ifndef NDEBUG
-    if (mEventFd == -1) {
-        logError("The Poll create failed");
-        assert(false);
-    }
-#endif  // NDEBUG
-
-    return mEventFd;
-}
-
-__INLINE__ void LooperThread::Poll::close()
-{
-    if (mEventFd != -1) {
-        LOGD("The Poll was closed [%d]\n", mEventFd);
-        ::close(mEventFd);
-        mEventFd = -1;
-    }
-}
-
-__INLINE__ void LooperThread::Poll::notify()
-{
-    constexpr uint64_t value = 1;
-    ::write(mEventFd, &value, sizeof(uint64_t));
-}
-
-__INLINE__ void LooperThread::Poll::wait(int timeout)
-{
-    struct pollfd pfd = { mEventFd, POLLIN };
-    const int result = ::poll(&pfd, 1, timeout);
-
-#ifndef NDEBUG
-    if (result == -1) {
-        logError("The Poll wait failed");
-        assert(false);
-    }
-#endif  // NDEBUG
-
-    if (result > 0 && pfd.fd == mEventFd && (pfd.revents & POLLIN)) {
-        uint64_t value;
-        ::read(mEventFd, &value, sizeof(uint64_t));
-    }
 }
 
 
@@ -393,14 +343,14 @@ __INLINE__ ssize_t LocalSocketThread::send(const void* buf, size_t size) const
 #ifndef NDEBUG
     ssize_t sendBytes = -1;
     if (mRunning && !mSocket.isEmpty()) {
-        sendBytes = mSocket.send(buf, size);
+        sendBytes = mSocket.write(buf, size);
     } else {
         LOGE("The LocalSocketThread has not started.\n");
     }
 
     return sendBytes;
 #else
-    return (mRunning && !mSocket.isEmpty() ? mSocket.send(buf, size) : -1);
+    return (mRunning && !mSocket.isEmpty() ? mSocket.write(buf, size) : -1);
 #endif  // NDEBUG
 }
 
@@ -408,7 +358,7 @@ __INLINE__ void LocalSocketThread::run()
 {
     uint8_t buf[8192];
     while (true) {
-        const ssize_t size = mSocket.recv(buf, sizeof(buf));
+        const ssize_t size = mSocket.read(buf, sizeof(buf));
         if (size == 0) {
             break;
         }
