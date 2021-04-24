@@ -7,6 +7,7 @@
 #ifndef __STDCOLLS_H__
 #define __STDCOLLS_H__
 
+#include "platform.h"
 #include <queue>
 #include <mutex>
 #include <condition_variable>

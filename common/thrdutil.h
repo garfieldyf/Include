@@ -54,7 +54,7 @@ public:
 // Implementation
 protected:
     template <typename _Callable>
-    using _Check_callable_t = typename std::enable_if<!std::is_same<typename std::decay<_Callable>::type, std::nullptr_t>::value, int>::type;
+    using _Check_callable_t = std::enable_if_t<!std::is_same<std::decay_t<_Callable>, std::nullptr_t>::value, int>;
 
 // Data members
 protected:
