@@ -15,11 +15,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Classes in this file:
 //
-// deque<_Ty>
-// vector<_Ty>
-// blocking_deque<_Ty>
-// priority_queue<_Ty, _Comparator>
-// priority_blocking_queue<_Ty, _Comparator>
+// deque<_Ty, _Alloc>
+// vector<_Ty, _Alloc>
+// blocking_deque<_Ty, _Alloc>
+// priority_queue<_Ty, _Container, _Comparator>
+// priority_blocking_queue<_Ty, _Container, _Comparator>
 
 namespace stdutil {
 
@@ -66,14 +66,14 @@ public:
     bool erase_if(_Predicate _Pred);
 
     /**
-     * Removes elements from this container.
+     * Removes from this container all the elements that compare equal to _Val.
      * @param _Val The element that is to be removed.
      * @return true if removes elements successful, false otherwise.
      */
     bool remove(const value_type& _Val);
 
     /**
-     * Removes elements from this container.
+     * Removes from this container all the elements for which predicate _Pred returns true.
      * @param _Pred The predicate to apply to all elements.
      * @return true if removes elements successful, false otherwise.
      */
@@ -140,14 +140,14 @@ public:
     bool erase_if(_Predicate _Pred);
 
     /**
-     * Removes elements from this container.
+     * Removes from this container all the elements that compare equal to _Val.
      * @param _Val The element that is to be removed.
      * @return true if removes elements successful, false otherwise.
      */
     bool remove(const value_type& _Val);
 
     /**
-     * Removes elements from this container.
+     * Removes from this container all the elements for which predicate _Pred returns true.
      * @param _Pred The predicate to apply to all elements.
      * @return true if removes elements successful, false otherwise.
      */
@@ -194,11 +194,11 @@ protected:
 // Interface of the blocking_deque class
 //
 
-template <typename _Ty>
-class blocking_deque : public _Blocking_container<deque<_Ty>>
+template <typename _Ty, typename _Alloc = std::allocator<_Ty>>
+class blocking_deque : public _Blocking_container<deque<_Ty, _Alloc>>
 {
 public:
-    using value_type = typename deque<_Ty>::value_type;
+    using value_type = typename deque<_Ty, _Alloc>::value_type;
 
 // Constructors
 public:
@@ -242,7 +242,7 @@ public:
 
 // Implementation
 private:
-    using super = _Blocking_container<deque<_Ty>>;
+    using super = _Blocking_container<deque<_Ty, _Alloc>>;
     using super::_Pop;
     using super::_Mycont;
     using super::_Mycond;
@@ -256,11 +256,11 @@ private:
 // Interface of the priority_queue class
 //
 
-template <typename _Ty, typename _Comparator = std::less<_Ty>>
-class priority_queue : public std::priority_queue<_Ty, vector<_Ty>, _Comparator>
+template <typename _Ty, typename _Container = vector<_Ty>, typename _Comparator = std::less<_Ty>>
+class priority_queue : public std::priority_queue<_Ty, _Container, _Comparator>
 {
 public:
-    using value_type = typename vector<_Ty>::value_type;
+    using value_type = typename _Container::value_type;
 
 // Constructors
 public:
@@ -303,14 +303,14 @@ public:
     bool erase_if(_Predicate _Pred);
 
     /**
-     * Removes elements from this container.
+     * Removes from this container all the elements that compare equal to _Val.
      * @param _Val The element that is to be removed.
      * @return true if removes elements successful, false otherwise.
      */
     bool remove(const value_type& _Val);
 
     /**
-     * Removes elements from this container.
+     * Removes from this container all the elements for which predicate _Pred returns true.
      * @param _Pred The predicate to apply to all elements.
      * @return true if removes elements successful, false otherwise.
      */
@@ -319,7 +319,7 @@ public:
 
 // Implementation
 private:
-    using super = std::priority_queue<_Ty, vector<_Ty>, _Comparator>;
+    using super = std::priority_queue<_Ty, _Container, _Comparator>;
     using super::c;
     using super::comp;
 };
@@ -329,11 +329,11 @@ private:
 // Interface of the priority_blocking_queue class
 //
 
-template <typename _Ty, typename _Comparator = std::less<_Ty>>
-class priority_blocking_queue : public _Blocking_container<priority_queue<_Ty, _Comparator>>
+template <typename _Ty, typename _Container = vector<_Ty>, typename _Comparator = std::less<_Ty>>
+class priority_blocking_queue : public _Blocking_container<priority_queue<_Ty, _Container, _Comparator>>
 {
 public:
-    using value_type = typename priority_queue<_Ty, _Comparator>::value_type;
+    using value_type = typename priority_queue<_Ty, _Container, _Comparator>::value_type;
 
 // Constructors
 public:
@@ -360,7 +360,7 @@ public:
 
 // Implementation
 private:
-    using super = _Blocking_container<priority_queue<_Ty, _Comparator>>;
+    using super = _Blocking_container<priority_queue<_Ty, _Container, _Comparator>>;
     using super::_Pop;
     using super::_Mycont;
     using super::_Mycond;

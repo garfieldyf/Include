@@ -203,7 +203,7 @@ __INLINE__ void LooperThread::run()
     LOGD("LooperThread::stop()\n");
 }
 
-__INLINE__ void LooperThread::pollWait(int timeout)
+__INLINE__ void LooperThread::pollOnce(int timeout)
 {
     struct pollfd pfd = { mEventFd, POLLIN };
     const int result = ::poll(&pfd, 1, timeout);
@@ -232,7 +232,7 @@ __INLINE__ bool LooperThread::nextTask(Task& outTask)
 
         // The next task is not ready. Waiting
         // a timeout to wake up when it is ready.
-        pollWait(timeout);
+        pollOnce(timeout);
     }
 
     return mRunning;

@@ -80,7 +80,8 @@ public:
     void start();
 
     /**
-     * Forces this thread to stop executing.
+     * Forces this thread to stop executing. All remaining
+     * tasks will be removed from the task queue.
      */
     void stop();
 
@@ -142,7 +143,8 @@ public:
     void start();
 
     /**
-     * Forces this thread to stop executing.
+     * Forces this thread to stop executing. All remaining
+     * tasks will be removed from the task queue.
      */
     void stop();
 
@@ -174,7 +176,7 @@ private:
      * @param timeout The waiting timeout in milliseconds, -1 causes wait
      * to indefinitely.
      */
-    void pollWait(int timeout);
+    void pollOnce(int timeout);
 
     /**
      * Retrieves and removes the task on top of the task queue.
@@ -231,7 +233,7 @@ private:
     // Interface of the TaskQueue class
     //
 
-    class TaskQueue final : private priority_queue<Task, std::greater<Task>>
+    class TaskQueue final : private priority_queue<Task, vector<Task>, std::greater<Task>>
     {
     // Constructors
     public:
@@ -263,7 +265,7 @@ private:
 
     // Implementation
     private:
-        using super = priority_queue<Task, std::greater<Task>>;
+        using super = priority_queue<Task, vector<Task>, std::greater<Task>>;
 
     // Data members
     private:
