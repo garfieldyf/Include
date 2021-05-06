@@ -31,10 +31,11 @@ template <typename _TBase>
 class container final : public _TBase
 {
 public:
-    using value_type = typename _TBase::value_type;
     using _TBase::begin;
     using _TBase::end;
     using _TBase::erase;
+    using size_type  = typename _TBase::size_type;
+    using value_type = typename _TBase::value_type;
 
 // Constructors
 public:
@@ -68,17 +69,17 @@ public:
     /**
      * Removes from this container all the elements that compare equal to _Val.
      * @param _Val The element that is to be removed.
-     * @return true if removes elements successful, false otherwise.
+     * @return The number of elements to be removed.
      */
-    bool remove(const value_type& _Val);
+    size_type remove(const value_type& _Val);
 
     /**
      * Removes from this container all the elements for which predicate _Pred returns true.
      * @param _Pred The predicate to apply to all elements.
-     * @return true if removes elements successful, false otherwise.
+     * @return The number of elements to be removed.
      */
     template <typename _Predicate>
-    bool remove_if(_Predicate _Pred);
+    size_type remove_if(_Predicate _Pred);
 };
 
 
@@ -142,17 +143,17 @@ public:
     /**
      * Removes from this container all the elements that compare equal to _Val.
      * @param _Val The element that is to be removed.
-     * @return true if removes elements successful, false otherwise.
+     * @return The number of elements to be removed.
      */
-    bool remove(const value_type& _Val);
+    size_type remove(const value_type& _Val);
 
     /**
      * Removes from this container all the elements for which predicate _Pred returns true.
      * @param _Pred The predicate to apply to all elements.
-     * @return true if removes elements successful, false otherwise.
+     * @return The number of elements to be removed.
      */
     template <typename _Predicate>
-    bool remove_if(_Predicate _Pred);
+    size_type remove_if(_Predicate _Pred);
 
     /**
      * Swaps the contents of this container with another container.
@@ -260,6 +261,7 @@ template <typename _Ty, typename _Container = vector<_Ty>, typename _Comparator 
 class priority_queue : public std::priority_queue<_Ty, _Container, _Comparator>
 {
 public:
+    using size_type  = typename _Container::size_type;
     using value_type = typename _Container::value_type;
 
 // Constructors
@@ -305,17 +307,17 @@ public:
     /**
      * Removes from this container all the elements that compare equal to _Val.
      * @param _Val The element that is to be removed.
-     * @return true if removes elements successful, false otherwise.
+     * @return The number of elements to be removed.
      */
-    bool remove(const value_type& _Val);
+    size_type remove(const value_type& _Val);
 
     /**
      * Removes from this container all the elements for which predicate _Pred returns true.
      * @param _Pred The predicate to apply to all elements.
-     * @return true if removes elements successful, false otherwise.
+     * @return The number of elements to be removed.
      */
     template <typename _Predicate>
-    bool remove_if(_Predicate _Pred);
+    size_type remove_if(_Predicate _Pred);
 
 // Implementation
 private:

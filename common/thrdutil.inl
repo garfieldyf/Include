@@ -157,7 +157,7 @@ __INLINE__ void LooperThread::start()
 __INLINE__ void LooperThread::stop()
 {
     if (mRunning.exchange(false)) {
-        mEventFd.write(1);
+        mEventFd.write();
         mThread.join();
         mEventFd.close();
         mTaskQueue.clear();  // Clears all pending tasks.
@@ -178,14 +178,14 @@ __INLINE__ bool LooperThread::post(_Callable&& callable, uint32_t delayMillis/* 
 
     if (running) {
         mTaskQueue.push(std::move(runnable), delayMillis);
-        mEventFd.write(1);
+        mEventFd.write();
     } else {
         LOGE("The LooperThread has not started.\n");
     }
 #else
     if (running) {
         mTaskQueue.push(std::forward<_Callable>(callable), delayMillis);
-        mEventFd.write(1);
+        mEventFd.write();
     }
 #endif  // NDEBUG
 

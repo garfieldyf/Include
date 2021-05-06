@@ -56,29 +56,29 @@ __INLINE__ bool container<_TBase>::erase_if(_Predicate _Pred)
 }
 
 template <typename _TBase>
-__INLINE__ bool container<_TBase>::remove(const value_type& _Val)
+__INLINE__ typename container<_TBase>::size_type container<_TBase>::remove(const value_type& _Val)
 {
     const auto _Last  = end();
     const auto _First = std::remove(begin(), _Last, _Val);
-    const bool _Found = (_First != _Last);
-    if (_Found) {
+    const auto _Count = _Last - _First;
+    if (_Count > 0) {
         erase(_First, _Last);
     }
 
-    return _Found;
+    return _Count;
 }
 
 template <typename _TBase> template <typename _Predicate>
-__INLINE__ bool container<_TBase>::remove_if(_Predicate _Pred)
+__INLINE__ typename container<_TBase>::size_type container<_TBase>::remove_if(_Predicate _Pred)
 {
     const auto _Last  = end();
     const auto _First = std::remove_if(begin(), _Last, _Pred);
-    const bool _Found = (_First != _Last);
-    if (_Found) {
+    const auto _Count = _Last - _First;
+    if (_Count > 0) {
         erase(_First, _Last);
     }
 
-    return _Found;
+    return _Count;
 }
 
 
@@ -115,14 +115,14 @@ __INLINE__ bool _Blocking_container<_Container>::erase_if(_Predicate _Pred)
 }
 
 template <typename _Container>
-__INLINE__ bool _Blocking_container<_Container>::remove(const value_type& _Val)
+__INLINE__ typename _Blocking_container<_Container>::size_type _Blocking_container<_Container>::remove(const value_type& _Val)
 {
     mutex_lock _Lock(_Mymutex);
     return _Mycont.remove(_Val);
 }
 
 template <typename _Container> template <typename _Predicate>
-__INLINE__ bool _Blocking_container<_Container>::remove_if(_Predicate _Pred)
+__INLINE__ typename _Blocking_container<_Container>::size_type _Blocking_container<_Container>::remove_if(_Predicate _Pred)
 {
     mutex_lock _Lock(_Mymutex);
     return _Mycont.remove_if(_Pred);
@@ -276,25 +276,25 @@ __INLINE__ bool priority_queue<_Ty, _Container, _Comparator>::erase_if(_Predicat
 }
 
 template <typename _Ty, typename _Container, typename _Comparator>
-__INLINE__ bool priority_queue<_Ty, _Container, _Comparator>::remove(const value_type& _Val)
+__INLINE__ typename priority_queue<_Ty, _Container, _Comparator>::size_type priority_queue<_Ty, _Container, _Comparator>::remove(const value_type& _Val)
 {
-    const bool _Result = c.remove(_Val);
-    if (_Result) {
+    const auto _Count = c.remove(_Val);
+    if (_Count > 0) {
         std::make_heap(c.begin(), c.end(), comp);
     }
 
-    return _Result;
+    return _Count;
 }
 
 template <typename _Ty, typename _Container, typename _Comparator> template <typename _Predicate>
-__INLINE__ bool priority_queue<_Ty, _Container, _Comparator>::remove_if(_Predicate _Pred)
+__INLINE__ typename priority_queue<_Ty, _Container, _Comparator>::size_type priority_queue<_Ty, _Container, _Comparator>::remove_if(_Predicate _Pred)
 {
-    const bool _Result = c.remove_if(_Pred);
-    if (_Result) {
+    const auto _Count = c.remove_if(_Pred);
+    if (_Count > 0) {
         std::make_heap(c.begin(), c.end(), comp);
     }
 
-    return _Result;
+    return _Count;
 }
 
 
