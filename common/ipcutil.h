@@ -8,7 +8,7 @@
 #define __IPCUTIL_H__
 
 #include "platform.h"
-#include <unistd.h>
+#include <poll.h>
 #include <sys/un.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
@@ -154,6 +154,13 @@ public:
      * @return returns a new file descriptor of this object, -1 otherwise.
      */
     int create(uint32_t initval = 0, int flags = EFD_NONBLOCK);
+
+    /**
+     * Blocks the thread, and sets a timeout after the thread unblocks.
+     * @param timeout The waiting timeout in milliseconds, -1 causes wait
+     * to indefinitely.
+     */
+    void poll(int timeout = -1);
 
     /**
      * Reads an 8-byte unsigned integer from this eventfd.

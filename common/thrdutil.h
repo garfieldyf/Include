@@ -7,7 +7,6 @@
 #ifndef __THRDUTIL_H__
 #define __THRDUTIL_H__
 
-#include <poll.h>
 #include <thread>
 #include "ipcutil.h"
 #include "stdcolls.h"
@@ -15,7 +14,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Classes in this file:
 //
-// TaskThread
+// WorkerThread
 // LooperThread
 // LocalSocketThread
 // LocalServerThread
@@ -63,14 +62,14 @@ protected:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the TaskThread class
+// Interface of the WorkerThread class
 //
 
-class TaskThread final : public ThreadBase
+class WorkerThread final : public ThreadBase
 {
 // Constructors
 public:
-    TaskThread() = default;
+    WorkerThread() = default;
 
 // Operations
 public:
@@ -92,7 +91,7 @@ public:
      * function, pointer to member function, lambda expression, or any kind of
      * move-constructible function object.
      * @return Returns true if the callable was successfully added to the task
-     * queue. Returns false on failure, usually because this thread was exited.
+     * queue. Returns false on failure, usually because this thread was stopped.
      */
     template <typename _Callable, _Check_callable_t<_Callable> = 0>
     bool post(_Callable&& callable);
@@ -104,7 +103,7 @@ public:
      * function, pointer to member function, lambda expression, or any kind of
      * move-constructible function object.
      * @return Returns true if the callable was successfully added to the task
-     * queue. Returns false on failure, usually because this thread was exited.
+     * queue. Returns false on failure, usually because this thread was stopped.
      */
     template <typename _Callable, _Check_callable_t<_Callable> = 0>
     bool postAtFront(_Callable&& callable);
@@ -157,7 +156,7 @@ public:
      * @param delayMillis The delay in milliseconds until the callable will be
      * executed.
      * @return Returns true if the callable was successfully added to the task
-     * queue. Returns false on failure, usually because this thread was exited.
+     * queue. Returns false on failure, usually because this thread was stopped.
      */
     template <typename _Callable, _Check_callable_t<_Callable> = 0>
     bool post(_Callable&& callable, uint32_t delayMillis = 0);
@@ -170,13 +169,6 @@ private:
      * This thread start entry point.
      */
     void run();
-
-    /**
-     * Blocks this thread, and sets a timeout after this thread unblocks.
-     * @param timeout The waiting timeout in milliseconds, -1 causes wait
-     * to indefinitely.
-     */
-    void pollOnce(int timeout);
 
     /**
      * Retrieves and removes the task on top of the task queue.

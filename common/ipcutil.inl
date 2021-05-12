@@ -198,6 +198,26 @@ __INLINE__ int EventFd::create(uint32_t initval/* = 0*/, int flags/* = EFD_NONBL
     return mFd;
 }
 
+__INLINE__ void EventFd::poll(int timeout/* = -1*/)
+{
+    assert(!isEmpty());
+
+    struct pollfd pfd = { mFd, POLLIN };
+    const int result = ::poll(&pfd, 1, timeout);
+
+#ifndef NDEBUG
+    if (result == -1) {
+        logError("The EventFd poll failed");
+        assert(false);
+    }
+#endif  // NDEBUG
+
+    if (result > 0 && pfd.fd == mFd && (pfd.revents & POLLIN)) {
+        uint64_t value;
+        FileDescriptor::read(&value, sizeof(uint64_t));
+    }
+}
+
 __INLINE__ ssize_t EventFd::read(uint64_t& value) const
 {
     assert(!isEmpty());

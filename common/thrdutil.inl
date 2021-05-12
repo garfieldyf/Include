@@ -44,17 +44,17 @@ __INLINE__ std::thread::id ThreadBase::getId() const
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the TaskThread class
+// Implementation of the WorkerThread class
 //
 
-__INLINE__ void TaskThread::start()
+__INLINE__ void WorkerThread::start()
 {
     if (!mRunning.exchange(true)) {
-        mThread = std::thread(&TaskThread::run, this);
+        mThread = std::thread(&WorkerThread::run, this);
     }
 }
 
-__INLINE__ void TaskThread::stop()
+__INLINE__ void WorkerThread::stop()
 {
     if (mRunning.exchange(false)) {
         // Posts an empty task to exit this thread.
@@ -74,21 +74,21 @@ __INLINE__ void TaskThread::stop()
 }
 
 template <typename _Callable, ThreadBase::_Check_callable_t<_Callable>>
-__INLINE__ bool TaskThread::post(_Callable&& callable)
+__INLINE__ bool WorkerThread::post(_Callable&& callable)
 {
     const bool running = mRunning;
 
 #ifndef NDEBUG
     Runnable task = std::forward<_Callable>(callable);
     if (!task) {
-        LOGE("TaskThread::post() does not accept an empty callable.\n");
+        LOGE("WorkerThread::post() does not accept an empty callable.\n");
         assert(false);
     }
 
     if (running) {
         mTaskQueue.push_back(std::move(task));
     } else {
-        LOGE("The TaskThread has not started.\n");
+        LOGE("The WorkerThread has not started.\n");
     }
 #else
     if (running) {
@@ -100,21 +100,21 @@ __INLINE__ bool TaskThread::post(_Callable&& callable)
 }
 
 template <typename _Callable, ThreadBase::_Check_callable_t<_Callable>>
-__INLINE__ bool TaskThread::postAtFront(_Callable&& callable)
+__INLINE__ bool WorkerThread::postAtFront(_Callable&& callable)
 {
     const bool running = mRunning;
 
 #ifndef NDEBUG
     Runnable task = std::forward<_Callable>(callable);
     if (!task) {
-        LOGE("TaskThread::postAtFront() does not accept an empty callable.\n");
+        LOGE("WorkerThread::postAtFront() does not accept an empty callable.\n");
         assert(false);
     }
 
     if (running) {
         mTaskQueue.push_front(std::move(task));
     } else {
-        LOGE("The TaskThread has not started.\n");
+        LOGE("The WorkerThread has not started.\n");
     }
 #else
     if (running) {
@@ -125,9 +125,9 @@ __INLINE__ bool TaskThread::postAtFront(_Callable&& callable)
     return running;
 }
 
-__INLINE__ void TaskThread::run()
+__INLINE__ void WorkerThread::run()
 {
-    LOGD("TaskThread::start()\n");
+    LOGD("WorkerThread::start()\n");
     Runnable task;
     while (mTaskQueue.pop_front(task)) {    // might block
         // Exit the run, if the task is empty.
@@ -139,7 +139,7 @@ __INLINE__ void TaskThread::run()
         task();
     }
 
-    LOGD("TaskThread::stop()\n");
+    LOGD("WorkerThread::stop()\n");
 }
 
 
@@ -203,24 +203,6 @@ __INLINE__ void LooperThread::run()
     LOGD("LooperThread::stop()\n");
 }
 
-__INLINE__ void LooperThread::pollOnce(int timeout)
-{
-    struct pollfd pfd = { mEventFd, POLLIN };
-    const int result = ::poll(&pfd, 1, timeout);
-
-#ifndef NDEBUG
-    if (result == -1) {
-        logError("The poll wait failed");
-        assert(false);
-    }
-#endif  // NDEBUG
-
-    if (result > 0 && pfd.fd == mEventFd && (pfd.revents & POLLIN)) {
-        uint64_t value;
-        mEventFd.read(value);
-    }
-}
-
 __INLINE__ bool LooperThread::nextTask(Task& outTask)
 {
     while (mRunning) {
@@ -232,7 +214,7 @@ __INLINE__ bool LooperThread::nextTask(Task& outTask)
 
         // The next task is not ready. Waiting
         // a timeout to wake up when it is ready.
-        pollOnce(timeout);
+        mEventFd.poll(timeout);
     }
 
     return mRunning;
