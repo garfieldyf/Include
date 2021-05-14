@@ -7,8 +7,7 @@
 #ifndef __THRDUTIL_H__
 #define __THRDUTIL_H__
 
-#include <thread>
-#include "ipcutil.h"
+#include "syncutil.h"
 #include "stdcolls.h"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -16,8 +15,6 @@
 //
 // WorkerThread
 // LooperThread
-// LocalSocketThread
-// LocalServerThread
 
 namespace stdutil {
 
@@ -52,7 +49,7 @@ public:
 // Implementation
 protected:
     template <typename _Callable>
-    using _Check_callable_t = std::enable_if_t<!std::is_same<std::decay_t<_Callable>, std::nullptr_t>::value, int>;
+    using _Enable_if_callable_t = std::enable_if_t<!std::is_same<std::decay_t<_Callable>, std::nullptr_t>::value, int>;
 
 // Data members
 protected:
@@ -79,7 +76,7 @@ public:
     void start();
 
     /**
-     * Forces this thread to stop executing. All remaining
+     * Forces this thread to stop executing. All pending
      * tasks will be removed from the task queue.
      */
     void stop();
@@ -93,7 +90,7 @@ public:
      * @return Returns true if the callable was successfully added to the task
      * queue. Returns false on failure, usually because this thread was stopped.
      */
-    template <typename _Callable, _Check_callable_t<_Callable> = 0>
+    template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
     bool post(_Callable&& callable);
 
     /**
@@ -105,7 +102,7 @@ public:
      * @return Returns true if the callable was successfully added to the task
      * queue. Returns false on failure, usually because this thread was stopped.
      */
-    template <typename _Callable, _Check_callable_t<_Callable> = 0>
+    template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
     bool postAtFront(_Callable&& callable);
 
 // Implementation
@@ -142,7 +139,7 @@ public:
     void start();
 
     /**
-     * Forces this thread to stop executing. All remaining
+     * Forces this thread to stop executing. All pending
      * tasks will be removed from the task queue.
      */
     void stop();
@@ -158,7 +155,7 @@ public:
      * @return Returns true if the callable was successfully added to the task
      * queue. Returns false on failure, usually because this thread was stopped.
      */
-    template <typename _Callable, _Check_callable_t<_Callable> = 0>
+    template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
     bool post(_Callable&& callable, uint32_t delayMillis = 0);
 
 // Implementation

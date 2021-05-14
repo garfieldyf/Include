@@ -1,14 +1,14 @@
 ///////////////////////////////////////////////////////////////////////////////
-// ipcutil.inl
+// syncutil.inl
 //
 // Author : Garfield
 // Creation Date : 2020/4/20
 
-#ifndef __IPCUTIL_INL__
-#define __IPCUTIL_INL__
+#ifndef __SYNCUTIL_INL__
+#define __SYNCUTIL_INL__
 
-#ifndef __IPCUTIL_H__
-    #error ipcutil.inl requires ipcutil.h to be included first
+#ifndef __SYNCUTIL_H__
+    #error syncutil.inl requires syncutil.h to be included first
 #endif
 
 namespace stdutil {
@@ -26,6 +26,39 @@ __STATIC_INLINE__ void logError(const char* msg)
     LOGE("%s - errno = %d, error = %s\n", msg, errnum, error);
 }
 #endif  // NDEBUG
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the spin_mutex class
+//
+
+__INLINE__ void spin_mutex::lock()
+{
+#ifndef NDEBUG
+    const std::thread::id _Id = std::this_thread::get_id();
+    if (_Myowner == _Id) {
+        LOGE("The spin_mutex deadlock would occur.\n");
+        assert(false);
+    }
+#endif  // NDEBUG
+
+    while (_Myflag.test_and_set(std::memory_order_acquire)) {
+        // Empty loop
+    }
+
+#ifndef NDEBUG
+    _Myowner = _Id;
+#endif  // NDEBUG
+}
+
+__INLINE__ void spin_mutex::unlock()
+{
+    _Myflag.clear(std::memory_order_release);
+
+#ifndef NDEBUG
+    _Myowner = {};
+#endif  // NDEBUG
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -324,4 +357,4 @@ __INLINE__ socklen_t LocalSocket::buildSockAddr(struct sockaddr_un& addr, const 
 
 }  // namespace stdutil
 
-#endif  // __IPCUTIL_INL__
+#endif  // __SYNCUTIL_INL__

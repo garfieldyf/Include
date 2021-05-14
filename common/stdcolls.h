@@ -39,7 +39,7 @@ public:
 
 // Constructors
 public:
-    container() = default;
+    constexpr container() = default;
     template <typename _Iter>
     container(_Iter _First, _Iter _Last);
     container(std::initializer_list<value_type> _List);
@@ -50,6 +50,7 @@ public:
     container(const container&) = default;
     container& operator=(const container&) = default;
 
+// Operations
 public:
     /**
      * Removes the specified element from this container.
@@ -109,7 +110,7 @@ public:
 
 // Constructors
 protected:
-    _Blocking_container() = default;
+    constexpr _Blocking_container() = default;
     _Blocking_container(const _Blocking_container&) = delete;
     _Blocking_container& operator=(const _Blocking_container&) = delete;
 
@@ -203,7 +204,7 @@ public:
 
 // Constructors
 public:
-    blocking_deque() = default;
+    constexpr blocking_deque() = default;
 
 // Operations
 public:
@@ -266,7 +267,7 @@ public:
 
 // Constructors
 public:
-    priority_queue() = default;
+    constexpr priority_queue() = default;
     template <typename _Iter>
     priority_queue(_Iter _First, _Iter _Last);
     priority_queue(std::initializer_list<_Ty> _List, const _Comparator& _Comp = _Comparator());
@@ -339,7 +340,7 @@ public:
 
 // Constructors
 public:
-    priority_blocking_queue() = default;
+    constexpr priority_blocking_queue() = default;
 
 // Operations
 public:

@@ -1,13 +1,16 @@
 ///////////////////////////////////////////////////////////////////////////////
-// ipcutil.h
+// syncutil.h
 //
 // Author : Garfield
 // Creation Date : 2020/4/20
 
-#ifndef __IPCUTIL_H__
-#define __IPCUTIL_H__
+#ifndef __SYNCUTIL_H__
+#define __SYNCUTIL_H__
 
 #include "platform.h"
+#include <mutex>
+#include <atomic>
+#include <thread>
 #include <poll.h>
 #include <sys/un.h>
 #include <sys/epoll.h>
@@ -17,11 +20,54 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Classes in this file:
 //
+// spin_mutex
+// spin_lock
 // Epoll
 // EventFd
 // LocalSocket
 
 namespace stdutil {
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the spin_mutex class
+//
+
+class spin_mutex final
+{
+// Constructors
+public:
+    constexpr spin_mutex() = default;
+    spin_mutex(const spin_mutex&) = delete;
+    spin_mutex& operator=(const spin_mutex&) = delete;
+
+// Operations
+public:
+    /**
+     * Blocks the calling thread until the thread obtains ownership of this mutex.
+     */
+    void lock();
+
+    /**
+     * Releases ownership of this mutex.
+     */
+    void unlock();
+
+// Data members
+private:
+#ifndef NDEBUG
+    std::thread::id _Myowner = {};
+#endif  // NDEBUG
+
+    std::atomic_flag _Myflag = ATOMIC_FLAG_INIT;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the spin_lock class
+//
+
+using spin_lock = std::lock_guard<spin_mutex>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Interface of the FileDescriptor class
@@ -236,6 +282,6 @@ private:
 
 }  // namespace stdutil
 
-#include "ipcutil.inl"
+#include "syncutil.inl"
 
-#endif  // __IPCUTIL_H__
+#endif  // __SYNCUTIL_H__

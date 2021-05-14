@@ -73,7 +73,7 @@ __INLINE__ void WorkerThread::stop()
     }
 }
 
-template <typename _Callable, ThreadBase::_Check_callable_t<_Callable>>
+template <typename _Callable, ThreadBase::_Enable_if_callable_t<_Callable>>
 __INLINE__ bool WorkerThread::post(_Callable&& callable)
 {
     const bool running = mRunning;
@@ -99,7 +99,7 @@ __INLINE__ bool WorkerThread::post(_Callable&& callable)
     return running;
 }
 
-template <typename _Callable, ThreadBase::_Check_callable_t<_Callable>>
+template <typename _Callable, ThreadBase::_Enable_if_callable_t<_Callable>>
 __INLINE__ bool WorkerThread::postAtFront(_Callable&& callable)
 {
     const bool running = mRunning;
@@ -164,7 +164,7 @@ __INLINE__ void LooperThread::stop()
     }
 }
 
-template <typename _Callable, ThreadBase::_Check_callable_t<_Callable>>
+template <typename _Callable, ThreadBase::_Enable_if_callable_t<_Callable>>
 __INLINE__ bool LooperThread::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
 {
     const bool running = mRunning;
@@ -278,11 +278,8 @@ __INLINE__ void LooperThread::TaskQueue::push(_Callable&& callable, uint32_t del
 __INLINE__ int LooperThread::TaskQueue::pop(Task& outTask)
 {
     MutexLock lock(mMutex);
-    int timeout;
-    if (super::empty()) {
-        // No more tasks.
-        timeout = -1;
-    } else {
+    int timeout = -1;   // Waiting to indefinitely.
+    if (!super::empty()) {
         const Task& task = super::top();
         if ((timeout = task.getTimeout()) == 0) {
             outTask = const_cast<Task&&>(task);
