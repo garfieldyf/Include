@@ -77,7 +77,7 @@ class FileDescriptor
 {
 // Constructors/Destructor
 protected:
-    explicit FileDescriptor(int fd = -1);
+    explicit constexpr FileDescriptor(int fd = -1);
     ~FileDescriptor();
 
     FileDescriptor(const FileDescriptor&) = delete;
@@ -139,7 +139,7 @@ class Epoll final : public FileDescriptor
 {
 // Constructors
 public:
-    explicit Epoll(int epollFd = -1);
+    explicit constexpr Epoll(int epollFd = -1);
 
 // Operations
 public:
@@ -189,7 +189,7 @@ class EventFd final : public FileDescriptor
 {
 // Constructors
 public:
-    explicit EventFd(int eventFd = -1);
+    explicit constexpr EventFd(int eventFd = -1);
 
 // Operations
 public:
@@ -232,14 +232,14 @@ class LocalSocket final : public FileDescriptor
 {
 // Constructors
 public:
-    explicit LocalSocket(int sockFd = -1);
+    explicit constexpr LocalSocket(int sockFd = -1);
 
 // Operations
 public:
     /**
      * The namespace that the UNIX-domain socket exists in.
      */
-    enum class Namespace
+    enum class Namespace : int32_t
     {
         /**
          * A socket in the Linux abstract namespace.

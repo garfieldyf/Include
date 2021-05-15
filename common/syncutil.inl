@@ -65,7 +65,7 @@ __INLINE__ void spin_mutex::unlock()
 // Implementation of the FileDescriptor class
 //
 
-__INLINE__ FileDescriptor::FileDescriptor(int fd/* = -1*/)
+__INLINE__ constexpr FileDescriptor::FileDescriptor(int fd/* = -1*/)
     : mFd(fd)
 {
 }
@@ -133,7 +133,7 @@ __INLINE__ bool FileDescriptor::isEmpty() const
 // Implementation of the Epoll class
 //
 
-__INLINE__ Epoll::Epoll(int epollFd/* = -1*/)
+__INLINE__ constexpr Epoll::Epoll(int epollFd/* = -1*/)
     : FileDescriptor(epollFd)
 {
 }
@@ -211,7 +211,7 @@ __INLINE__ int Epoll::wait(struct epoll_event* events, int count/* = 1*/, int ti
 // Implementation of the EventFd class
 //
 
-__INLINE__ EventFd::EventFd(int eventFd/* = -1*/)
+__INLINE__ constexpr EventFd::EventFd(int eventFd/* = -1*/)
     : FileDescriptor(eventFd)
 {
 }
@@ -268,7 +268,7 @@ __INLINE__ ssize_t EventFd::write(uint64_t value/* = 1*/) const
 // Implementation of the LocalSocket class
 //
 
-__INLINE__ LocalSocket::LocalSocket(int sockFd/* = -1*/)
+__INLINE__ constexpr LocalSocket::LocalSocket(int sockFd/* = -1*/)
     : FileDescriptor(sockFd)
 {
 }

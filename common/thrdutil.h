@@ -226,7 +226,7 @@ private:
     {
     // Constructors
     public:
-        TaskQueue() = default;
+        constexpr TaskQueue() = default;
 
     // Operations
     public:
