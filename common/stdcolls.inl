@@ -231,13 +231,13 @@ __INLINE__ bool blocking_deque<_Ty, _Alloc>::pop_back(value_type& _Val, uint32_t
 
 template <typename _Ty, typename _Container, typename _Comparator> template <typename _Iter>
 __INLINE__ priority_queue<_Ty, _Container, _Comparator>::priority_queue(_Iter _First, _Iter _Last)
-    : super(_First, _Last)
+    : _Base(_First, _Last)
 {
 }
 
 template <typename _Ty, typename _Container, typename _Comparator>
 __INLINE__ priority_queue<_Ty, _Container, _Comparator>::priority_queue(std::initializer_list<_Ty> _List, const _Comparator& _Comp/* = _Comparator()*/)
-    : super(_Comp, _List)
+    : _Base(_Comp, _List)
 {
 }
 

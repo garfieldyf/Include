@@ -94,8 +94,8 @@ public:
     bool post(_Callable&& callable);
 
     /**
-     * Posts a callable to the beginning of the task queue. The callable will be 
-     * run on this thread.
+     * Posts a callable to the beginning of the task queue. The callable will 
+     * be run on this thread.
      * @param callable The callable that will be executed, Maybe a pointer to
      * function, pointer to member function, lambda expression, or any kind of
      * move-constructible function object.
@@ -254,7 +254,7 @@ private:
 
     // Implementation
     private:
-        using super = priority_queue<Task, vector<Task>, std::greater<Task>>;
+        using _Base = priority_queue<Task, vector<Task>, std::greater<Task>>;
 
     // Data members
     private:

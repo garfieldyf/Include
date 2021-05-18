@@ -259,31 +259,31 @@ __INLINE__ void LooperThread::TaskQueue::clear()
     MutexLock lock(mMutex);
 
 #ifndef NDEBUG
-    const size_t size = super::size();
+    const size_t size = _Base::size();
     if (size > 0) {
         LOGW("The number of %zu pending tasks will be discard.\n", size);
     }
 #endif // NDEBUG
 
-    super::clear();
+    _Base::clear();
 }
 
 template <typename _Callable>
 __INLINE__ void LooperThread::TaskQueue::push(_Callable&& callable, uint32_t delayMillis)
 {
     MutexLock lock(mMutex);
-    super::emplace(std::forward<_Callable>(callable), delayMillis);
+    _Base::emplace(std::forward<_Callable>(callable), delayMillis);
 }
 
 __INLINE__ int LooperThread::TaskQueue::pop(Task& outTask)
 {
     MutexLock lock(mMutex);
     int timeout = -1;   // Waiting to indefinitely.
-    if (!super::empty()) {
-        const Task& task = super::top();
+    if (!_Base::empty()) {
+        const Task& task = _Base::top();
         if ((timeout = task.getTimeout()) == 0) {
             outTask = const_cast<Task&&>(task);
-            super::pop();
+            _Base::pop();
         }
     }
 

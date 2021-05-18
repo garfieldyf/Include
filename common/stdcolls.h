@@ -244,13 +244,13 @@ public:
 
 // Implementation
 private:
-    using super = _Blocking_container<deque<_Ty, _Alloc>>;
-    using super::_Pop;
-    using super::_Mycont;
-    using super::_Mycond;
-    using super::_Mymutex;
-    using typename super::mutex_lock;
-    using typename super::unique_lock;
+    using _Base = _Blocking_container<deque<_Ty, _Alloc>>;
+    using _Base::_Pop;
+    using _Base::_Mycont;
+    using _Base::_Mycond;
+    using _Base::_Mymutex;
+    using typename _Base::mutex_lock;
+    using typename _Base::unique_lock;
 };
 
 
@@ -322,9 +322,9 @@ public:
 
 // Implementation
 private:
-    using super = std::priority_queue<_Ty, _Container, _Comparator>;
-    using super::c;
-    using super::comp;
+    using _Base = std::priority_queue<_Ty, _Container, _Comparator>;
+    using _Base::c;
+    using _Base::comp;
 };
 
 
@@ -363,13 +363,13 @@ public:
 
 // Implementation
 private:
-    using super = _Blocking_container<priority_queue<_Ty, _Container, _Comparator>>;
-    using super::_Pop;
-    using super::_Mycont;
-    using super::_Mycond;
-    using super::_Mymutex;
-    using typename super::mutex_lock;
-    using typename super::unique_lock;
+    using _Base = _Blocking_container<priority_queue<_Ty, _Container, _Comparator>>;
+    using _Base::_Pop;
+    using _Base::_Mycont;
+    using _Base::_Mycond;
+    using _Base::_Mymutex;
+    using typename _Base::mutex_lock;
+    using typename _Base::unique_lock;
 };
 
 }  // namespace stdutil
