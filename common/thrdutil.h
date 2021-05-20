@@ -214,8 +214,8 @@ private:
 
     // Data members
     public:
-        TimePoint mWhen;
-        Runnable mRunnable;
+        TimePoint when;
+        Runnable runnable;
     };
 
     ///////////////////////////////////////////////////////////////////////////

@@ -154,10 +154,10 @@ __INLINE__ typename _Blocking_container<_Container>::size_type _Blocking_contain
 }
 
 template <typename _Container> template <typename _Predicate>
-__INLINE__ bool _Blocking_container<_Container>::_Pop(value_type& _Val, uint32_t _Timeout, _Predicate _Pred)
+__INLINE__ bool _Blocking_container<_Container>::_Pop(uint32_t _Timeout, _Predicate _Pred)
 {
     bool _Result;
-    auto _Cond = [this]() {
+    const auto _Cond = [this]() {
         return !_Mycont.empty();
     };
 
@@ -173,7 +173,7 @@ __INLINE__ bool _Blocking_container<_Container>::_Pop(value_type& _Val, uint32_t
 
     // Popup the element from the _Mycont, if waiting successful.
     if (_Result) {
-        _Pred(_Val);
+        _Pred();
     }
 
     return _Result;
@@ -209,8 +209,8 @@ __INLINE__ void blocking_deque<_Ty, _Alloc>::push_back(_ValArgs&&... _Args)
 template <typename _Ty, typename _Alloc>
 __INLINE__ bool blocking_deque<_Ty, _Alloc>::pop_front(value_type& _Val, uint32_t _Timeout/* = -1*/)
 {
-    return _Pop(_Val, _Timeout, [this](value_type& _Out) {
-        _Out = std::move(_Mycont.front());
+    return _Pop(_Timeout, [this, &_Val]() {
+        _Val = std::move(_Mycont.front());
         _Mycont.pop_front();
     });
 }
@@ -218,8 +218,8 @@ __INLINE__ bool blocking_deque<_Ty, _Alloc>::pop_front(value_type& _Val, uint32_
 template <typename _Ty, typename _Alloc>
 __INLINE__ bool blocking_deque<_Ty, _Alloc>::pop_back(value_type& _Val, uint32_t _Timeout/* = -1*/)
 {
-    return _Pop(_Val, _Timeout, [this](value_type& _Out) {
-        _Out = std::move(_Mycont.back());
+    return _Pop(_Timeout, [this, &_Val]() {
+        _Val = std::move(_Mycont.back());
         _Mycont.pop_back();
     });
 }
@@ -316,8 +316,8 @@ __INLINE__ void priority_blocking_queue<_Ty, _Container, _Comparator>::push(_Val
 template <typename _Ty, typename _Container, typename _Comparator>
 __INLINE__ bool priority_blocking_queue<_Ty, _Container, _Comparator>::pop(value_type& _Val, uint32_t _Timeout/* = -1*/)
 {
-    return _Pop(_Val, _Timeout, [this](value_type& _Out) {
-        _Out = const_cast<value_type&&>(_Mycont.top());
+    return _Pop(_Timeout, [this, &_Val]() {
+        _Val = const_cast<value_type&&>(_Mycont.top());
         _Mycont.pop();
     });
 }

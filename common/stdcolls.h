@@ -182,7 +182,7 @@ protected:
     using unique_lock = std::unique_lock<std::mutex>;
 
     template <typename _Predicate>
-    bool _Pop(value_type& _Val, uint32_t _Timeout, _Predicate _Pred);
+    bool _Pop(uint32_t _Timeout, _Predicate _Pred);
 
 // Data members
 protected:

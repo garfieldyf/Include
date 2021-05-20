@@ -197,7 +197,7 @@ __INLINE__ void LooperThread::run()
     LOGD("LooperThread::start()\n");
     Task task;
     while (nextTask(task)) {    // might block
-        task.mRunnable();
+        task.runnable();
     }
 
     LOGD("LooperThread::stop()\n");
@@ -227,14 +227,14 @@ __INLINE__ bool LooperThread::nextTask(Task& outTask)
 
 template <typename _Callable>
 __INLINE__ LooperThread::Task::Task(_Callable&& callable, uint32_t delayMillis)
-    : mWhen(std::chrono::steady_clock::now() + std::chrono::milliseconds(delayMillis))
-    , mRunnable(std::forward<_Callable>(callable))
+    : when(std::chrono::steady_clock::now() + std::chrono::milliseconds(delayMillis))
+    , runnable(std::forward<_Callable>(callable))
 {
 }
 
 __INLINE__ int LooperThread::Task::getTimeout() const
 {
-    int64_t timeout = std::chrono::duration_cast<std::chrono::milliseconds>(mWhen - std::chrono::steady_clock::now()).count();
+    int64_t timeout = std::chrono::duration_cast<std::chrono::milliseconds>(when - std::chrono::steady_clock::now()).count();
     if (timeout < 0) {
         timeout = 0;
     } else if (timeout > INT_MAX) {
@@ -246,7 +246,7 @@ __INLINE__ int LooperThread::Task::getTimeout() const
 
 __INLINE__ bool LooperThread::Task::operator>(const Task& right) const
 {
-    return (mWhen > right.mWhen);
+    return (when > right.when);
 }
 
 
