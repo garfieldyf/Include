@@ -73,7 +73,7 @@ __INLINE__ void WorkerThread::stop()
     }
 }
 
-template <typename _Callable, ThreadBase::_Enable_if_callable_t<_Callable>>
+template <typename _Callable, _Enable_if_callable_t<_Callable>>
 __INLINE__ bool WorkerThread::post(_Callable&& callable)
 {
     const bool running = mRunning;
@@ -99,7 +99,7 @@ __INLINE__ bool WorkerThread::post(_Callable&& callable)
     return running;
 }
 
-template <typename _Callable, ThreadBase::_Enable_if_callable_t<_Callable>>
+template <typename _Callable, _Enable_if_callable_t<_Callable>>
 __INLINE__ bool WorkerThread::postAtFront(_Callable&& callable)
 {
     const bool running = mRunning;
@@ -144,35 +144,57 @@ __INLINE__ void WorkerThread::run()
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the LooperThread class
+// Implementation of the Looper class
 //
 
-__INLINE__ void LooperThread::start()
+__INLINE__ constexpr Looper::Looper()
+    : mRunning(false)
 {
-    if (!mRunning.exchange(true) && mEventFd.create() != -1) {
-        mThread = std::thread(&LooperThread::run, this);
+}
+
+__INLINE__ Looper::~Looper()
+{
+#ifndef NDEBUG
+    if (mRunning) {
+        LOGE("The Looper has not quitted.\n");
+        assert(false);
+    }
+#endif  // NDEBUG
+}
+
+__INLINE__ bool Looper::prepare()
+{
+    return (!mRunning.exchange(true) && mEventFd.create() != -1);
+}
+
+__INLINE__ void Looper::run()
+{
+    Task task;
+    while (nextTask(task)) {  // might block
+        task.runnable();
     }
 }
 
-__INLINE__ void LooperThread::stop()
+template <typename _Callback>
+__INLINE__ void Looper::quit(_Callback callback)
 {
     if (mRunning.exchange(false)) {
         mEventFd.write();
-        mThread.join();
+        callback();
         mEventFd.close();
         mTaskQueue.clear();  // Clears all pending tasks.
     }
 }
 
-template <typename _Callable, ThreadBase::_Enable_if_callable_t<_Callable>>
-__INLINE__ bool LooperThread::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
+template <typename _Callable, _Enable_if_callable_t<_Callable>>
+__INLINE__ bool Looper::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
 {
     const bool running = mRunning;
 
 #ifndef NDEBUG
     Runnable runnable = std::forward<_Callable>(callable);
     if (!runnable) {
-        LOGE("LooperThread::post() does not accept an empty callable.\n");
+        LOGE("Looper::post() does not accept an empty callable.\n");
         assert(false);
     }
 
@@ -180,7 +202,7 @@ __INLINE__ bool LooperThread::post(_Callable&& callable, uint32_t delayMillis/* 
         mTaskQueue.push(std::move(runnable), delayMillis);
         mEventFd.write();
     } else {
-        LOGE("The LooperThread has not started.\n");
+        LOGE("The Looper has not initialized.\n");
     }
 #else
     if (running) {
@@ -192,18 +214,18 @@ __INLINE__ bool LooperThread::post(_Callable&& callable, uint32_t delayMillis/* 
     return running;
 }
 
-__INLINE__ void LooperThread::run()
+__INLINE__ bool Looper::isRunning() const
 {
-    LOGD("LooperThread::start()\n");
-    Task task;
-    while (nextTask(task)) {    // might block
-        task.runnable();
-    }
-
-    LOGD("LooperThread::stop()\n");
+    return mRunning;
 }
 
-__INLINE__ bool LooperThread::nextTask(Task& outTask)
+__INLINE__ Looper& Looper::getMainLooper()
+{
+    static Looper sMainLooper;
+    return sMainLooper;
+}
+
+__INLINE__ bool Looper::nextTask(Task& outTask)
 {
     while (mRunning) {
         const int timeout = mTaskQueue.pop(outTask);
@@ -222,17 +244,17 @@ __INLINE__ bool LooperThread::nextTask(Task& outTask)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the LooperThread::Task class
+// Implementation of the Looper::Task class
 //
 
 template <typename _Callable>
-__INLINE__ LooperThread::Task::Task(_Callable&& callable, uint32_t delayMillis)
+__INLINE__ Looper::Task::Task(_Callable&& callable, uint32_t delayMillis)
     : when(std::chrono::steady_clock::now() + std::chrono::milliseconds(delayMillis))
     , runnable(std::forward<_Callable>(callable))
 {
 }
 
-__INLINE__ int LooperThread::Task::getTimeout() const
+__INLINE__ int Looper::Task::getTimeout() const
 {
     int64_t timeout = std::chrono::duration_cast<std::chrono::milliseconds>(when - std::chrono::steady_clock::now()).count();
     if (timeout < 0) {
@@ -244,17 +266,17 @@ __INLINE__ int LooperThread::Task::getTimeout() const
     return static_cast<int>(timeout);
 }
 
-__INLINE__ bool LooperThread::Task::operator>(const Task& right) const
+__INLINE__ bool Looper::Task::operator>(const Task& right) const
 {
     return (when > right.when);
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the LooperThread::TaskQueue class
+// Implementation of the Looper::TaskQueue class
 //
 
-__INLINE__ void LooperThread::TaskQueue::clear()
+__INLINE__ void Looper::TaskQueue::clear()
 {
     MutexLock lock(mMutex);
 
@@ -269,13 +291,13 @@ __INLINE__ void LooperThread::TaskQueue::clear()
 }
 
 template <typename _Callable>
-__INLINE__ void LooperThread::TaskQueue::push(_Callable&& callable, uint32_t delayMillis)
+__INLINE__ void Looper::TaskQueue::push(_Callable&& callable, uint32_t delayMillis)
 {
     MutexLock lock(mMutex);
     _Base::emplace(std::forward<_Callable>(callable), delayMillis);
 }
 
-__INLINE__ int LooperThread::TaskQueue::pop(Task& outTask)
+__INLINE__ int Looper::TaskQueue::pop(Task& outTask)
 {
     MutexLock lock(mMutex);
     int timeout = -1;   // Waiting to indefinitely.
@@ -292,92 +314,44 @@ __INLINE__ int LooperThread::TaskQueue::pop(Task& outTask)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the LocalSocketThread class
+// Implementation of the LooperThread class
 //
 
-template <typename _Callback>
-__INLINE__ void LocalSocketThread::start(const char* name, _Callback&& callback)
+__INLINE__ void LooperThread::start()
 {
-    if (!mRunning.exchange(true) && mSocket.connect(name) == 0) {
-        mCallback = std::forward<_Callback>(callback);
-        mThread = std::thread(&LocalSocketThread::run, this);
-        LOGD("LocalSocketThread::start()\n");
+    if (mLooper.prepare()) {
+        mThread = std::thread(&Looper::run, &mLooper);
+        LOGD("LooperThread::start()\n");
     }
 }
 
-__INLINE__ void LocalSocketThread::stop()
+__INLINE__ void LooperThread::stop()
 {
-    if (mRunning.exchange(false)) {
-        mSocket.close();
+    mLooper.quit([this]() {
         mThread.join();
-        LOGD("LocalSocketThread::stop()\n");
-    }
+        LOGD("LooperThread::stop()\n");
+    });
 }
 
-__INLINE__ ssize_t LocalSocketThread::send(const void* buf, size_t size) const
+template <typename _Callable, _Enable_if_callable_t<_Callable>>
+__INLINE__ bool LooperThread::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
 {
-    assert(buf);
-    assert(size > 0);
-
-#ifndef NDEBUG
-    ssize_t sendBytes = -1;
-    if (mRunning && !mSocket.isEmpty()) {
-        sendBytes = mSocket.write(buf, size);
-    } else {
-        LOGE("The LocalSocketThread has not started.\n");
-    }
-
-    return sendBytes;
-#else
-    return (mRunning && !mSocket.isEmpty() ? mSocket.write(buf, size) : -1);
-#endif  // NDEBUG
+    return mLooper.post(std::forward<_Callable>(callable), delayMillis);
 }
 
-__INLINE__ void LocalSocketThread::run()
+__INLINE__ Looper& LooperThread::getLooper()
 {
-    uint8_t buf[8192];
-    while (true) {
-        const ssize_t size = mSocket.read(buf, sizeof(buf));
-        if (size == 0) {
-            break;
-        }
-
-        mCallback(buf, size);
-    }
+    return mLooper;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the LocalServerThread class
-//
-
-template <typename _Callback>
-__INLINE__ void LocalServerThread::start(const char* name, _Callback&& callback)
+__INLINE__ bool LooperThread::isRunning() const
 {
-    if (!mRunning.exchange(true) && mServer.listen(name) == 0) {
-        mCallback = std::forward<_Callback>(callback);
-        mThread = std::thread(&LocalServerThread::run, this);
-        LOGD("LocalServerThread::start()\n");
-    }
+    return mLooper.isRunning();
 }
 
-__INLINE__ void LocalServerThread::stop()
+__INLINE__ std::thread::id LooperThread::getId() const
 {
-    if (mRunning.exchange(false)) {
-        mSocket.close();
-        mServer.close();
-        mThread.join();
-        LOGD("LocalServerThread::stop()\n");
-    }
-}
-
-__INLINE__ void LocalServerThread::run()
-{
-    const int sockFd = mServer.accept();
-    if (sockFd != -1) {
-        mSocket.attach(sockFd);
-        LocalSocketThread::run();
-    }
+    return mThread.get_id();
 }
 
 }  // namespace stdutil

@@ -14,9 +14,18 @@
 // Classes in this file:
 //
 // WorkerThread
+// Looper
 // LooperThread
 
 namespace stdutil {
+
+///////////////////////////////////////////////////////////////////////////////
+// Type definitions
+//
+
+template <typename _Callable>
+using _Enable_if_callable_t = std::enable_if_t<!std::is_same<std::decay_t<_Callable>, std::nullptr_t>::value, int>;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Interface of the ThreadBase class
@@ -45,11 +54,6 @@ public:
      * @return An object of type std::thread::id of this thread.
      */
     std::thread::id getId() const;
-
-// Implementation
-protected:
-    template <typename _Callable>
-    using _Enable_if_callable_t = std::enable_if_t<!std::is_same<std::decay_t<_Callable>, std::nullptr_t>::value, int>;
 
 // Data members
 protected:
@@ -122,50 +126,65 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the LooperThread class
+// Interface of the Looper class
 //
 
-class LooperThread final : public ThreadBase
+class Looper final
 {
-// Constructors
+// Constructors/Destructor
 public:
-    LooperThread() = default;
+    constexpr Looper();
+    ~Looper();
 
 // Operations
 public:
     /**
-     * Starts this thread to begin execution.
+     * Initializes the current thread as a looper.
+     * @return Returns true if this looper was successfully initialized.
+     * Returns false if this looper already initialized.
      */
-    void start();
+    bool prepare();
 
     /**
-     * Forces this thread to stop executing. All pending
-     * tasks will be removed from the task queue.
+     * Runs the task queue in this thread. Be sure to call quit() to end the loop.
      */
-    void stop();
+    void run();
 
     /**
-     * Posts a callable to the task queue, to be run after the specified amount 
-     * of time elapses.
-     * @param callable The callable that will be executed, Maybe a pointer to
-     * function, pointer to member function, lambda expression, or any kind of
-     * move-constructible function object.
-     * @param delayMillis The delay in milliseconds until the callable will be
-     * executed.
-     * @return Returns true if the callable was successfully added to the task
-     * queue. Returns false on failure, usually because this thread was stopped.
+     * Quits this looper. All pending tasks will be removed from the task queue.
+     * @param callback The callback that will be executed when this looper is quitting.
+     */
+    template <typename _Callback>
+    void quit(_Callback callback);
+
+    /**
+     * Posts a callable to the task queue, to be run after the specified amount of time elapses.
+     * @param callable The callable that will be executed, Maybe a pointer to function, pointer
+     * to member function, lambda expression, or any kind of move-constructible function object.
+     * @param delayMillis The delay in milliseconds until the callable will be executed.
+     * @return Returns true if the callable was successfully added to the task queue. Returns false
+     * on failure, usually because this looper processing the task queue is quitting.
      */
     template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
     bool post(_Callable&& callable, uint32_t delayMillis = 0);
 
+// Attributes
+public:
+    /**
+     * Tests if this looper is running.
+     * @return true if this looper is running, false otherwise.
+     */
+    bool isRunning() const;
+
+    /**
+     * Returns the Looper associated with the main thread of the application.
+     * @return A reference to the Looper.
+     */
+    static Looper& getMainLooper();
+
 // Implementation
 private:
     class Task;
-
-    /**
-     * This thread start entry point.
-     */
-    void run();
 
     /**
      * Retrieves and removes the task on top of the task queue.
@@ -265,93 +284,68 @@ private:
 private:
     EventFd mEventFd;
     TaskQueue mTaskQueue;
+    std::atomic_bool mRunning;
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the LocalSocketThread class
+// Interface of the LooperThread class
 //
 
-class LocalSocketThread : public ThreadBase
-{
-public:
-    using Callback = std::function<void(const uint8_t*, ssize_t)>;
-
-// Constructors
-public:
-    LocalSocketThread() = default;
-
-public:
-    /**
-     * Starts this thread to begin execution.
-     * @param name The name of the address.
-     * @param callback The callback to handle the receive data, or nullptr.
-     */
-    template <typename _Callback>
-    void start(const char* name, _Callback&& callback);
-
-    /**
-     * Forces this thread to stop executing.
-     */
-    void stop();
-
-    /**
-     * Sends data to a connected socket.
-     * @param buf A pointer to a buffer containing the data.
-     * @param size The number of bytes of the buffer.
-     * @return The total number of bytes sent, -1 otherwise.
-     */
-    ssize_t send(const void* buf, size_t size) const;
-
-// Implementation
-protected:
-    /**
-     * This thread start entry point.
-     */
-    void run();
-
-// Data members
-protected:
-    Callback mCallback;
-    LocalSocket mSocket;
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the LocalServerThread class
-//
-
-class LocalServerThread final : public LocalSocketThread
+class LooperThread final
 {
 // Constructors
 public:
-    LocalServerThread() = default;
+    LooperThread() = default;
 
 // Operations
 public:
     /**
      * Starts this thread to begin execution.
-     * @param name The name of the address.
-     * @param callback The callback to handle the receive data, or nullptr.
      */
-    template <typename _Callback>
-    void start(const char* name, _Callback&& callback);
+    void start();
 
     /**
-     * Forces this thread to stop executing.
+     * Forces this thread to stop executing. All pending
+     * tasks will be removed from the task queue.
      */
     void stop();
 
-// Implementation
-private:
     /**
-     * This thread start entry point.
+     * Posts a callable to the task queue, to be run after the specified amount of time elapses.
+     * @param callable The callable that will be executed, Maybe a pointer to function, pointer
+     * to member function, lambda expression, or any kind of move-constructible function object.
+     * @param delayMillis The delay in milliseconds until the callable will be executed.
+     * @return Returns true if the callable was successfully added to the task queue. Returns false
+     * on failure, usually because this thread was stopped.
      */
-    void run();
+    template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
+    bool post(_Callable&& callable, uint32_t delayMillis = 0);
+
+// Attributes
+public:
+    /**
+     * Returns the Looper associated with this thread.
+     * @return A reference to the Looper.
+     */
+    Looper& getLooper();
+
+    /**
+     * Tests if this thread is running.
+     * @return true if this thread is running, false otherwise.
+     */
+    bool isRunning() const;
+
+    /**
+     * Returns this thread id.
+     * @return An object of type std::thread::id of this thread.
+     */
+    std::thread::id getId() const;
 
 // Data members
 private:
-    LocalSocket mServer;
+    Looper mLooper;
+    std::thread mThread;
 };
 
 }  // namespace stdutil
