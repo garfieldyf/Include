@@ -14,38 +14,23 @@
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the ThreadBase class
+// Implementation of the WorkerThread class
 //
 
-__INLINE__ ThreadBase::ThreadBase()
+__INLINE__ WorkerThread::WorkerThread()
     : mRunning(false)
 {
 }
 
-__INLINE__ ThreadBase::~ThreadBase()
+__INLINE__ WorkerThread::~WorkerThread()
 {
 #ifndef NDEBUG
     if (mRunning) {
-        LOGE("This thread has not stopped.\n");
+        LOGE("The WorkerThread has not stopped.\n");
         assert(false);
     }
 #endif  // NDEBUG
 }
-
-__INLINE__ bool ThreadBase::isRunning() const
-{
-    return mRunning;
-}
-
-__INLINE__ std::thread::id ThreadBase::getId() const
-{
-    return mThread.get_id();
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the WorkerThread class
-//
 
 __INLINE__ void WorkerThread::start()
 {
@@ -81,7 +66,7 @@ __INLINE__ bool WorkerThread::post(_Callable&& callable)
 #ifndef NDEBUG
     Runnable task = std::forward<_Callable>(callable);
     if (!task) {
-        LOGE("WorkerThread::post() does not accept an empty callable.\n");
+        LOGE("The WorkerThread::post() does not accept an empty callable.\n");
         assert(false);
     }
 
@@ -107,7 +92,7 @@ __INLINE__ bool WorkerThread::postAtFront(_Callable&& callable)
 #ifndef NDEBUG
     Runnable task = std::forward<_Callable>(callable);
     if (!task) {
-        LOGE("WorkerThread::postAtFront() does not accept an empty callable.\n");
+        LOGE("The WorkerThread::postAtFront() does not accept an empty callable.\n");
         assert(false);
     }
 
@@ -123,6 +108,16 @@ __INLINE__ bool WorkerThread::postAtFront(_Callable&& callable)
 #endif  // NDEBUG
 
     return running;
+}
+
+__INLINE__ bool WorkerThread::isRunning() const
+{
+    return mRunning;
+}
+
+__INLINE__ std::thread::id WorkerThread::getId() const
+{
+    return mThread.get_id();
 }
 
 __INLINE__ void WorkerThread::run()
@@ -194,7 +189,7 @@ __INLINE__ bool Looper::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
 #ifndef NDEBUG
     Runnable runnable = std::forward<_Callable>(callable);
     if (!runnable) {
-        LOGE("Looper::post() does not accept an empty callable.\n");
+        LOGE("The Looper::post() does not accept an empty callable.\n");
         assert(false);
     }
 

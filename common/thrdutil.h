@@ -28,49 +28,18 @@ using _Enable_if_callable_t = std::enable_if_t<!std::is_same<std::decay_t<_Calla
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the ThreadBase class
-//
-
-class ThreadBase
-{
-// Constructors/Destructor
-protected:
-    ThreadBase();
-    ~ThreadBase();
-
-    ThreadBase(const ThreadBase&) = delete;
-    ThreadBase& operator=(const ThreadBase&) = delete;
-
-// Attributes
-public:
-    /**
-     * Tests if this thread is running.
-     * @return true if this thread is running, false otherwise.
-     */
-    bool isRunning() const;
-
-    /**
-     * Returns this thread id.
-     * @return An object of type std::thread::id of this thread.
-     */
-    std::thread::id getId() const;
-
-// Data members
-protected:
-    std::thread mThread;
-    std::atomic_bool mRunning;
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
 // Interface of the WorkerThread class
 //
 
-class WorkerThread final : public ThreadBase
+class WorkerThread final
 {
-// Constructors
+// Constructors/Destructor
 public:
-    WorkerThread() = default;
+    WorkerThread();
+    ~WorkerThread();
+
+    WorkerThread(const WorkerThread&) = delete;
+    WorkerThread& operator=(const WorkerThread&) = delete;
 
 // Operations
 public:
@@ -109,6 +78,20 @@ public:
     template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
     bool postAtFront(_Callable&& callable);
 
+// Attributes
+public:
+    /**
+     * Tests if this thread is running.
+     * @return true if this thread is running, false otherwise.
+     */
+    bool isRunning() const;
+
+    /**
+     * Returns this thread id.
+     * @return An object of type std::thread::id of this thread.
+     */
+    std::thread::id getId() const;
+
 // Implementation
 private:
     /**
@@ -121,7 +104,9 @@ private:
 
 // Data members
 private:
+    std::thread mThread;
     TaskQueue mTaskQueue;
+    std::atomic_bool mRunning;
 };
 
 
@@ -135,6 +120,9 @@ class Looper final
 public:
     constexpr Looper();
     ~Looper();
+
+    Looper(const Looper&) = delete;
+    Looper& operator=(const Looper&) = delete;
 
 // Operations
 public:

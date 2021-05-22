@@ -272,11 +272,8 @@ public:
     priority_queue(_Iter _First, _Iter _Last);
     priority_queue(std::initializer_list<_Ty> _List, const _Comparator& _Comp = _Comparator());
 
-    priority_queue(priority_queue&&) = default;
-    priority_queue& operator=(priority_queue&&) = default;
-
-    priority_queue(const priority_queue&) = default;
-    priority_queue& operator=(const priority_queue&) = default;
+    priority_queue(const priority_queue&) = delete;
+    priority_queue& operator=(const priority_queue&) = delete;
 
 // Operations
 public:
