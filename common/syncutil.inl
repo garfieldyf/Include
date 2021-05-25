@@ -18,12 +18,68 @@ namespace stdutil {
 //
 
 #ifndef NDEBUG
-__STATIC_INLINE__ void logError(const char* msg)
+#define startMethodTracing()                        stdutil::_Trace::start_method_tracing()
+#define stopMethodTracing(_Prefix)                  stopMethodTracing2(_Prefix, 'm')
+#define stopMethodTracing2(_Prefix, _TimeUnit)      stdutil::_Trace::stop_method_tracing(_Prefix, _TimeUnit)
+#else
+#define startMethodTracing()                        ((void)0)
+#define stopMethodTracing(_Prefix)                  ((void)0)
+#define stopMethodTracing2(_Prefix, _TimeUnit)      ((void)0)
+#endif  // NDEBUG
+
+#ifndef NDEBUG
+__STATIC_INLINE__ void _LogError(const char* msg)
 {
     const int errnum = errno;
     char error[256];
     ::strerror_r(errnum, error, sizeof(error));
     LOGE("%s - errno = %d, error = %s\n", msg, errnum, error);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the _Trace class
+//
+
+thread_local _Trace _Trace::_Mytrace;
+
+__INLINE__ void _Trace::start_method_tracing()
+{
+    _Mytrace._Myowner = std::this_thread::get_id();
+    _Mytrace._Mystart = std::chrono::steady_clock::now();
+}
+
+__INLINE__ void _Trace::stop_method_tracing(const char* _Prefix, char _TimeUnit)
+{
+    using namespace std::chrono;
+    assert(_Prefix);
+
+    if (_Mytrace._Myowner != std::this_thread::get_id()) {
+        LOGE("Only the original thread that called startMethodTracing() can be call stopMethodTracing().\n");
+        assert(false);
+    }
+
+    const nanoseconds _Duration = steady_clock::now() - _Mytrace._Mystart;
+    long long _RunningTime;
+    switch (_TimeUnit)
+    {
+    // nanoseconds
+    case 'n':
+        _RunningTime = _Duration.count();
+        break;
+
+    // microseconds
+    case 'u':
+        _RunningTime = duration_cast<microseconds>(_Duration).count();
+        break;
+
+    // milliseconds
+    default:
+        _RunningTime = duration_cast<milliseconds>(_Duration).count();
+        break;
+    }
+
+    LOGD("%s running time = %lld%cs\n", _Prefix, _RunningTime, _TimeUnit);
 }
 #endif  // NDEBUG
 
@@ -102,7 +158,7 @@ __INLINE__ ssize_t FileDescriptor::read(void* buf, size_t count) const
 
 #ifndef NDEBUG
     if (readBytes == -1) {
-        logError("The FileDescriptor read failed");
+        _LogError("The FileDescriptor read failed");
     }
 #endif  // NDEBUG
 
@@ -116,7 +172,7 @@ __INLINE__ ssize_t FileDescriptor::write(const void* buf, size_t count) const
 
 #ifndef NDEBUG
     if (writtenBytes == -1) {
-        logError("The FileDescriptor write failed");
+        _LogError("The FileDescriptor write failed");
     }
 #endif  // NDEBUG
 
@@ -145,7 +201,7 @@ __INLINE__ int Epoll::create(int size/* = 1*/)
 
 #ifndef NDEBUG
     if (mFd == -1) {
-        logError("The Epoll create failed");
+        _LogError("The Epoll create failed");
         assert(false);
     }
 #endif  // NDEBUG
@@ -165,7 +221,7 @@ __INLINE__ int Epoll::addFd(int fd, uint32_t events/* = EPOLLIN*/) const
 
 #ifndef NDEBUG
     if (result == -1) {
-        logError("The Epoll add fd failed");
+        _LogError("The Epoll add fd failed");
         assert(false);
     }
 #endif  // NDEBUG
@@ -180,7 +236,7 @@ __INLINE__ int Epoll::removeFd(int fd) const
 
 #ifndef NDEBUG
     if (result == -1) {
-        logError("The Epoll remove fd failed");
+        _LogError("The Epoll remove fd failed");
         assert(false);
     }
 #endif  // NDEBUG
@@ -198,7 +254,7 @@ __INLINE__ int Epoll::wait(struct epoll_event* events, int count/* = 1*/, int ti
 
 #ifndef NDEBUG
     if (result == -1) {
-        logError("The Epoll wait failed");
+        _LogError("The Epoll wait failed");
         assert(false);
     }
 #endif  // NDEBUG
@@ -223,7 +279,7 @@ __INLINE__ int EventFd::create(uint32_t initval/* = 0*/, int flags/* = EFD_NONBL
 
 #ifndef NDEBUG
     if (mFd == -1) {
-        logError("The EventFd create failed");
+        _LogError("The EventFd create failed");
         assert(false);
     }
 #endif  // NDEBUG
@@ -240,7 +296,7 @@ __INLINE__ void EventFd::poll(int timeout/* = -1*/)
 
 #ifndef NDEBUG
     if (result == -1) {
-        logError("The EventFd poll failed");
+        _LogError("The EventFd poll failed");
         assert(false);
     }
 #endif  // NDEBUG
@@ -291,7 +347,7 @@ __INLINE__ int LocalSocket::listen(const char* name, Namespace ns/* = Namespace:
 
 #ifndef NDEBUG
     if (mFd == -1 || result != 0) {
-        logError("The LocalSocket listen failed");
+        _LogError("The LocalSocket listen failed");
         assert(false);
     }
 #endif  // NDEBUG
@@ -309,7 +365,7 @@ __INLINE__ int LocalSocket::accept() const
 
 #ifndef NDEBUG
     if (sockFd == -1) {
-        logError("The LocalSocket accept failed");
+        _LogError("The LocalSocket accept failed");
         assert(false);
     }
 #endif  // NDEBUG
@@ -331,7 +387,7 @@ __INLINE__ int LocalSocket::connect(const char* name, Namespace ns/* = Namespace
 
 #ifndef NDEBUG
     if (mFd == -1 || result != 0) {
-        logError("The LocalSocket connect failed");
+        _LogError("The LocalSocket connect failed");
         assert(false);
     }
 #endif // NDEBUG

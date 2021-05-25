@@ -10,6 +10,7 @@
 #include "platform.h"
 #include <mutex>
 #include <atomic>
+#include <chrono>
 #include <thread>
 #include <poll.h>
 #include <sys/un.h>
@@ -25,8 +26,43 @@
 // Epoll
 // EventFd
 // LocalSocket
+//
+// Global functions in this file:
+//
+// startMethodTracing()
+// stopMethodTracing()
+// stopMethodTracing2()
 
 namespace stdutil {
+
+#ifndef NDEBUG
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the _Trace class
+//
+
+class _Trace final
+{
+// Constructors
+private:
+    _Trace() = default;
+
+// Operations
+public:
+    static void start_method_tracing();
+    static void stop_method_tracing(const char* _Prefix, char _TimeUnit);
+
+// Implementation
+private:
+    using time_point = std::chrono::steady_clock::time_point;
+
+// Data members
+private:
+    time_point _Mystart;
+    std::thread::id _Myowner;
+    static thread_local _Trace _Mytrace;
+};
+#endif  // NDEBUG
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Interface of the spin_mutex class

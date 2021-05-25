@@ -251,7 +251,8 @@ __INLINE__ Looper::Task::Task(_Callable&& callable, uint32_t delayMillis)
 
 __INLINE__ int Looper::Task::getTimeout() const
 {
-    int64_t timeout = std::chrono::duration_cast<std::chrono::milliseconds>(when - std::chrono::steady_clock::now()).count();
+    using namespace std::chrono;
+    int64_t timeout = duration_cast<milliseconds>(when - steady_clock::now()).count();
     if (timeout < 0) {
         timeout = 0;
     } else if (timeout > INT_MAX) {
