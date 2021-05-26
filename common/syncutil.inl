@@ -41,25 +41,28 @@ __STATIC_INLINE__ void _LogError(const char* msg)
 // Implementation of the _Trace class
 //
 
-thread_local _Trace _Trace::_Mytrace;
+__INLINE__ _Trace::_Trace()
+{
+    LOGD("_Trace::_Trace()\n");
+}
+
+__INLINE__ _Trace& _Trace::get()
+{
+    static thread_local _Trace _Instance;
+    return _Instance;
+}
 
 __INLINE__ void _Trace::start_method_tracing()
 {
-    _Mytrace._Myowner = std::this_thread::get_id();
-    _Mytrace._Mystart = std::chrono::steady_clock::now();
+    get()._Mystart = std::chrono::steady_clock::now();
 }
 
 __INLINE__ void _Trace::stop_method_tracing(const char* _Prefix, char _TimeUnit)
 {
-    using namespace std::chrono;
     assert(_Prefix);
 
-    if (_Mytrace._Myowner != std::this_thread::get_id()) {
-        LOGE("Only the original thread that called startMethodTracing() can be call stopMethodTracing().\n");
-        assert(false);
-    }
-
-    const nanoseconds _Duration = steady_clock::now() - _Mytrace._Mystart;
+    using namespace std::chrono;
+    const nanoseconds _Duration = steady_clock::now() - get()._Mystart;
     long long _RunningTime;
     switch (_TimeUnit)
     {
@@ -116,6 +119,19 @@ __INLINE__ void spin_mutex::unlock()
 #endif  // NDEBUG
 }
 
+__INLINE__ bool spin_mutex::try_lock()
+{
+    const bool _Result = !_Myflag.test_and_set(std::memory_order_acquire);
+
+#ifndef NDEBUG
+    if (_Result) {
+        _Myowner = std::this_thread::get_id();
+    }
+#endif  // NDEBUG
+
+    return _Result;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Implementation of the FileDescriptor class
@@ -153,7 +169,9 @@ __INLINE__ void FileDescriptor::attach(int fd)
 
 __INLINE__ ssize_t FileDescriptor::read(void* buf, size_t count) const
 {
+    assert(buf);
     assert(!isEmpty());
+
     const ssize_t readBytes = ::read(mFd, buf, count);
 
 #ifndef NDEBUG
@@ -167,7 +185,9 @@ __INLINE__ ssize_t FileDescriptor::read(void* buf, size_t count) const
 
 __INLINE__ ssize_t FileDescriptor::write(const void* buf, size_t count) const
 {
+    assert(buf);
     assert(!isEmpty());
+
     const ssize_t writtenBytes = ::write(mFd, buf, count);
 
 #ifndef NDEBUG
@@ -287,7 +307,7 @@ __INLINE__ int EventFd::create(uint32_t initval/* = 0*/, int flags/* = EFD_NONBL
     return mFd;
 }
 
-__INLINE__ void EventFd::poll(int timeout/* = -1*/)
+__INLINE__ void EventFd::poll(int timeout/* = -1*/) const
 {
     assert(!isEmpty());
 

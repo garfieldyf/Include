@@ -44,7 +44,7 @@ class _Trace final
 {
 // Constructors
 private:
-    _Trace() = default;
+    _Trace();
 
 // Operations
 public:
@@ -53,13 +53,11 @@ public:
 
 // Implementation
 private:
-    using time_point = std::chrono::steady_clock::time_point;
+    static _Trace& get();
 
 // Data members
 private:
-    time_point _Mystart;
-    std::thread::id _Myowner;
-    static thread_local _Trace _Mytrace;
+    std::chrono::steady_clock::time_point _Mystart;
 };
 #endif  // NDEBUG
 
@@ -87,6 +85,12 @@ public:
      * Releases ownership of this mutex.
      */
     void unlock();
+
+    /**
+     * Attempts to obtain ownership of this mutex without blocking.
+     * @return true if obtains ownership of this mutex successful, false otherwise.
+     */
+    bool try_lock();
 
 // Data members
 private:
@@ -242,7 +246,7 @@ public:
      * @param timeout The waiting timeout in milliseconds, -1 causes wait
      * to indefinitely.
      */
-    void poll(int timeout = -1);
+    void poll(int timeout = -1) const;
 
     /**
      * Reads an 8-byte unsigned integer from this eventfd.
