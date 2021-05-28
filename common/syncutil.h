@@ -42,9 +42,10 @@ namespace stdutil {
 
 class _Trace final
 {
-// Constructors
+// Constructors/Destructor
 private:
     _Trace();
+    ~_Trace();
 
 // Operations
 public:
@@ -57,6 +58,7 @@ private:
 
 // Data members
 private:
+    std::thread::id _Myowner = {};
     std::chrono::steady_clock::time_point _Mystart;
 };
 #endif  // NDEBUG

@@ -46,6 +46,11 @@ __INLINE__ _Trace::_Trace()
     LOGD("_Trace::_Trace()\n");
 }
 
+__INLINE__ _Trace::~_Trace()
+{
+    LOGD("_Trace::~_Trace()\n");
+}
+
 __INLINE__ _Trace& _Trace::get()
 {
     static thread_local _Trace _Instance;
@@ -54,15 +59,23 @@ __INLINE__ _Trace& _Trace::get()
 
 __INLINE__ void _Trace::start_method_tracing()
 {
-    get()._Mystart = std::chrono::steady_clock::now();
+    _Trace& _Instance  = get();
+    _Instance._Myowner = std::this_thread::get_id();
+    _Instance._Mystart = std::chrono::steady_clock::now();
 }
 
 __INLINE__ void _Trace::stop_method_tracing(const char* _Prefix, char _TimeUnit)
 {
     assert(_Prefix);
 
+    _Trace& _Instance = get();
+    if (_Instance._Myowner != std::this_thread::get_id()) {
+        LOGE("Only the original thread that called startMethodTracing() can be call stopMethodTracing().\n");
+        assert(false);
+    }
+
     using namespace std::chrono;
-    const nanoseconds _Duration = steady_clock::now() - get()._Mystart;
+    const nanoseconds _Duration = steady_clock::now() - _Instance._Mystart;
     long long _RunningTime;
     switch (_TimeUnit)
     {

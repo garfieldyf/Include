@@ -66,7 +66,7 @@ __INLINE__ bool WorkerThread::post(_Callable&& callable)
 #ifndef NDEBUG
     Runnable task = std::forward<_Callable>(callable);
     if (!task) {
-        LOGE("The WorkerThread::post() does not accept an empty callable.\n");
+        LOGE("WorkerThread::post() does not accept an empty callable.\n");
         assert(false);
     }
 
@@ -92,7 +92,7 @@ __INLINE__ bool WorkerThread::postAtFront(_Callable&& callable)
 #ifndef NDEBUG
     Runnable task = std::forward<_Callable>(callable);
     if (!task) {
-        LOGE("The WorkerThread::postAtFront() does not accept an empty callable.\n");
+        LOGE("WorkerThread::postAtFront() does not accept an empty callable.\n");
         assert(false);
     }
 
@@ -168,17 +168,19 @@ __INLINE__ void Looper::run()
     while (nextTask(task)) {  // might block
         task.runnable();
     }
+
+    mEventFd.close();
+    mTaskQueue.clear();  // Clears all pending tasks.
 }
 
-template <typename _Callback>
-__INLINE__ void Looper::quit(_Callback callback)
+__INLINE__ bool Looper::quit()
 {
-    if (mRunning.exchange(false)) {
+    const bool result = mRunning.exchange(false);
+    if (result) {
         mEventFd.write();
-        callback();
-        mEventFd.close();
-        mTaskQueue.clear();  // Clears all pending tasks.
     }
+
+    return result;
 }
 
 template <typename _Callable, _Enable_if_callable_t<_Callable>>
@@ -189,7 +191,7 @@ __INLINE__ bool Looper::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
 #ifndef NDEBUG
     Runnable runnable = std::forward<_Callable>(callable);
     if (!runnable) {
-        LOGE("The Looper::post() does not accept an empty callable.\n");
+        LOGE("Looper::post() does not accept an empty callable.\n");
         assert(false);
     }
 
@@ -323,10 +325,10 @@ __INLINE__ void LooperThread::start()
 
 __INLINE__ void LooperThread::stop()
 {
-    mLooper.quit([this]() {
+    if (mLooper.quit()) {
         mThread.join();
         LOGD("LooperThread::stop()\n");
-    });
+    }
 }
 
 template <typename _Callable, _Enable_if_callable_t<_Callable>>

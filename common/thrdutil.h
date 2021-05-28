@@ -129,7 +129,7 @@ public:
     /**
      * Initializes the current thread as a looper.
      * @return Returns true if this looper was successfully initialized.
-     * Returns false if this looper already initialized.
+     * Returns false if this looper was already initialized.
      */
     bool prepare();
 
@@ -140,10 +140,10 @@ public:
 
     /**
      * Quits this looper. All pending tasks will be removed from the task queue.
-     * @param callback The callback that will be executed when this looper is quitting.
+     * @return Returns true if this looper was successfully quitted. Returns false
+     * if this looper was already quitted.
      */
-    template <typename _Callback>
-    void quit(_Callback callback);
+    bool quit();
 
     /**
      * Posts a callable to the task queue, to be run after the specified amount of time elapses.
@@ -177,7 +177,7 @@ private:
     /**
      * Retrieves and removes the task on top of the task queue.
      * @param outTask The outTask to store the returned task.
-     * @return returns true if retrieves successful, false otherwise.
+     * @return Returns true if retrieves successful, false otherwise.
      */
     bool nextTask(Task& outTask);
 
@@ -196,14 +196,14 @@ private:
     // Constructors
     public:
         Task() = default;
-        template <typename _Callable>
-        Task(_Callable&& callable, uint32_t delayMillis);
-
         Task(Task&&) = default;
         Task& operator=(Task&&) = default;
 
         Task(const Task&) = delete;
         Task& operator=(const Task&) = delete;
+
+        template <typename _Callable>
+        Task(_Callable&& callable, uint32_t delayMillis);
 
     // Operations
     public:
