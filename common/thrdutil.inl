@@ -14,6 +14,22 @@
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
+// Global functions
+//
+
+#ifdef __linux__
+__STATIC_INLINE__ void _SetThreadName(std::thread& thread, const char* name)
+{
+    if (name != nullptr && name[0] != '\0') {
+        ::pthread_setname_np(thread.native_handle(), name);
+    }
+}
+#else
+#define _SetThreadName(thread, name)        ((void)(name))
+#endif  // __linux__
+
+
+///////////////////////////////////////////////////////////////////////////////
 // Implementation of the WorkerThread class
 //
 
@@ -32,10 +48,11 @@ __INLINE__ WorkerThread::~WorkerThread()
 #endif  // NDEBUG
 }
 
-__INLINE__ void WorkerThread::start()
+__INLINE__ void WorkerThread::start(const char* name/* = nullptr*/)
 {
     if (!mRunning.exchange(true)) {
         mThread = std::thread(&WorkerThread::run, this);
+        _SetThreadName(mThread, name);
     }
 }
 
@@ -315,10 +332,11 @@ __INLINE__ int Looper::TaskQueue::pop(Task& outTask)
 // Implementation of the LooperThread class
 //
 
-__INLINE__ void LooperThread::start()
+__INLINE__ void LooperThread::start(const char* name/* = nullptr*/)
 {
     if (mLooper.prepare()) {
         mThread = std::thread(&Looper::run, &mLooper);
+        _SetThreadName(mThread, name);
         LOGD("LooperThread::start()\n");
     }
 }

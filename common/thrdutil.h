@@ -45,8 +45,9 @@ public:
 public:
     /**
      * Starts this thread to begin execution.
+     * @param name The name of this thread or nullptr.
      */
-    void start();
+    void start(const char* name = nullptr);
 
     /**
      * Forces this thread to stop executing. All pending
@@ -290,8 +291,9 @@ public:
 public:
     /**
      * Starts this thread to begin execution.
+     * @param name The name of this thread or nullptr.
      */
-    void start();
+    void start(const char* name = nullptr);
 
     /**
      * Forces this thread to stop executing. All pending
