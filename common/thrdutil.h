@@ -23,6 +23,8 @@ namespace stdutil {
 // Type definitions
 //
 
+using Runnable = std::function<void()>;
+
 template <typename _Callable>
 using _Enable_if_callable_t = std::enable_if_t<!std::is_same<std::decay_t<_Callable>, std::nullptr_t>::value, int>;
 
@@ -45,9 +47,8 @@ public:
 public:
     /**
      * Starts this thread to begin execution.
-     * @param name The name of this thread or nullptr.
      */
-    void start(const char* name = nullptr);
+    void start();
 
     /**
      * Forces this thread to stop executing. All pending
@@ -100,14 +101,11 @@ private:
      */
     void run();
 
-    using Runnable  = std::function<void()>;
-    using TaskQueue = blocking_deque<Runnable>;
-
 // Data members
 private:
     std::thread mThread;
-    TaskQueue mTaskQueue;
     std::atomic_bool mRunning;
+    blocking_deque<Runnable> mTaskQueue;
 };
 
 
@@ -184,7 +182,6 @@ private:
 
 // Nested classes
 private:
-    using Runnable  = std::function<void()>;
     using MutexLock = std::lock_guard<std::mutex>;
     using TimePoint = std::chrono::steady_clock::time_point;
 
@@ -291,9 +288,8 @@ public:
 public:
     /**
      * Starts this thread to begin execution.
-     * @param name The name of this thread or nullptr.
      */
-    void start(const char* name = nullptr);
+    void start();
 
     /**
      * Forces this thread to stop executing. All pending
