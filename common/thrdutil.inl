@@ -14,127 +14,43 @@
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the WorkerThread class
+// Implementation of the ThreadBase class
 //
 
-__INLINE__ WorkerThread::WorkerThread()
-    : mRunning(false)
+template <typename _Looper>
+__INLINE__ void ThreadBase<_Looper>::start()
 {
-}
-
-__INLINE__ WorkerThread::~WorkerThread()
-{
-#ifndef NDEBUG
-    if (mRunning) {
-        LOGE("The WorkerThread has not stopped.\n");
-        assert(false);
-    }
-#endif  // NDEBUG
-}
-
-__INLINE__ void WorkerThread::start()
-{
-    if (!mRunning.exchange(true)) {
-        mThread = std::thread(&WorkerThread::run, this);
+    if (mLooper.prepare()) {
+        mThread = std::thread(&_Looper::run, &mLooper);
+        LOGD("Thread::start()\n");
     }
 }
 
-__INLINE__ void WorkerThread::stop()
+template <typename _Looper>
+__INLINE__ void ThreadBase<_Looper>::stop()
 {
-    if (mRunning.exchange(false)) {
-        // Posts an empty task to exit this thread.
-        mTaskQueue.push_front(nullptr);
+    if (mLooper.quit()) {
         mThread.join();
-
-    #ifndef NDEBUG
-        const size_t size = mTaskQueue.size();
-        if (size > 0) {
-            LOGW("The number of %zu pending tasks will be discard.\n", size);
-        }
-    #endif  // NDEBUG
-
-        // Clears all pending tasks.
-        mTaskQueue.clear();
+        LOGD("Thread::stop()\n");
     }
 }
 
-template <typename _Callable, _Enable_if_callable_t<_Callable>>
-__INLINE__ bool WorkerThread::post(_Callable&& callable)
+template <typename _Looper>
+__INLINE__ _Looper& ThreadBase<_Looper>::getLooper()
 {
-    const bool running = mRunning;
-
-#ifndef NDEBUG
-    Runnable task = std::forward<_Callable>(callable);
-    if (!task) {
-        LOGE("WorkerThread::post() does not accept an empty callable.\n");
-        assert(false);
-    }
-
-    if (running) {
-        mTaskQueue.push_back(std::move(task));
-    } else {
-        LOGE("The WorkerThread has not started.\n");
-    }
-#else
-    if (running) {
-        mTaskQueue.push_back(std::forward<_Callable>(callable));
-    }
-#endif  // NDEBUG
-
-    return running;
+    return mLooper;
 }
 
-template <typename _Callable, _Enable_if_callable_t<_Callable>>
-__INLINE__ bool WorkerThread::postAtFront(_Callable&& callable)
+template <typename _Looper>
+__INLINE__ bool ThreadBase<_Looper>::isRunning() const
 {
-    const bool running = mRunning;
-
-#ifndef NDEBUG
-    Runnable task = std::forward<_Callable>(callable);
-    if (!task) {
-        LOGE("WorkerThread::postAtFront() does not accept an empty callable.\n");
-        assert(false);
-    }
-
-    if (running) {
-        mTaskQueue.push_front(std::move(task));
-    } else {
-        LOGE("The WorkerThread has not started.\n");
-    }
-#else
-    if (running) {
-        mTaskQueue.push_front(std::forward<_Callable>(callable));
-    }
-#endif  // NDEBUG
-
-    return running;
+    return mLooper.isRunning();
 }
 
-__INLINE__ bool WorkerThread::isRunning() const
-{
-    return mRunning;
-}
-
-__INLINE__ std::thread::id WorkerThread::getId() const
+template <typename _Looper>
+__INLINE__ std::thread::id ThreadBase<_Looper>::getId() const
 {
     return mThread.get_id();
-}
-
-__INLINE__ void WorkerThread::run()
-{
-    LOGD("WorkerThread::start()\n");
-    Runnable task;
-    while (mTaskQueue.pop_front(task)) {    // might block
-        // Exit the run, if the task is empty.
-        if (!task) {
-            break;
-        }
-
-        // Run the task.
-        task();
-    }
-
-    LOGD("WorkerThread::stop()\n");
 }
 
 
@@ -159,52 +75,90 @@ __INLINE__ Looper::~Looper()
 
 __INLINE__ bool Looper::prepare()
 {
-    return (!mRunning.exchange(true) && mEventFd.create() != -1);
+    return !mRunning.exchange(true);
 }
 
 __INLINE__ void Looper::run()
 {
-    Task task;
-    while (nextTask(task)) {  // might block
-        task.runnable();
+    Runnable task;
+    while (mTaskQueue.pop_front(task)) {    // might block
+        // Exit the run, if the task is empty.
+        if (!task) {
+            break;
+        }
+
+        // Run the task.
+        task();
     }
 
-    mEventFd.close();
-    mTaskQueue.clear();  // Clears all pending tasks.
+#ifndef NDEBUG
+    const size_t size = mTaskQueue.size();
+    if (size > 0) {
+        LOGW("The number of %zu pending tasks will be discard.\n", size);
+    }
+#endif  // NDEBUG
+
+    // Clears all pending tasks.
+    mTaskQueue.clear();
 }
 
 __INLINE__ bool Looper::quit()
 {
     const bool result = mRunning.exchange(false);
     if (result) {
-        mEventFd.write();
+        // Posts an empty task to end the loop.
+        mTaskQueue.push_front(nullptr);
     }
 
     return result;
 }
 
 template <typename _Callable, _Enable_if_callable_t<_Callable>>
-__INLINE__ bool Looper::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
+__INLINE__ bool Looper::post(_Callable&& callable)
 {
     const bool running = mRunning;
 
 #ifndef NDEBUG
-    Runnable runnable = std::forward<_Callable>(callable);
-    if (!runnable) {
+    Runnable task = std::forward<_Callable>(callable);
+    if (!task) {
         LOGE("Looper::post() does not accept an empty callable.\n");
         assert(false);
     }
 
     if (running) {
-        mTaskQueue.push(std::move(runnable), delayMillis);
-        mEventFd.write();
+        mTaskQueue.push_back(std::move(task));
     } else {
         LOGE("The Looper has not initialized.\n");
     }
 #else
     if (running) {
-        mTaskQueue.push(std::forward<_Callable>(callable), delayMillis);
-        mEventFd.write();
+        mTaskQueue.push_back(std::forward<_Callable>(callable));
+    }
+#endif  // NDEBUG
+
+    return running;
+}
+
+template <typename _Callable, _Enable_if_callable_t<_Callable>>
+__INLINE__ bool Looper::postAtFront(_Callable&& callable)
+{
+    const bool running = mRunning;
+
+#ifndef NDEBUG
+    Runnable task = std::forward<_Callable>(callable);
+    if (!task) {
+        LOGE("Looper::postAtFront() does not accept an empty callable.\n");
+        assert(false);
+    }
+
+    if (running) {
+        mTaskQueue.push_front(std::move(task));
+    } else {
+        LOGE("The Looper has not initialized.\n");
+    }
+#else
+    if (running) {
+        mTaskQueue.push_front(std::forward<_Callable>(callable));
     }
 #endif  // NDEBUG
 
@@ -222,7 +176,110 @@ __INLINE__ Looper& Looper::getMainLooper()
     return sMainLooper;
 }
 
-__INLINE__ bool Looper::nextTask(Task& outTask)
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the LooperThread class
+//
+
+template <typename _Callable, _Enable_if_callable_t<_Callable>>
+__INLINE__ bool LooperThread::post(_Callable&& callable)
+{
+    return mLooper.post(std::forward<_Callable>(callable));
+}
+
+template <typename _Callable, _Enable_if_callable_t<_Callable>>
+__INLINE__ bool LooperThread::postAtFront(_Callable&& callable)
+{
+    return mLooper.postAtFront(std::forward<_Callable>(callable));
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the EventLooper class
+//
+
+__INLINE__ constexpr EventLooper::EventLooper()
+    : mRunning(false)
+{
+}
+
+__INLINE__ EventLooper::~EventLooper()
+{
+#ifndef NDEBUG
+    if (mRunning) {
+        LOGE("The EventLooper has not quitted.\n");
+        assert(false);
+    }
+#endif  // NDEBUG
+}
+
+__INLINE__ bool EventLooper::prepare()
+{
+    return (!mRunning.exchange(true) && mEventFd.create() != -1);
+}
+
+__INLINE__ void EventLooper::run()
+{
+    Task task;
+    while (nextTask(task)) {  // might block
+        task.runnable();
+    }
+
+    mEventFd.close();
+    mTaskQueue.clear();  // Clears all pending tasks.
+}
+
+__INLINE__ bool EventLooper::quit()
+{
+    const bool result = mRunning.exchange(false);
+    if (result) {
+        // Wakes up the waiting thread to end the loop.
+        mEventFd.write();
+    }
+
+    return result;
+}
+
+template <typename _Callable, _Enable_if_callable_t<_Callable>>
+__INLINE__ bool EventLooper::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
+{
+    const bool running = mRunning;
+
+#ifndef NDEBUG
+    Runnable runnable = std::forward<_Callable>(callable);
+    if (!runnable) {
+        LOGE("EventLooper::post() does not accept an empty callable.\n");
+        assert(false);
+    }
+
+    if (running) {
+        mTaskQueue.push(std::move(runnable), delayMillis);
+        mEventFd.write();   // Wakes up the waiting thread.
+    } else {
+        LOGE("The EventLooper has not initialized.\n");
+    }
+#else
+    if (running) {
+        mTaskQueue.push(std::forward<_Callable>(callable), delayMillis);
+        mEventFd.write();   // Wakes up the waiting thread.
+    }
+#endif  // NDEBUG
+
+    return running;
+}
+
+__INLINE__ bool EventLooper::isRunning() const
+{
+    return mRunning;
+}
+
+__INLINE__ EventLooper& EventLooper::getMainLooper()
+{
+    static EventLooper sMainLooper;
+    return sMainLooper;
+}
+
+__INLINE__ bool EventLooper::nextTask(Task& outTask)
 {
     while (mRunning) {
         const int timeout = mTaskQueue.pop(outTask);
@@ -241,17 +298,17 @@ __INLINE__ bool Looper::nextTask(Task& outTask)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the Looper::Task class
+// Implementation of the EventLooper::Task class
 //
 
 template <typename _Callable>
-__INLINE__ Looper::Task::Task(_Callable&& callable, uint32_t delayMillis)
+__INLINE__ EventLooper::Task::Task(_Callable&& callable, uint32_t delayMillis)
     : when(std::chrono::steady_clock::now() + std::chrono::milliseconds(delayMillis))
     , runnable(std::forward<_Callable>(callable))
 {
 }
 
-__INLINE__ int Looper::Task::getTimeout() const
+__INLINE__ int EventLooper::Task::getTimeout() const
 {
     using namespace std::chrono;
     int64_t timeout = duration_cast<milliseconds>(when - steady_clock::now()).count();
@@ -264,17 +321,17 @@ __INLINE__ int Looper::Task::getTimeout() const
     return static_cast<int>(timeout);
 }
 
-__INLINE__ bool Looper::Task::operator>(const Task& right) const
+__INLINE__ bool EventLooper::Task::operator>(const Task& right) const
 {
     return (when > right.when);
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the Looper::TaskQueue class
+// Implementation of the EventLooper::TaskQueue class
 //
 
-__INLINE__ void Looper::TaskQueue::clear()
+__INLINE__ void EventLooper::TaskQueue::clear()
 {
     MutexLock lock(mMutex);
 
@@ -289,13 +346,13 @@ __INLINE__ void Looper::TaskQueue::clear()
 }
 
 template <typename _Callable>
-__INLINE__ void Looper::TaskQueue::push(_Callable&& callable, uint32_t delayMillis)
+__INLINE__ void EventLooper::TaskQueue::push(_Callable&& callable, uint32_t delayMillis)
 {
     MutexLock lock(mMutex);
     _Base::emplace(std::forward<_Callable>(callable), delayMillis);
 }
 
-__INLINE__ int Looper::TaskQueue::pop(Task& outTask)
+__INLINE__ int EventLooper::TaskQueue::pop(Task& outTask)
 {
     MutexLock lock(mMutex);
     int timeout = -1;   // Waiting to indefinitely.
@@ -312,44 +369,13 @@ __INLINE__ int Looper::TaskQueue::pop(Task& outTask)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the LooperThread class
+// Implementation of the EventLooperThread class
 //
 
-__INLINE__ void LooperThread::start()
-{
-    if (mLooper.prepare()) {
-        mThread = std::thread(&Looper::run, &mLooper);
-        LOGD("LooperThread::start()\n");
-    }
-}
-
-__INLINE__ void LooperThread::stop()
-{
-    if (mLooper.quit()) {
-        mThread.join();
-        LOGD("LooperThread::stop()\n");
-    }
-}
-
 template <typename _Callable, _Enable_if_callable_t<_Callable>>
-__INLINE__ bool LooperThread::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
+__INLINE__ bool EventLooperThread::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
 {
     return mLooper.post(std::forward<_Callable>(callable), delayMillis);
-}
-
-__INLINE__ Looper& LooperThread::getLooper()
-{
-    return mLooper;
-}
-
-__INLINE__ bool LooperThread::isRunning() const
-{
-    return mLooper.isRunning();
-}
-
-__INLINE__ std::thread::id LooperThread::getId() const
-{
-    return mThread.get_id();
 }
 
 }  // namespace stdutil

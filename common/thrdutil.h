@@ -13,9 +13,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Classes in this file:
 //
-// WorkerThread
 // Looper
 // LooperThread
+// EventLooper
+// EventLooperThread
 
 namespace stdutil {
 
@@ -30,18 +31,15 @@ using _Enable_if_callable_t = std::enable_if_t<!std::is_same<std::decay_t<_Calla
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the WorkerThread class
+// Interface of the ThreadBase class
 //
 
-class WorkerThread final
+template <typename _Looper>
+class ThreadBase
 {
-// Constructors/Destructor
-public:
-    WorkerThread();
-    ~WorkerThread();
-
-    WorkerThread(const WorkerThread&) = delete;
-    WorkerThread& operator=(const WorkerThread&) = delete;
+// Constructors
+protected:
+    ThreadBase() = default;
 
 // Operations
 public:
@@ -56,6 +54,127 @@ public:
      */
     void stop();
 
+// Attributes
+public:
+    /**
+     * Returns the looper associated with this thread.
+     * @return A reference to the looper.
+     */
+    _Looper& getLooper();
+
+    /**
+     * Tests if this thread is running.
+     * @return true if this thread is running, false otherwise.
+     */
+    bool isRunning() const;
+
+    /**
+     * Returns this thread id.
+     * @return An object of type std::thread::id of this thread.
+     */
+    std::thread::id getId() const;
+
+// Data members
+protected:
+    _Looper mLooper;
+    std::thread mThread;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the Looper class
+//
+
+class Looper final
+{
+// Constructors/Destructor
+public:
+    constexpr Looper();
+    ~Looper();
+
+    Looper(const Looper&) = delete;
+    Looper& operator=(const Looper&) = delete;
+
+// Operations
+public:
+    /**
+     * Initializes the current thread as a looper.
+     * @return Returns true if this looper was successfully initialized.
+     * Returns false if this looper was already initialized.
+     */
+    bool prepare();
+
+    /**
+     * Runs the task queue in this thread. Be sure to call quit() to end the loop.
+     */
+    void run();
+
+    /**
+     * Quits this looper. All pending tasks will be removed from the task queue.
+     * @return Returns true if this looper was successfully quitted. Returns false
+     * if this looper was already quitted.
+     */
+    bool quit();
+
+    /**
+     * Posts a callable to the end of the task queue. The callable will be run 
+     * on the this thread.
+     * @param callable The callable that will be executed, Maybe a pointer to
+     * function, pointer to member function, lambda expression, or any kind of
+     * move-constructible function object.
+     * @return Returns true if the callable was successfully added to the task
+     * queue. Returns false on failure, usually because this looper processing
+     * the task queue is quitting.
+     */
+    template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
+    bool post(_Callable&& callable);
+
+    /**
+     * Posts a callable to the beginning of the task queue. The callable will 
+     * be run on this thread.
+     * @param callable The callable that will be executed, Maybe a pointer to
+     * function, pointer to member function, lambda expression, or any kind of
+     * move-constructible function object.
+     * @return Returns true if the callable was successfully added to the task
+     * queue. Returns false on failure, usually because this looper processing
+     * the task queue is quitting.
+     */
+    template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
+    bool postAtFront(_Callable&& callable);
+
+// Attributes
+public:
+    /**
+     * Tests if this looper is running.
+     * @return true if this looper is running, false otherwise.
+     */
+    bool isRunning() const;
+
+    /**
+     * Returns the looper associated with the main thread of the application.
+     * @return A reference to the Looper.
+     */
+    static Looper& getMainLooper();
+
+// Data members
+private:
+    std::atomic_bool mRunning;
+    blocking_deque<Runnable> mTaskQueue;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the LooperThread class
+//
+
+class LooperThread final : public ThreadBase<Looper>
+{
+// Constructors
+public:
+    LooperThread() = default;
+
+// Operations
+public:
     /**
      * Posts a callable to the end of the task queue. The callable will be run 
      * on this thread.
@@ -79,49 +198,22 @@ public:
      */
     template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
     bool postAtFront(_Callable&& callable);
-
-// Attributes
-public:
-    /**
-     * Tests if this thread is running.
-     * @return true if this thread is running, false otherwise.
-     */
-    bool isRunning() const;
-
-    /**
-     * Returns this thread id.
-     * @return An object of type std::thread::id of this thread.
-     */
-    std::thread::id getId() const;
-
-// Implementation
-private:
-    /**
-     * This thread start entry point.
-     */
-    void run();
-
-// Data members
-private:
-    std::thread mThread;
-    std::atomic_bool mRunning;
-    blocking_deque<Runnable> mTaskQueue;
 };
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the Looper class
+// Interface of the EventLooper class
 //
 
-class Looper final
+class EventLooper final
 {
 // Constructors/Destructor
 public:
-    constexpr Looper();
-    ~Looper();
+    constexpr EventLooper();
+    ~EventLooper();
 
-    Looper(const Looper&) = delete;
-    Looper& operator=(const Looper&) = delete;
+    EventLooper(const EventLooper&) = delete;
+    EventLooper& operator=(const EventLooper&) = delete;
 
 // Operations
 public:
@@ -164,10 +256,10 @@ public:
     bool isRunning() const;
 
     /**
-     * Returns the Looper associated with the main thread of the application.
-     * @return A reference to the Looper.
+     * Returns the looper associated with the main thread of the application.
+     * @return A reference to the EventLooper.
      */
-    static Looper& getMainLooper();
+    static EventLooper& getMainLooper();
 
 // Implementation
 private:
@@ -275,28 +367,17 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the LooperThread class
+// Interface of the EventLooperThread class
 //
 
-class LooperThread final
+class EventLooperThread final : public ThreadBase<EventLooper>
 {
 // Constructors
 public:
-    LooperThread() = default;
+    EventLooperThread() = default;
 
 // Operations
 public:
-    /**
-     * Starts this thread to begin execution.
-     */
-    void start();
-
-    /**
-     * Forces this thread to stop executing. All pending
-     * tasks will be removed from the task queue.
-     */
-    void stop();
-
     /**
      * Posts a callable to the task queue, to be run after the specified amount of time elapses.
      * @param callable The callable that will be executed, Maybe a pointer to function, pointer
@@ -307,31 +388,6 @@ public:
      */
     template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
     bool post(_Callable&& callable, uint32_t delayMillis = 0);
-
-// Attributes
-public:
-    /**
-     * Returns the Looper associated with this thread.
-     * @return A reference to the Looper.
-     */
-    Looper& getLooper();
-
-    /**
-     * Tests if this thread is running.
-     * @return true if this thread is running, false otherwise.
-     */
-    bool isRunning() const;
-
-    /**
-     * Returns this thread id.
-     * @return An object of type std::thread::id of this thread.
-     */
-    std::thread::id getId() const;
-
-// Data members
-private:
-    Looper mLooper;
-    std::thread mThread;
 };
 
 }  // namespace stdutil
