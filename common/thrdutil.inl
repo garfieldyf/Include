@@ -22,7 +22,7 @@ __INLINE__ void ThreadBase<_Looper>::start()
 {
     if (mLooper.prepare()) {
         mThread = std::thread(&_Looper::run, &mLooper);
-        LOGD("Thread::start()\n");
+        LOGD("Start the looper thread.\n");
     }
 }
 
@@ -30,8 +30,15 @@ template <typename _Looper>
 __INLINE__ void ThreadBase<_Looper>::stop()
 {
     if (mLooper.quit()) {
+    #ifndef NDEBUG
+        if (mThread.get_id() == std::this_thread::get_id()) {
+            LOGE("ThreadBase::stop() can NOT call on self thread.\n");
+            assert(false);
+        }
+    #endif  // NDEBUG
+
         mThread.join();
-        LOGD("Thread::stop()\n");
+        LOGD("Stop the looper thread.\n");
     }
 }
 
@@ -128,7 +135,7 @@ __INLINE__ bool Looper::post(_Callable&& callable)
     if (running) {
         mTaskQueue.push_back(std::move(task));
     } else {
-        LOGE("The Looper has not initialized.\n");
+        LOGE("The Looper has not initialized. Did not call Looper::prepare()\n");
     }
 #else
     if (running) {
@@ -154,7 +161,7 @@ __INLINE__ bool Looper::postAtFront(_Callable&& callable)
     if (running) {
         mTaskQueue.push_front(std::move(task));
     } else {
-        LOGE("The Looper has not initialized.\n");
+        LOGE("The Looper has not initialized. Did not call Looper::prepare()\n");
     }
 #else
     if (running) {
@@ -256,7 +263,7 @@ __INLINE__ bool EventLooper::post(_Callable&& callable, uint32_t delayMillis/* =
         mTaskQueue.push(std::move(runnable), delayMillis);
         mEventFd.write();   // Wakes up the waiting thread.
     } else {
-        LOGE("The EventLooper has not initialized.\n");
+        LOGE("The EventLooper has not initialized. Did not call EventLooper::prepare()\n");
     }
 #else
     if (running) {
