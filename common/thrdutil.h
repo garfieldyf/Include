@@ -14,9 +14,9 @@
 // Classes in this file:
 //
 // Looper
-// LooperThread
 // EventLooper
-// EventLooperThread
+// LooperThread
+// ThreadPool<_ThreadCount>
 
 namespace stdutil {
 
@@ -26,59 +26,11 @@ namespace stdutil {
 
 using Runnable = std::function<void()>;
 
+template <uint32_t _ThreadCount/* = 1*/>
+class ThreadPool;
+
 template <typename _Callable>
 using _Enable_if_callable_t = std::enable_if_t<!std::is_same<std::decay_t<_Callable>, std::nullptr_t>::value, int>;
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the ThreadBase class
-//
-
-template <typename _Looper>
-class ThreadBase
-{
-// Constructors
-protected:
-    ThreadBase() = default;
-
-// Operations
-public:
-    /**
-     * Starts this thread to begin execution.
-     */
-    void start();
-
-    /**
-     * Forces this thread to stop executing. All pending
-     * tasks will be removed from the task queue.
-     */
-    void stop();
-
-// Attributes
-public:
-    /**
-     * Returns the looper associated with this thread.
-     * @return A reference to the looper.
-     */
-    _Looper& getLooper();
-
-    /**
-     * Tests if this thread is running.
-     * @return true if this thread is running, false otherwise.
-     */
-    bool isRunning() const;
-
-    /**
-     * Returns this thread id.
-     * @return An object of type std::thread::id of this thread.
-     */
-    std::thread::id getId() const;
-
-// Data members
-protected:
-    _Looper mLooper;
-    std::thread mThread;
-};
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -105,7 +57,7 @@ public:
     bool prepare();
 
     /**
-     * Runs the task queue in this thread. Be sure to call quit() to end the loop.
+     * Runs the task queue in the thread. Be sure to call quit() to end the loop.
      */
     void run();
 
@@ -118,7 +70,7 @@ public:
 
     /**
      * Posts a callable to the end of the task queue. The callable will be run 
-     * on the this thread.
+     * on the the thread.
      * @param callable The callable that will be executed, Maybe a pointer to
      * function, pointer to member function, lambda expression, or any kind of
      * move-constructible function object.
@@ -131,7 +83,7 @@ public:
 
     /**
      * Posts a callable to the beginning of the task queue. The callable will 
-     * be run on this thread.
+     * be run on the thread.
      * @param callable The callable that will be executed, Maybe a pointer to
      * function, pointer to member function, lambda expression, or any kind of
      * move-constructible function object.
@@ -156,48 +108,21 @@ public:
      */
     static Looper& getMainLooper();
 
+// Implementation
+private:
+    /**
+     * Removes all tasks from the task queue, leaving it empty.
+     */
+    void clear();
+
+    template <uint32_t _ThreadCount>
+    friend class ThreadPool;
+
 // Data members
 private:
+    uint32_t mThreadCount;
     std::atomic_bool mRunning;
     blocking_deque<Runnable> mTaskQueue;
-};
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the LooperThread class
-//
-
-class LooperThread final : public ThreadBase<Looper>
-{
-// Constructors
-public:
-    LooperThread() = default;
-
-// Operations
-public:
-    /**
-     * Posts a callable to the end of the task queue. The callable will be run 
-     * on this thread.
-     * @param callable The callable that will be executed, Maybe a pointer to
-     * function, pointer to member function, lambda expression, or any kind of
-     * move-constructible function object.
-     * @return Returns true if the callable was successfully added to the task
-     * queue. Returns false on failure, usually because this thread was stopped.
-     */
-    template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
-    bool post(_Callable&& callable);
-
-    /**
-     * Posts a callable to the beginning of the task queue. The callable will 
-     * be run on this thread.
-     * @param callable The callable that will be executed, Maybe a pointer to
-     * function, pointer to member function, lambda expression, or any kind of
-     * move-constructible function object.
-     * @return Returns true if the callable was successfully added to the task
-     * queue. Returns false on failure, usually because this thread was stopped.
-     */
-    template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
-    bool postAtFront(_Callable&& callable);
 };
 
 
@@ -367,17 +292,28 @@ private:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the EventLooperThread class
+// Interface of the LooperThread class
 //
 
-class EventLooperThread final : public ThreadBase<EventLooper>
+class LooperThread final
 {
 // Constructors
 public:
-    EventLooperThread() = default;
+    LooperThread() = default;
 
 // Operations
 public:
+    /**
+     * Starts this thread to begin execution.
+     */
+    void start();
+
+    /**
+     * Forces this thread to stop executing. All pending
+     * tasks will be removed from the task queue.
+     */
+    void stop();
+
     /**
      * Posts a callable to the task queue, to be run after the specified amount of time elapses.
      * @param callable The callable that will be executed, Maybe a pointer to function, pointer
@@ -388,6 +324,108 @@ public:
      */
     template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
     bool post(_Callable&& callable, uint32_t delayMillis = 0);
+
+// Attributes
+public:
+    /**
+     * Returns the looper associated with this thread.
+     * @return A reference to the EventLooper.
+     */
+    EventLooper& getLooper();
+
+    /**
+     * Tests if this thread is running.
+     * @return true if this thread is running, false otherwise.
+     */
+    bool isRunning() const;
+
+    /**
+     * Returns this thread id.
+     * @return An object of type std::thread::id of this thread.
+     */
+    std::thread::id getId() const;
+
+// Data members
+private:
+    EventLooper mLooper;
+    std::thread mThread;
+};
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Interface of the ThreadPool class
+//
+
+template <uint32_t _ThreadCount = 1>
+class ThreadPool final
+{
+    static_assert(_ThreadCount >= 1 && _ThreadCount <= 8, "The _ThreadCount parameter must be >= 1 and <= 8");
+
+// Constructors
+public:
+    ThreadPool();
+
+// Operations
+public:
+    /**
+     * Starts this thread pool to begin execution.
+     */
+    void start();
+
+    /**
+     * Forces this thread pool to stop executing. All
+     * pending tasks will be removed from the task queue.
+     */
+    void stop();
+
+    /**
+     * Posts a callable to the end of the task queue. The callable will be run 
+     * on the thread.
+     * @param callable The callable that will be executed, Maybe a pointer to
+     * function, pointer to member function, lambda expression, or any kind of
+     * move-constructible function object.
+     * @return Returns true if the callable was successfully added to the task
+     * queue. Returns false on failure, usually because this pool was stopped.
+     */
+    template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
+    bool post(_Callable&& callable);
+
+    /**
+     * Posts a callable to the beginning of the task queue. The callable will 
+     * be run on the thread.
+     * @param callable The callable that will be executed, Maybe a pointer to
+     * function, pointer to member function, lambda expression, or any kind of
+     * move-constructible function object.
+     * @return Returns true if the callable was successfully added to the task
+     * queue. Returns false on failure, usually because this pool was stopped.
+     */
+    template <typename _Callable, _Enable_if_callable_t<_Callable> = 0>
+    bool postAtFront(_Callable&& callable);
+
+// Attributes
+public:
+    /**
+     * Returns the looper associated with this thread pool.
+     * @return A reference to the Looper.
+     */
+    Looper& getLooper();
+
+    /**
+     * Tests if this thread pool is running.
+     * @return true if this thread pool is running, false otherwise.
+     */
+    bool isRunning() const;
+
+    /**
+     * Returns the number of threads in this thread pool.
+     * @return The number of threads.
+     */
+    constexpr uint32_t getThreadCount() const;
+
+// Data members
+private:
+    Looper mLooper;
+    std::thread mThreads[_ThreadCount];
 };
 
 }  // namespace stdutil

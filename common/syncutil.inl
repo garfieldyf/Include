@@ -107,8 +107,8 @@ __INLINE__ void _Trace::stop_method_tracing(const char* _Prefix, char _TimeUnit)
 __INLINE__ void spin_mutex::lock()
 {
 #ifndef NDEBUG
-    const std::thread::id _Id = std::this_thread::get_id();
-    if (_Myowner == _Id) {
+    const std::thread::id _Tid = std::this_thread::get_id();
+    if (_Myowner == _Tid) {
         LOGE("The spin_mutex deadlock would occur.\n");
         assert(false);
     }
@@ -119,7 +119,7 @@ __INLINE__ void spin_mutex::lock()
     }
 
 #ifndef NDEBUG
-    _Myowner = _Id;
+    _Myowner = _Tid;
 #endif  // NDEBUG
 }
 

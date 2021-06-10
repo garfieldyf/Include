@@ -14,59 +14,11 @@
 namespace stdutil {
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the ThreadBase class
-//
-
-template <typename _Looper>
-__INLINE__ void ThreadBase<_Looper>::start()
-{
-    if (mLooper.prepare()) {
-        mThread = std::thread(&_Looper::run, &mLooper);
-        LOGD("Start the looper thread.\n");
-    }
-}
-
-template <typename _Looper>
-__INLINE__ void ThreadBase<_Looper>::stop()
-{
-    if (mLooper.quit()) {
-    #ifndef NDEBUG
-        if (mThread.get_id() == std::this_thread::get_id()) {
-            LOGE("ThreadBase::stop() can NOT call on self thread.\n");
-            assert(false);
-        }
-    #endif  // NDEBUG
-
-        mThread.join();
-        LOGD("Stop the looper thread.\n");
-    }
-}
-
-template <typename _Looper>
-__INLINE__ _Looper& ThreadBase<_Looper>::getLooper()
-{
-    return mLooper;
-}
-
-template <typename _Looper>
-__INLINE__ bool ThreadBase<_Looper>::isRunning() const
-{
-    return mLooper.isRunning();
-}
-
-template <typename _Looper>
-__INLINE__ std::thread::id ThreadBase<_Looper>::getId() const
-{
-    return mThread.get_id();
-}
-
-
-///////////////////////////////////////////////////////////////////////////////
 // Implementation of the Looper class
 //
 
 __INLINE__ constexpr Looper::Looper()
-    : mRunning(false)
+    : mThreadCount(1), mRunning(false)
 {
 }
 
@@ -98,23 +50,19 @@ __INLINE__ void Looper::run()
         task();
     }
 
-#ifndef NDEBUG
-    const size_t size = mTaskQueue.size();
-    if (size > 0) {
-        LOGW("The number of %zu pending tasks will be discard.\n", size);
+    if (mThreadCount == 1) {
+        clear();    // Removes all pending tasks.
     }
-#endif  // NDEBUG
-
-    // Clears all pending tasks.
-    mTaskQueue.clear();
 }
 
 __INLINE__ bool Looper::quit()
 {
     const bool result = mRunning.exchange(false);
     if (result) {
-        // Posts an empty task to end the loop.
-        mTaskQueue.push_front(nullptr);
+        for (uint32_t i = 0; i < mThreadCount; ++i) {
+            // Posts an empty task to end the loop.
+            mTaskQueue.push_front(nullptr);
+        }
     }
 
     return result;
@@ -135,7 +83,7 @@ __INLINE__ bool Looper::post(_Callable&& callable)
     if (running) {
         mTaskQueue.push_back(std::move(task));
     } else {
-        LOGE("The Looper has not initialized. Did not call Looper::prepare()\n");
+        LOGE("The Looper has not initialized. Did not call Looper::prepare().\n");
     }
 #else
     if (running) {
@@ -161,7 +109,7 @@ __INLINE__ bool Looper::postAtFront(_Callable&& callable)
     if (running) {
         mTaskQueue.push_front(std::move(task));
     } else {
-        LOGE("The Looper has not initialized. Did not call Looper::prepare()\n");
+        LOGE("The Looper has not initialized. Did not call Looper::prepare().\n");
     }
 #else
     if (running) {
@@ -183,21 +131,16 @@ __INLINE__ Looper& Looper::getMainLooper()
     return sMainLooper;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the LooperThread class
-//
-
-template <typename _Callable, _Enable_if_callable_t<_Callable>>
-__INLINE__ bool LooperThread::post(_Callable&& callable)
+__INLINE__ void Looper::clear()
 {
-    return mLooper.post(std::forward<_Callable>(callable));
-}
+#ifndef NDEBUG
+    const size_t size = mTaskQueue.size();
+    if (size > 0) {
+        LOGW("The number of %zu pending tasks will be discard.\n", size);
+    }
+#endif  // NDEBUG
 
-template <typename _Callable, _Enable_if_callable_t<_Callable>>
-__INLINE__ bool LooperThread::postAtFront(_Callable&& callable)
-{
-    return mLooper.postAtFront(std::forward<_Callable>(callable));
+    mTaskQueue.clear();
 }
 
 
@@ -232,8 +175,9 @@ __INLINE__ void EventLooper::run()
         task.runnable();
     }
 
+    // Closes the eventfd and removes all pending tasks.
     mEventFd.close();
-    mTaskQueue.clear();  // Clears all pending tasks.
+    mTaskQueue.clear();
 }
 
 __INLINE__ bool EventLooper::quit()
@@ -263,7 +207,7 @@ __INLINE__ bool EventLooper::post(_Callable&& callable, uint32_t delayMillis/* =
         mTaskQueue.push(std::move(runnable), delayMillis);
         mEventFd.write();   // Wakes up the waiting thread.
     } else {
-        LOGE("The EventLooper has not initialized. Did not call EventLooper::prepare()\n");
+        LOGE("The EventLooper has not initialized. Did not call EventLooper::prepare().\n");
     }
 #else
     if (running) {
@@ -376,13 +320,118 @@ __INLINE__ int EventLooper::TaskQueue::pop(Task& outTask)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the EventLooperThread class
+// Implementation of the LooperThread class
 //
 
+__INLINE__ void LooperThread::start()
+{
+    if (mLooper.prepare()) {
+        mThread = std::thread(&EventLooper::run, &mLooper);
+        LOGD("LooperThread::start()\n");
+    }
+}
+
+__INLINE__ void LooperThread::stop()
+{
+    if (mLooper.quit()) {
+    #ifndef NDEBUG
+        if (mThread.get_id() == std::this_thread::get_id()) {
+            LOGE("LooperThread::stop() can NOT call on self thread.\n");
+            assert(false);
+        }
+    #endif  // NDEBUG
+
+        mThread.join();
+        LOGD("LooperThread::stop()\n");
+    }
+}
+
 template <typename _Callable, _Enable_if_callable_t<_Callable>>
-__INLINE__ bool EventLooperThread::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
+__INLINE__ bool LooperThread::post(_Callable&& callable, uint32_t delayMillis/* = 0*/)
 {
     return mLooper.post(std::forward<_Callable>(callable), delayMillis);
+}
+
+__INLINE__ EventLooper& LooperThread::getLooper()
+{
+    return mLooper;
+}
+
+__INLINE__ bool LooperThread::isRunning() const
+{
+    return mLooper.isRunning();
+}
+
+__INLINE__ std::thread::id LooperThread::getId() const
+{
+    return mThread.get_id();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Implementation of the ThreadPool class
+//
+
+template <uint32_t _ThreadCount>
+__INLINE__ ThreadPool<_ThreadCount>::ThreadPool()
+{
+    mLooper.mThreadCount = _ThreadCount;
+}
+
+template <uint32_t _ThreadCount>
+__INLINE__ void ThreadPool<_ThreadCount>::start()
+{
+    if (mLooper.prepare()) {
+        for (std::thread& thread : mThreads) {
+            thread = std::thread(&Looper::run, &mLooper);
+        }
+
+        LOGD("ThreadPool::start()\n");
+    }
+}
+
+template <uint32_t _ThreadCount>
+__INLINE__ void ThreadPool<_ThreadCount>::stop()
+{
+    if (mLooper.quit()) {
+        for (std::thread& thread : mThreads) {
+            thread.join();
+        }
+
+        // Removes all pending tasks.
+        mLooper.clear();
+        LOGD("ThreadPool::stop()\n");
+    }
+}
+
+template <uint32_t _ThreadCount> template <typename _Callable, _Enable_if_callable_t<_Callable>>
+__INLINE__ bool ThreadPool<_ThreadCount>::post(_Callable&& callable)
+{
+    return mLooper.post(std::forward<_Callable>(callable));
+}
+
+template <uint32_t _ThreadCount> template <typename _Callable, _Enable_if_callable_t<_Callable>>
+__INLINE__ bool ThreadPool<_ThreadCount>::postAtFront(_Callable&& callable)
+{
+    return mLooper.postAtFront(std::forward<_Callable>(callable));
+}
+
+template <uint32_t _ThreadCount>
+__INLINE__ Looper& ThreadPool<_ThreadCount>::getLooper()
+{
+    return mLooper;
+}
+
+template <uint32_t _ThreadCount>
+__INLINE__ bool ThreadPool<_ThreadCount>::isRunning() const
+{
+    return mLooper.isRunning();
+}
+
+template <uint32_t _ThreadCount>
+__INLINE__ constexpr uint32_t ThreadPool<_ThreadCount>::getThreadCount() const
+{
+    return _ThreadCount;
 }
 
 }  // namespace stdutil
