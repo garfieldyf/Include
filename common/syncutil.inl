@@ -18,25 +18,37 @@ namespace stdutil {
 //
 
 #ifndef NDEBUG
+__STATIC_INLINE__ void _LogError(bool report, const char* msg)
+{
+    if (report) {
+        const int errnum = errno;
+        char error[256];
+        ::strerror_r(errnum, error, sizeof(error));
+        LOGE("%s - errno = %d, error = %s\n", msg, errnum, error);
+    }
+}
+
+__STATIC_INLINE__ void _LogAssert(bool report, const char* msg)
+{
+    if (report) {
+        _LogError(report, msg);
+        assert(false);
+    }
+}
+
 #define startMethodTracing()                        stdutil::_Trace::start_method_tracing()
 #define stopMethodTracing(_Prefix)                  stopMethodTracing2(_Prefix, 'm')
 #define stopMethodTracing2(_Prefix, _TimeUnit)      stdutil::_Trace::stop_method_tracing(_Prefix, _TimeUnit)
 #else
+#define _LogError(_Report, _Msg)                    ((void)0)
+#define _LogAssert(_Report, _Msg)                   ((void)0)
 #define startMethodTracing()                        ((void)0)
 #define stopMethodTracing(_Prefix)                  ((void)0)
 #define stopMethodTracing2(_Prefix, _TimeUnit)      ((void)0)
 #endif  // NDEBUG
 
+
 #ifndef NDEBUG
-__STATIC_INLINE__ void _LogError(const char* msg)
-{
-    const int errnum = errno;
-    char error[256];
-    ::strerror_r(errnum, error, sizeof(error));
-    LOGE("%s - errno = %d, error = %s\n", msg, errnum, error);
-}
-
-
 ///////////////////////////////////////////////////////////////////////////////
 // Implementation of the _Trace class
 //
@@ -186,13 +198,7 @@ __INLINE__ ssize_t FileDescriptor::read(void* buf, size_t count) const
     assert(!isEmpty());
 
     const ssize_t readBytes = ::read(mFd, buf, count);
-
-#ifndef NDEBUG
-    if (readBytes == -1) {
-        _LogError("The FileDescriptor read failed");
-    }
-#endif  // NDEBUG
-
+    _LogError(readBytes == -1, "The FileDescriptor read failed");
     return readBytes;
 }
 
@@ -202,13 +208,7 @@ __INLINE__ ssize_t FileDescriptor::write(const void* buf, size_t count) const
     assert(!isEmpty());
 
     const ssize_t writtenBytes = ::write(mFd, buf, count);
-
-#ifndef NDEBUG
-    if (writtenBytes == -1) {
-        _LogError("The FileDescriptor write failed");
-    }
-#endif  // NDEBUG
-
+    _LogError(writtenBytes == -1, "The FileDescriptor write failed");
     return writtenBytes;
 }
 
@@ -230,15 +230,9 @@ __INLINE__ constexpr Epoll::Epoll(int epollFd/* = -1*/)
 __INLINE__ int Epoll::create(int size/* = 1*/)
 {
     assert(isEmpty());
+
     mFd = ::epoll_create(size);
-
-#ifndef NDEBUG
-    if (mFd == -1) {
-        _LogError("The Epoll create failed");
-        assert(false);
-    }
-#endif  // NDEBUG
-
+    _LogAssert(mFd == -1, "The Epoll create failed");
     return mFd;
 }
 
@@ -251,29 +245,16 @@ __INLINE__ int Epoll::addFd(int fd, uint32_t events/* = EPOLLIN*/) const
     event.events  = events;
 
     const int result = ::epoll_ctl(mFd, EPOLL_CTL_ADD, fd, &event);
-
-#ifndef NDEBUG
-    if (result == -1) {
-        _LogError("The Epoll add fd failed");
-        assert(false);
-    }
-#endif  // NDEBUG
-
+    _LogAssert(result == -1, "The Epoll add fd failed");
     return result;
 }
 
 __INLINE__ int Epoll::removeFd(int fd) const
 {
     assert(!isEmpty());
+
     const int result = ::epoll_ctl(mFd, EPOLL_CTL_DEL, fd, nullptr);
-
-#ifndef NDEBUG
-    if (result == -1) {
-        _LogError("The Epoll remove fd failed");
-        assert(false);
-    }
-#endif  // NDEBUG
-
+    _LogAssert(result == -1, "The Epoll remove fd failed");
     return result;
 }
 
@@ -284,14 +265,7 @@ __INLINE__ int Epoll::wait(struct epoll_event* events, int count/* = 1*/, int ti
     assert(!isEmpty());
 
     const int result = ::epoll_wait(mFd, events, count, timeout);
-
-#ifndef NDEBUG
-    if (result == -1) {
-        _LogError("The Epoll wait failed");
-        assert(false);
-    }
-#endif  // NDEBUG
-
+    _LogAssert(result == -1, "The Epoll wait failed");
     return result;
 }
 
@@ -308,15 +282,9 @@ __INLINE__ constexpr EventFd::EventFd(int eventFd/* = -1*/)
 __INLINE__ int EventFd::create(uint32_t initval/* = 0*/, int flags/* = EFD_NONBLOCK*/)
 {
     assert(isEmpty());
+
     mFd = ::eventfd(initval, flags);
-
-#ifndef NDEBUG
-    if (mFd == -1) {
-        _LogError("The EventFd create failed");
-        assert(false);
-    }
-#endif  // NDEBUG
-
+    _LogAssert(mFd == -1, "The EventFd create failed");
     return mFd;
 }
 
@@ -326,13 +294,7 @@ __INLINE__ void EventFd::poll(int timeout/* = -1*/) const
 
     struct pollfd pfd = { mFd, POLLIN };
     const int result = ::poll(&pfd, 1, timeout);
-
-#ifndef NDEBUG
-    if (result == -1) {
-        _LogError("The EventFd poll failed");
-        assert(false);
-    }
-#endif  // NDEBUG
+    _LogAssert(result == -1, "The EventFd poll failed");
 
     if (result > 0 && pfd.fd == mFd && (pfd.revents & POLLIN)) {
         uint64_t value;
@@ -378,13 +340,7 @@ __INLINE__ int LocalSocket::listen(const char* name, Namespace ns/* = Namespace:
         }
     }
 
-#ifndef NDEBUG
-    if (mFd == -1 || result != 0) {
-        _LogError("The LocalSocket listen failed");
-        assert(false);
-    }
-#endif  // NDEBUG
-
+    _LogAssert(mFd == -1 || result != 0, "The LocalSocket listen failed");
     return result;
 }
 
@@ -394,15 +350,9 @@ __INLINE__ int LocalSocket::accept() const
 
     struct sockaddr_un addr;
     socklen_t addrlen = sizeof(addr);
+
     const int sockFd = ::accept(mFd, reinterpret_cast<sockaddr*>(&addr), &addrlen);
-
-#ifndef NDEBUG
-    if (sockFd == -1) {
-        _LogError("The LocalSocket accept failed");
-        assert(false);
-    }
-#endif  // NDEBUG
-
+    _LogAssert(sockFd == -1, "The LocalSocket accept failed");
     return sockFd;
 }
 
@@ -418,13 +368,7 @@ __INLINE__ int LocalSocket::connect(const char* name, Namespace ns/* = Namespace
         result = ::connect(mFd, reinterpret_cast<sockaddr*>(&addr), addrlen);
     }
 
-#ifndef NDEBUG
-    if (mFd == -1 || result != 0) {
-        _LogError("The LocalSocket connect failed");
-        assert(false);
-    }
-#endif // NDEBUG
-
+    _LogAssert(mFd == -1 || result != 0, "The LocalSocket connect failed");
     return result;
 }
 

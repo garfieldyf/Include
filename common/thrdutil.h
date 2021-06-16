@@ -16,7 +16,7 @@
 // Looper
 // EventLooper
 // LooperThread
-// ThreadPool<_ThreadCount>
+// ThreadPool<_ThrdCount>
 
 namespace stdutil {
 
@@ -26,7 +26,7 @@ namespace stdutil {
 
 using Runnable = std::function<void()>;
 
-template <uint32_t _ThreadCount/* = 1*/>
+template <uint32_t _ThrdCount = 1>
 class ThreadPool;
 
 template <typename _Callable>
@@ -110,12 +110,7 @@ public:
 
 // Implementation
 private:
-    /**
-     * Removes all tasks from the task queue, leaving it empty.
-     */
-    void clear();
-
-    template <uint32_t _ThreadCount>
+    template <uint32_t _ThrdCount>
     friend class ThreadPool;
 
 // Data members
@@ -356,10 +351,10 @@ private:
 // Interface of the ThreadPool class
 //
 
-template <uint32_t _ThreadCount = 1>
+template <uint32_t _ThrdCount>
 class ThreadPool final
 {
-    static_assert(_ThreadCount >= 1 && _ThreadCount <= 8, "The _ThreadCount parameter must be >= 1 and <= 8");
+    static_assert(_ThrdCount >= 1 && _ThrdCount <= 8, "Invalid template argument for ThreadPool: _ThrdCount must be >= 1 and <= 8");
 
 // Constructors
 public:
@@ -425,7 +420,7 @@ public:
 // Data members
 private:
     Looper mLooper;
-    std::thread mThreads[_ThreadCount];
+    std::thread mThreads[_ThrdCount];
 };
 
 }  // namespace stdutil
