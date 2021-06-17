@@ -24,10 +24,10 @@ namespace stdutil {
 // Type definitions
 //
 
-using Runnable = std::function<void()>;
-
 template <uint32_t _ThrdCount = 1>
 class ThreadPool;
+
+using Runnable = std::function<void()>;
 
 template <typename _Callable>
 using _Enable_if_callable_t = std::enable_if_t<!std::is_same<std::decay_t<_Callable>, std::nullptr_t>::value, int>;

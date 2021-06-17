@@ -199,7 +199,7 @@ __INLINE__ bool EventLooper::quit()
     const bool result = mRunning.exchange(false);
     if (result) {
         // Wakes up the waiting thread to end the loop.
-        mEventFd.write();
+        mEventFd.notify();
     }
 
     return result;
@@ -213,14 +213,14 @@ __INLINE__ bool EventLooper::post(_Callable&& callable, uint32_t delayMillis/* =
 #ifndef NDEBUG
     if (running) {
         mTaskQueue.push(_Build_task(std::forward<_Callable>(callable), "EventLooper::post()"), delayMillis);
-        mEventFd.write();   // Wakes up the waiting thread.
+        mEventFd.notify();  // Wakes up the waiting thread.
     } else {
         LOGE("The EventLooper has not initialized. Did not call EventLooper::prepare().\n");
     }
 #else
     if (running) {
         mTaskQueue.push(std::forward<_Callable>(callable), delayMillis);
-        mEventFd.write();   // Wakes up the waiting thread.
+        mEventFd.notify();  // Wakes up the waiting thread.
     }
 #endif  // NDEBUG
 
@@ -249,7 +249,7 @@ __INLINE__ bool EventLooper::nextTask(Task& outTask)
 
         // The next task is not ready. Waiting
         // a timeout to wake up when it is ready.
-        mEventFd.poll(timeout);
+        mEventFd.wait(timeout);
     }
 
     return mRunning;

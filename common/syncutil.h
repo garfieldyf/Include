@@ -8,9 +8,7 @@
 #define __SYNCUTIL_H__
 
 #include "platform.h"
-#include <mutex>
 #include <atomic>
-#include <chrono>
 #include <thread>
 #include <poll.h>
 #include <sys/un.h>
@@ -21,60 +19,24 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Classes in this file:
 //
-// spin_mutex
-// spin_lock
+// SpinMutex
 // Epoll
 // EventFd
 // LocalSocket
-//
-// Global functions in this file:
-//
-// startMethodTracing()
-// stopMethodTracing()
-// stopMethodTracing2()
 
 namespace stdutil {
 
-#ifndef NDEBUG
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the _Trace class
+// Interface of the SpinMutex class
 //
 
-class _Trace final
-{
-// Constructors/Destructor
-private:
-    _Trace();
-    ~_Trace();
-
-// Operations
-public:
-    static void start_method_tracing();
-    static void stop_method_tracing(const char* _Prefix, char _TimeUnit);
-
-// Implementation
-private:
-    static _Trace& get();
-
-// Data members
-private:
-    std::thread::id _Myowner = {};
-    std::chrono::steady_clock::time_point _Mystart;
-};
-#endif  // NDEBUG
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the spin_mutex class
-//
-
-class spin_mutex final
+class SpinMutex final
 {
 // Constructors
 public:
-    constexpr spin_mutex() = default;
-    spin_mutex(const spin_mutex&) = delete;
-    spin_mutex& operator=(const spin_mutex&) = delete;
+    constexpr SpinMutex() = default;
+    SpinMutex(const SpinMutex&) = delete;
+    SpinMutex& operator=(const SpinMutex&) = delete;
 
 // Operations
 public:
@@ -97,18 +59,11 @@ public:
 // Data members
 private:
 #ifndef NDEBUG
-    std::thread::id _Myowner = {};
+    std::thread::id mOwner = {};
 #endif  // NDEBUG
 
-    std::atomic_flag _Myflag = ATOMIC_FLAG_INIT;
+    std::atomic_flag mFlag = ATOMIC_FLAG_INIT;
 };
-
-
-///////////////////////////////////////////////////////////////////////////////
-// Interface of the spin_lock class
-//
-
-using spin_lock = std::lock_guard<spin_mutex>;
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -128,20 +83,14 @@ protected:
 // Operations
 public:
     /**
-     * Returns the file descriptor of this object.
-     */
-    operator int() const;
-
-    /**
      * Closes the file descriptor of this object.
      */
     void close();
 
     /**
-     * Attachs a file descriptor to this object.
-     * @param fd A file descriptor to attach.
+     * Returns the file descriptor of this object.
      */
-    void attach(int fd);
+    operator int() const;
 
     /**
      * Reads the count bytes from the file descriptor into the buffer.
@@ -244,25 +193,16 @@ public:
     int create(uint32_t initval = 0, int flags = EFD_NONBLOCK);
 
     /**
+     * Unblocks the thread that are waiting on the this eventfd.
+     */
+    void notify() const;
+
+    /**
      * Blocks the thread, and sets a timeout after the thread unblocks.
      * @param timeout The waiting timeout in milliseconds, -1 causes wait
      * to indefinitely.
      */
-    void poll(int timeout = -1) const;
-
-    /**
-     * Reads an 8-byte unsigned integer from this eventfd.
-     * @param value The value to store the read result.
-     * @return The number of bytes to read, -1 otherwise.
-     */
-    ssize_t read(uint64_t& value) const;
-
-    /**
-     * Writes an 8-byte unsigned integer to this eventfd.
-     * @param value The value to write.
-     * @return The number of bytes to write, -1 otherwise.
-     */
-    ssize_t write(uint64_t value = 1) const;
+    void wait(int timeout = -1) const;
 };
 
 

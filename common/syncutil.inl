@@ -35,126 +35,55 @@ __STATIC_INLINE__ void _LogAssert(bool report, const char* msg)
         assert(false);
     }
 }
-
-#define startMethodTracing()                        stdutil::_Trace::start_method_tracing()
-#define stopMethodTracing(_Prefix)                  stopMethodTracing2(_Prefix, 'm')
-#define stopMethodTracing2(_Prefix, _TimeUnit)      stdutil::_Trace::stop_method_tracing(_Prefix, _TimeUnit)
 #else
-#define _LogError(_Report, _Msg)                    ((void)0)
-#define _LogAssert(_Report, _Msg)                   ((void)0)
-#define startMethodTracing()                        ((void)0)
-#define stopMethodTracing(_Prefix)                  ((void)0)
-#define stopMethodTracing2(_Prefix, _TimeUnit)      ((void)0)
-#endif  // NDEBUG
-
-
-#ifndef NDEBUG
-///////////////////////////////////////////////////////////////////////////////
-// Implementation of the _Trace class
-//
-
-__INLINE__ _Trace::_Trace()
-{
-    LOGD("_Trace::_Trace()\n");
-}
-
-__INLINE__ _Trace::~_Trace()
-{
-    LOGD("_Trace::~_Trace()\n");
-}
-
-__INLINE__ _Trace& _Trace::get()
-{
-    static thread_local _Trace _Instance;
-    return _Instance;
-}
-
-__INLINE__ void _Trace::start_method_tracing()
-{
-    _Trace& _Instance  = get();
-    _Instance._Myowner = std::this_thread::get_id();
-    _Instance._Mystart = std::chrono::steady_clock::now();
-}
-
-__INLINE__ void _Trace::stop_method_tracing(const char* _Prefix, char _TimeUnit)
-{
-    assert(_Prefix);
-
-    _Trace& _Instance = get();
-    if (_Instance._Myowner != std::this_thread::get_id()) {
-        LOGE("Only the original thread that called startMethodTracing() can be call stopMethodTracing().\n");
-        assert(false);
-    }
-
-    using namespace std::chrono;
-    const nanoseconds _Duration = steady_clock::now() - _Instance._Mystart;
-    long long _RunningTime;
-    switch (_TimeUnit)
-    {
-    // nanoseconds
-    case 'n':
-        _RunningTime = _Duration.count();
-        break;
-
-    // microseconds
-    case 'u':
-        _RunningTime = duration_cast<microseconds>(_Duration).count();
-        break;
-
-    // milliseconds
-    default:
-        _RunningTime = duration_cast<milliseconds>(_Duration).count();
-        break;
-    }
-
-    LOGD("%s running time = %lld%cs\n", _Prefix, _RunningTime, _TimeUnit);
-}
+#define _LogError(_Report, _Msg)        ((void)0)
+#define _LogAssert(_Report, _Msg)       ((void)0)
 #endif  // NDEBUG
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the spin_mutex class
+// Implementation of the SpinMutex class
 //
 
-__INLINE__ void spin_mutex::lock()
+__INLINE__ void SpinMutex::lock()
 {
 #ifndef NDEBUG
-    const std::thread::id _Tid = std::this_thread::get_id();
-    if (_Myowner == _Tid) {
-        LOGE("The spin_mutex deadlock would occur.\n");
+    const std::thread::id tid = std::this_thread::get_id();
+    if (mOwner == tid) {
+        LOGE("The SpinMutex deadlock would occur.\n");
         assert(false);
     }
 #endif  // NDEBUG
 
-    while (_Myflag.test_and_set(std::memory_order_acquire)) {
+    while (mFlag.test_and_set(std::memory_order_acquire)) {
         // Empty loop
     }
 
 #ifndef NDEBUG
-    _Myowner = _Tid;
+    mOwner = tid;
 #endif  // NDEBUG
 }
 
-__INLINE__ void spin_mutex::unlock()
+__INLINE__ void SpinMutex::unlock()
 {
-    _Myflag.clear(std::memory_order_release);
+    mFlag.clear(std::memory_order_release);
 
 #ifndef NDEBUG
-    _Myowner = {};
+    mOwner = {};
 #endif  // NDEBUG
 }
 
-__INLINE__ bool spin_mutex::try_lock()
+__INLINE__ bool SpinMutex::try_lock()
 {
-    const bool _Result = !_Myflag.test_and_set(std::memory_order_acquire);
+    const bool result = !mFlag.test_and_set(std::memory_order_acquire);
 
 #ifndef NDEBUG
-    if (_Result) {
-        _Myowner = std::this_thread::get_id();
+    if (result) {
+        mOwner = std::this_thread::get_id();
     }
 #endif  // NDEBUG
 
-    return _Result;
+    return result;
 }
 
 
@@ -172,11 +101,6 @@ __INLINE__ FileDescriptor::~FileDescriptor()
     close();
 }
 
-__INLINE__ FileDescriptor::operator int() const
-{
-    return mFd;
-}
-
 __INLINE__ void FileDescriptor::close()
 {
     if (mFd != -1) {
@@ -186,10 +110,9 @@ __INLINE__ void FileDescriptor::close()
     }
 }
 
-__INLINE__ void FileDescriptor::attach(int fd)
+__INLINE__ FileDescriptor::operator int() const
 {
-    assert(isEmpty());
-    mFd = fd;
+    return mFd;
 }
 
 __INLINE__ ssize_t FileDescriptor::read(void* buf, size_t count) const
@@ -288,30 +211,26 @@ __INLINE__ int EventFd::create(uint32_t initval/* = 0*/, int flags/* = EFD_NONBL
     return mFd;
 }
 
-__INLINE__ void EventFd::poll(int timeout/* = -1*/) const
+__INLINE__ void EventFd::notify() const
+{
+    assert(!isEmpty());
+
+    constexpr uint64_t counter = 1;
+    write(&counter, sizeof(uint64_t));
+}
+
+__INLINE__ void EventFd::wait(int timeout/* = -1*/) const
 {
     assert(!isEmpty());
 
     struct pollfd pfd = { mFd, POLLIN };
     const int result = ::poll(&pfd, 1, timeout);
-    _LogAssert(result == -1, "The EventFd poll failed");
+    _LogAssert(result == -1, "The EventFd wait failed");
 
     if (result > 0 && pfd.fd == mFd && (pfd.revents & POLLIN)) {
-        uint64_t value;
-        FileDescriptor::read(&value, sizeof(uint64_t));
+        uint64_t counter;
+        read(&counter, sizeof(uint64_t));
     }
-}
-
-__INLINE__ ssize_t EventFd::read(uint64_t& value) const
-{
-    assert(!isEmpty());
-    return FileDescriptor::read(&value, sizeof(uint64_t));
-}
-
-__INLINE__ ssize_t EventFd::write(uint64_t value/* = 1*/) const
-{
-    assert(!isEmpty());
-    return FileDescriptor::write(&value, sizeof(uint64_t));
 }
 
 
