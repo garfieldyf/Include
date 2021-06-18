@@ -394,9 +394,12 @@ __INLINE__ void ThreadPool<_ThrdCount>::stop()
             thread.join();
         }
 
-        // Removes all pending tasks.
-        _Check_size(mLooper.mTaskQueue.size());
-        mLooper.mTaskQueue.clear();
+        if _CONSTEXPR (_ThrdCount > 1) {
+            // Removes all pending tasks.
+            _Check_size(mLooper.mTaskQueue.size());
+            mLooper.mTaskQueue.clear();
+        }
+
         LOGD("ThreadPool::stop()\n");
     }
 }
