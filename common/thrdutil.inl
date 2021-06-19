@@ -185,8 +185,16 @@ __INLINE__ bool EventLooper::prepare()
 __INLINE__ void EventLooper::run()
 {
     Task task;
-    while (nextTask(task)) {  // might block
-        task.runnable();
+    while (mRunning) {
+        const int timeout = mTaskQueue.pop(task);
+        if (timeout == 0) {
+            // Got a task, run it.
+            task.runnable();
+        } else {
+            // The next task is not ready. Waiting
+            // a timeout to wake up when it is ready.
+            mEventFd.wait(timeout);
+        }
     }
 
     // Closes the eventfd and removes all pending tasks.
@@ -236,23 +244,6 @@ __INLINE__ EventLooper& EventLooper::getMainLooper()
 {
     static EventLooper sMainLooper;
     return sMainLooper;
-}
-
-__INLINE__ bool EventLooper::nextTask(Task& outTask)
-{
-    while (mRunning) {
-        const int timeout = mTaskQueue.pop(outTask);
-        if (timeout == 0) {
-            // Got a task.
-            break;
-        }
-
-        // The next task is not ready. Waiting
-        // a timeout to wake up when it is ready.
-        mEventFd.wait(timeout);
-    }
-
-    return mRunning;
 }
 
 
@@ -307,7 +298,7 @@ __INLINE__ void EventLooper::TaskQueue::push(_Callable&& callable, uint32_t dela
 __INLINE__ int EventLooper::TaskQueue::pop(Task& outTask)
 {
     MutexLock lock(mMutex);
-    int timeout = -1;   // Waiting to indefinitely.
+    int timeout = -1;   // Waits to indefinitely.
     if (!_Base::empty()) {
         const Task& task = _Base::top();
         if ((timeout = task.getTimeout()) == 0) {

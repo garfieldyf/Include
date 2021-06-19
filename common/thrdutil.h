@@ -181,17 +181,6 @@ public:
      */
     static EventLooper& getMainLooper();
 
-// Implementation
-private:
-    class Task;
-
-    /**
-     * Retrieves and removes the task on top of the task queue.
-     * @param outTask The outTask to store the returned task.
-     * @return Returns true if retrieves successful, false otherwise.
-     */
-    bool nextTask(Task& outTask);
-
 // Nested classes
 private:
     using MutexLock = std::lock_guard<std::mutex>;
@@ -219,7 +208,7 @@ private:
     public:
         /**
          * Returns the timeout in milliseconds since std::steady_clock::now().
-         * @return The timeout in milliseconds.
+         * @return The timeout in milliseconds, -1 causes wait to indefinitely.
          */
         int getTimeout() const;
 
