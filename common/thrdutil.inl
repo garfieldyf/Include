@@ -191,8 +191,8 @@ __INLINE__ void EventLooper::run()
             // Got a task, run it.
             task.runnable();
         } else {
-            // The next task is not ready. Waiting
-            // a timeout to wake up when it is ready.
+            // The task is not ready. Waiting a
+            // timeout to wake up when it is ready.
             mEventFd.wait(timeout);
         }
     }

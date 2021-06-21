@@ -14,11 +14,12 @@
 #endif
 
 #include <jni.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
 #include <fcntl.h>
+#include <stdlib.h>
+#include <libgen.h>
 #include <string.h>
 #include <unistd.h>
 #include <assert.h>
@@ -38,7 +39,7 @@
 #endif
 
 #ifndef NDEBUG
-#define assert(expr)                            if (!(expr)) __android_assert(::strrchr(__FILE__, '/') + 1, __LINE__, __func__, #expr)
+#define assert(expr)                            if (!(expr)) __android_assert(__FILE__, __LINE__, __func__, #expr)
 #else
 #define assert(expr)                            ((void)0)
 #endif
@@ -69,7 +70,7 @@
 
 #ifndef assert_log
 #ifndef NDEBUG
-#define assert_log(expr, ...)                   if (!(expr)) __android_assert(::strrchr(__FILE__, '/') + 1, __LINE__, __func__, __VA_ARGS__)
+#define assert_log(expr, ...)                   if (!(expr)) __android_assert(__FILE__, __LINE__, __func__, __VA_ARGS__)
 #else
 #define assert_log(expr, ...)                   ((void)0)
 #endif
@@ -201,8 +202,8 @@ char (&__countof_helper(_Ty (&_Array)[_CountOfArray]))[_CountOfArray];
 #define LOG_ERROR(__TAG__, ...)                 __android_log_print(ANDROID_LOG_ERROR, (__TAG__), __VA_ARGS__)
 
 #ifdef ASSERT_THROW_EXCEPTION
-#define AssertThrowErrnoException(env, expr, msg, retval)       do { if (expr) { __android_throw_exception((env), EINVAL, ::strrchr(__FILE__, '/') + 1, __LINE__, __func__, (msg)); return (retval); } } while (0)
-#define AssertThrowErrnoExceptionV(env, expr, msg)              do { if (expr) { __android_throw_exception((env), EINVAL, ::strrchr(__FILE__, '/') + 1, __LINE__, __func__, (msg)); return; } } while (0)
+#define AssertThrowErrnoException(env, expr, msg, retval)       do { if (expr) { __android_throw_exception((env), EINVAL, __FILE__, __LINE__, __func__, (msg)); return (retval); } } while (0)
+#define AssertThrowErrnoExceptionV(env, expr, msg)              do { if (expr) { __android_throw_exception((env), EINVAL, __FILE__, __LINE__, __func__, (msg)); return; } } while (0)
 #else
 #define AssertThrowErrnoException(env, expr, msg, retval)       do { assert_log(!(expr), (msg)); if (expr) return (retval); } while (0)
 #define AssertThrowErrnoExceptionV(env, expr, msg)              do { assert_log(!(expr), (msg)); if (expr) return; } while (0)
@@ -323,8 +324,9 @@ static inline void CDECL __android_assert(const char* file, int line, const char
     va_end(args);
 
     char tag[MAX_PATH];
-    ::__android_log_print(ANDROID_LOG_ERROR, __android_build_tag(func, tag), "assertion failure : %s\n\tat file : %s\n\tat line : %d\n\tat function : %s\n", error, file, line, func);
-    ::__assert2(file, line, func, error);
+    const char* filename = ::basename(file);
+    ::__android_log_print(ANDROID_LOG_ERROR, __android_build_tag(func, tag), "assertion failure : %s\n\tat file : %s\n\tat line : %d\n\tat function : %s\n", error, filename, line, func);
+    ::__assert2(filename, line, func, error);
 }
 
 #ifdef PACKAGE_UTILITIES
@@ -340,10 +342,11 @@ __STATIC_INLINE__ jint __android_throw_exception(JNIEnv* env, int errnum, const 
         ::strerror_r(errnum, error, _countof(error));
 
         char detailMessage[MAX_PATH * 2];
-        ::snprintf(detailMessage, _countof(detailMessage), "%s (errno: %d) - %s\n\tat file : %s\n\tat line : %d\n\tat function : %s", error, errnum, errorMessage, file, line, func);
+        ::snprintf(detailMessage, _countof(detailMessage), "%s (errno: %d) - %s\n\tat file : %s\n\tat line : %d\n\tat function : %s", error, errnum, errorMessage, ::basename(file), line, func);
 
-        if (jthrowable throwable = (jthrowable)env->NewObject(clazz, initID, errnum, env->NewStringUTF(detailMessage)))
+        if (jthrowable throwable = (jthrowable)env->NewObject(clazz, initID, errnum, env->NewStringUTF(detailMessage))) {
             result = env->Throw(throwable);
+        }
     }
 
     return result;
