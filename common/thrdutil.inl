@@ -46,7 +46,7 @@ __STATIC_INLINE__ Runnable _Build_task(_Callable&& callable, const char* prefix)
 {
     Runnable task = std::forward<_Callable>(callable);
     if (!task) {
-        LOGE("%s does not accept an empty callable.\n", prefix);
+        LOGE("%s does not accept a nullptr.\n", prefix);
         assert(false);
     }
 
