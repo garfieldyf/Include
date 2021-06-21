@@ -62,7 +62,7 @@
 
 #ifndef __verify
 #ifndef NDEBUG
-#define __verify(errnum, ...)                   __android_log_error((errnum), __func__, __VA_ARGS__)
+#define __verify(errnum, ...)                   __android_log_error(__FILE__, __LINE__, __func__, (errnum), __VA_ARGS__)
 #else
 #define __verify(errnum, ...)                   (errnum)
 #endif
@@ -78,7 +78,7 @@
 
 #ifndef __check_error
 #ifndef NDEBUG
-#define __check_error(expr, ...)                if (expr) do { char __tag[MAX_PATH]; __android_log_print(ANDROID_LOG_ERROR, __android_build_tag(__func__, __tag), __VA_ARGS__); } while (0)
+#define __check_error(expr, ...)                if (expr) do { char __tag[MAX_PATH]; __android_log_print(ANDROID_LOG_ERROR, __android_build_tag(__FILE__, __LINE__, __func__, __tag), __VA_ARGS__); } while (0)
 #else
 #define __check_error(expr, ...)                ((void)0)
 #endif
@@ -86,7 +86,7 @@
 
 #ifndef __check_error2
 #ifndef NDEBUG
-#define __check_error2(expr, ...)               if (expr) __android_log_error(errno, __func__, __VA_ARGS__)
+#define __check_error2(expr, ...)               if (expr) __android_log_error(__FILE__, __LINE__, __func__, errno, __VA_ARGS__)
 #else
 #define __check_error2(expr, ...)               ((void)0)
 #endif
@@ -185,10 +185,10 @@ char (&__countof_helper(_Ty (&_Array)[_CountOfArray]))[_CountOfArray];
 #endif
 
 #ifndef NDEBUG
-#define LOGI(...)                               do { char __tag[MAX_PATH]; __android_log_print(ANDROID_LOG_INFO,  __android_build_tag(__func__, __tag), __VA_ARGS__); } while (0)
-#define LOGW(...)                               do { char __tag[MAX_PATH]; __android_log_print(ANDROID_LOG_WARN,  __android_build_tag(__func__, __tag), __VA_ARGS__); } while (0)
-#define LOGD(...)                               do { char __tag[MAX_PATH]; __android_log_print(ANDROID_LOG_DEBUG, __android_build_tag(__func__, __tag), __VA_ARGS__); } while (0)
-#define LOGE(...)                               do { char __tag[MAX_PATH]; __android_log_print(ANDROID_LOG_ERROR, __android_build_tag(__func__, __tag), __VA_ARGS__); } while (0)
+#define LOGI(...)                               do { char __tag[MAX_PATH]; __android_log_print(ANDROID_LOG_INFO,  __android_build_tag(__FILE__, __LINE__, __func__, __tag), __VA_ARGS__); } while (0)
+#define LOGW(...)                               do { char __tag[MAX_PATH]; __android_log_print(ANDROID_LOG_WARN,  __android_build_tag(__FILE__, __LINE__, __func__, __tag), __VA_ARGS__); } while (0)
+#define LOGD(...)                               do { char __tag[MAX_PATH]; __android_log_print(ANDROID_LOG_DEBUG, __android_build_tag(__FILE__, __LINE__, __func__, __tag), __VA_ARGS__); } while (0)
+#define LOGE(...)                               do { char __tag[MAX_PATH]; __android_log_print(ANDROID_LOG_ERROR, __android_build_tag(__FILE__, __LINE__, __func__, __tag), __VA_ARGS__); } while (0)
 #else
 #define LOGI(...)                               ((void)0)
 #define LOGW(...)                               ((void)0)
@@ -247,20 +247,35 @@ enum
 // Forward declarations
 //
 
-static inline int CDECL __android_log_error(int errnum, const char* func, const char* format, ...)
-    __attribute__ ((format(printf, 3, 4)));
-
 static inline void CDECL __android_assert(const char* file, int line, const char* func, const char* format, ...)
     __attribute__ ((format(printf, 4, 5)));
+
+static inline int CDECL __android_log_error(const char* file, int line, const char* func, int errnum, const char* format, ...)
+    __attribute__ ((format(printf, 5, 6)));
 
 
 ///////////////////////////////////////////////////////////////////////////////
 // Global functions in this file:
 //
 
-static inline const char* __android_build_tag(const char* func, char (&tag)[MAX_PATH])
+static inline const char* __android_class_name(JNIEnv* env, jobject object, char (&name)[MAX_PATH])
+{
+    // Equivalent to java object.getClass().getName()
+    jobject clazz = env->CallObjectMethod(object, env->GetMethodID(env->GetObjectClass(object), "getClass", "()Ljava/lang/Class;"));
+    jstring className = (jstring)env->CallObjectMethod(clazz, env->GetMethodID(env->GetObjectClass(clazz), "getName", "()Ljava/lang/String;"));
+
+    // Copy the className to name
+    const jsize length = env->GetStringUTFLength(className);
+    env->GetStringUTFRegion(className, 0, env->GetStringLength(className), name);
+    name[length] = '\0';
+
+    return name;
+}
+
+static inline const char* __android_build_tag(const char* file, int line, const char* func, char (&tag)[MAX_PATH])
 {
     // Finds the function name end pointer (including return type).
+    const int length = ::snprintf(tag, _countof(tag), "%s(%d) ", basename(file), line);
     if (const char* end = ::strchr(func, '('))
     {
         // Finds the function name start pointer (excluding return type, etc).
@@ -270,48 +285,15 @@ static inline const char* __android_build_tag(const char* func, char (&tag)[MAX_
 
         // Skips the whitespace character.
         if (start != func) ++start;
-        ::snprintf(tag, _countof(tag), "%.*s", (uint32_t)(end - start), start);
+        ::snprintf(tag + length, _countof(tag) - length, "%.*s", (uint32_t)(end - start), start);
     }
     else
     {
         // Couldn't find the function name, then return the original func.
-        ::strlcpy(tag, func, _countof(tag));
+        ::strlcpy(tag + length, func, _countof(tag) - length);
     }
 
     return tag;
-}
-
-static inline int CDECL __android_log_error(int errnum, const char* func, const char* format, ...)
-{
-    if (errnum != 0)
-    {
-        char error[MAX_PATH], fmt[MAX_PATH];
-        ::strerror_r(errnum, error, _countof(error));
-        ::snprintf(fmt, _countof(fmt), "%s, errno = %d, error = %s\n", format, errnum, error);
-
-        va_list args;
-        va_start(args, format);
-
-        char tag[MAX_PATH];
-        ::__android_log_vprint(ANDROID_LOG_ERROR, __android_build_tag(func, tag), fmt, args);
-        va_end(args);
-    }
-
-    return errnum;
-}
-
-static inline const char* __android_class_name(JNIEnv* env, jobject object, char (&buffer)[MAX_PATH])
-{
-    // Equivalent to java object.getClass().getName()
-    jobject clazz = env->CallObjectMethod(object, env->GetMethodID(env->GetObjectClass(object), "getClass", "()Ljava/lang/Class;"));
-    jstring className = (jstring)env->CallObjectMethod(clazz, env->GetMethodID(env->GetObjectClass(clazz), "getName", "()Ljava/lang/String;"));
-
-    // Copy the class name to buffer
-    const jsize length = env->GetStringUTFLength(className);
-    env->GetStringUTFRegion(className, 0, env->GetStringLength(className), buffer);
-    buffer[length] = '\0';
-
-    return buffer;
 }
 
 static inline void CDECL __android_assert(const char* file, int line, const char* func, const char* format, ...)
@@ -324,9 +306,28 @@ static inline void CDECL __android_assert(const char* file, int line, const char
     va_end(args);
 
     char tag[MAX_PATH];
-    const char* filename = ::basename(file);
-    ::__android_log_print(ANDROID_LOG_ERROR, __android_build_tag(func, tag), "assertion failure : %s\n\tat file : %s\n\tat line : %d\n\tat function : %s\n", error, filename, line, func);
+    const char* filename = basename(file);
+    ::__android_log_print(ANDROID_LOG_ERROR, __android_build_tag(file, line, func, tag), "assertion failure : %s\n\tat file : %s\n\tat line : %d\n\tat function : %s\n", error, filename, line, func);
     ::__assert2(filename, line, func, error);
+}
+
+static inline int CDECL __android_log_error(const char* file, int line, const char* func, int errnum, const char* format, ...)
+{
+    if (errnum != 0)
+    {
+        char error[MAX_PATH], fmt[MAX_PATH];
+        ::strerror_r(errnum, error, _countof(error));
+        ::snprintf(fmt, _countof(fmt), "%s, errno = %d, error = %s\n", format, errnum, error);
+
+        va_list args;
+        va_start(args, format);
+
+        char tag[MAX_PATH];
+        ::__android_log_vprint(ANDROID_LOG_ERROR, __android_build_tag(file, line, func, tag), fmt, args);
+        va_end(args);
+    }
+
+    return errnum;
 }
 
 #ifdef PACKAGE_UTILITIES
@@ -342,7 +343,7 @@ __STATIC_INLINE__ jint __android_throw_exception(JNIEnv* env, int errnum, const 
         ::strerror_r(errnum, error, _countof(error));
 
         char detailMessage[MAX_PATH * 2];
-        ::snprintf(detailMessage, _countof(detailMessage), "%s (errno: %d) - %s\n\tat file : %s\n\tat line : %d\n\tat function : %s", error, errnum, errorMessage, ::basename(file), line, func);
+        ::snprintf(detailMessage, _countof(detailMessage), "%s (errno: %d) - %s\n\tat file : %s\n\tat line : %d\n\tat function : %s", error, errnum, errorMessage, basename(file), line, func);
 
         if (jthrowable throwable = (jthrowable)env->NewObject(clazz, initID, errnum, env->NewStringUTF(detailMessage))) {
             result = env->Throw(throwable);
