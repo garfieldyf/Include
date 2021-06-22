@@ -219,6 +219,11 @@ private:
     // Operations
     public:
         /**
+         * Executes this task.
+         */
+        void run();
+
+        /**
          * Returns the timeout in milliseconds since std::steady_clock::now().
          * @return The timeout in milliseconds, -1 causes wait to indefinitely.
          */

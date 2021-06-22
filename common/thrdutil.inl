@@ -202,10 +202,11 @@ __INLINE__ void EventLooper::run()
         const int timeout = mTaskQueue.pop(task);
         if (timeout == 0) {
             // Got a task, run it.
-            task.mRunnable();
+            task.run();
         } else {
             // The task is not ready. Waiting a
             // timeout to wake up when it is ready.
+            assert(!task.mRunnable);
             mEventFd.wait(timeout);
         }
     }
@@ -269,6 +270,14 @@ __INLINE__ EventLooper::Task::Task(_Callable&& callable, uint32_t delayMillis)
     : mWhen(std::chrono::steady_clock::now() + std::chrono::milliseconds(delayMillis))
     , mRunnable(std::forward<_Callable>(callable))
 {
+}
+
+__INLINE__ void EventLooper::Task::run()
+{
+    assert(mRunnable);
+
+    mRunnable();
+    mRunnable = nullptr;  // Releases the memory.
 }
 
 __INLINE__ int EventLooper::Task::getTimeout() const
