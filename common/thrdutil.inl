@@ -18,11 +18,13 @@ namespace stdutil {
 //
 
 #ifndef NDEBUG
-__STATIC_INLINE__ void _Check_size(size_t size)
+__STATIC_INLINE__ void _Check_size(size_t size, const char* classname)
 {
     if (size > 0) {
         LOGW("The number of %zu pending tasks will be discard.\n", size);
     }
+
+    LOGD("%s::clear()\n", classname);
 }
 
 __STATIC_INLINE__ void _Check_running(bool running, const char* classname)
@@ -53,7 +55,7 @@ __STATIC_INLINE__ Runnable _Build_task(_Callable&& callable, const char* prefix)
     return task;
 }
 #else
-#define _Check_size(_Size)                          ((void)0)
+#define _Check_size(_Size, _Classname)              ((void)0)
 #define _Check_running(_Running, _Classname)        ((void)0)
 #define _Check_joinable(_Thread, _Classname)        ((void)0)
 #endif  // NDEBUG
@@ -64,7 +66,7 @@ __STATIC_INLINE__ Runnable _Build_task(_Callable&& callable, const char* prefix)
 //
 
 __INLINE__ constexpr Looper::Looper()
-    : mThreadCount(1), mRunning(false)
+    : mRunning(false)
 {
 }
 
@@ -80,35 +82,12 @@ __INLINE__ bool Looper::prepare()
 
 __INLINE__ void Looper::run()
 {
-    Runnable task;
-    while (mTaskQueue.pop_front(task)) {    // might block
-        // Exit the run, if the task is empty.
-        if (!task) {
-            break;
-        }
-
-        // Run the task.
-        task();
-    }
-
-    if (mThreadCount == 1) {
-        // Removes all pending tasks.
-        _Check_size(mTaskQueue.size());
-        mTaskQueue.clear();
-    }
+    runImpl<1>();
 }
 
 __INLINE__ bool Looper::quit()
 {
-    const bool result = mRunning.exchange(false);
-    if (result) {
-        for (uint32_t i = 0; i < mThreadCount; ++i) {
-            // Posts an empty task to end the loop.
-            mTaskQueue.push_front(nullptr);
-        }
-    }
-
-    return result;
+    return quit(1);
 }
 
 template <typename _Callable, _Enable_if_callable_t<_Callable>>
@@ -162,6 +141,40 @@ __INLINE__ Looper& Looper::getMainLooper()
     return sMainLooper;
 }
 
+template <uint32_t _ThrdCount>
+__INLINE__ void Looper::runImpl()
+{
+    Runnable task;
+    while (mTaskQueue.pop_front(task)) {    // might block
+        // Exit the run, if the task is empty.
+        if (!task) {
+            break;
+        }
+
+        // Run the task.
+        task();
+    }
+
+    if constexpr (_ThrdCount == 1) {
+        // Removes all pending tasks.
+        _Check_size(mTaskQueue.size(), "Looper");
+        mTaskQueue.clear();
+    }
+}
+
+__INLINE__ bool Looper::quit(uint32_t _ThrdCount)
+{
+    const bool result = mRunning.exchange(false);
+    if (result) {
+        for (uint32_t i = 0; i < _ThrdCount; ++i) {
+            // Posts an empty task to end the loop.
+            mTaskQueue.push_front(nullptr);
+        }
+    }
+
+    return result;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Implementation of the EventLooper class
@@ -189,7 +202,7 @@ __INLINE__ void EventLooper::run()
         const int timeout = mTaskQueue.pop(task);
         if (timeout == 0) {
             // Got a task, run it.
-            task.runnable();
+            task.mRunnable();
         } else {
             // The task is not ready. Waiting a
             // timeout to wake up when it is ready.
@@ -253,15 +266,15 @@ __INLINE__ EventLooper& EventLooper::getMainLooper()
 
 template <typename _Callable>
 __INLINE__ EventLooper::Task::Task(_Callable&& callable, uint32_t delayMillis)
-    : when(std::chrono::steady_clock::now() + std::chrono::milliseconds(delayMillis))
-    , runnable(std::forward<_Callable>(callable))
+    : mWhen(std::chrono::steady_clock::now() + std::chrono::milliseconds(delayMillis))
+    , mRunnable(std::forward<_Callable>(callable))
 {
 }
 
 __INLINE__ int EventLooper::Task::getTimeout() const
 {
     using namespace std::chrono;
-    int64_t timeout = duration_cast<milliseconds>(when - steady_clock::now()).count();
+    int64_t timeout = duration_cast<milliseconds>(mWhen - steady_clock::now()).count();
     if (timeout < 0) {
         timeout = 0;
     } else if (timeout > INT_MAX) {
@@ -273,7 +286,7 @@ __INLINE__ int EventLooper::Task::getTimeout() const
 
 __INLINE__ bool EventLooper::Task::operator>(const Task& right) const
 {
-    return (when > right.when);
+    return (mWhen > right.mWhen);
 }
 
 
@@ -284,7 +297,7 @@ __INLINE__ bool EventLooper::Task::operator>(const Task& right) const
 __INLINE__ void EventLooper::TaskQueue::clear()
 {
     MutexLock lock(mMutex);
-    _Check_size(_Base::size());
+    _Check_size(_Base::size(), "TaskQueue");
     _Base::clear();
 }
 
@@ -359,17 +372,11 @@ __INLINE__ std::thread::id LooperThread::getId() const
 //
 
 template <uint32_t _ThrdCount>
-__INLINE__ ThreadPool<_ThrdCount>::ThreadPool()
-{
-    mLooper.mThreadCount = _ThrdCount;
-}
-
-template <uint32_t _ThrdCount>
 __INLINE__ void ThreadPool<_ThrdCount>::start()
 {
     if (mLooper.prepare()) {
         for (std::thread& thread : mThreads) {
-            thread = std::thread(&Looper::run, &mLooper);
+            thread = std::thread(&Looper::runImpl<_ThrdCount>, &mLooper);
         }
 
         LOGD("ThreadPool::start()\n");
@@ -379,15 +386,15 @@ __INLINE__ void ThreadPool<_ThrdCount>::start()
 template <uint32_t _ThrdCount>
 __INLINE__ void ThreadPool<_ThrdCount>::stop()
 {
-    if (mLooper.quit()) {
+    if (mLooper.quit(_ThrdCount)) {
         for (std::thread& thread : mThreads) {
             _Check_joinable(thread, "ThreadPool");
             thread.join();
         }
 
-        if _CONSTEXPR (_ThrdCount > 1) {
+        if constexpr (_ThrdCount > 1) {
             // Removes all pending tasks.
-            _Check_size(mLooper.mTaskQueue.size());
+            _Check_size(mLooper.mTaskQueue.size(), "ThreadPool");
             mLooper.mTaskQueue.clear();
         }
 

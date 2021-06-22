@@ -117,12 +117,6 @@ typedef char TCHAR;
 #define _PRId                                   "%d"
 #endif
 
-#if __cplusplus >= 201703L
-#define _CONSTEXPR                              constexpr
-#else
-#define _CONSTEXPR
-#endif
-
 #ifndef UNUSED_PARAMETER
 #define UNUSED_PARAMETER(var)                   ((void)(var))
 #endif

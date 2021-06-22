@@ -113,9 +113,21 @@ private:
     template <uint32_t _ThrdCount>
     friend class ThreadPool;
 
+    /**
+     * Runs the task queue in the thread.
+     * @param _ThrdCount The number of threads associated with this looper.
+     */
+    template <uint32_t _ThrdCount>
+    void runImpl();
+
+    /**
+     * Quits this looper.
+     * @param _ThrdCount The number of threads associated with this looper.
+     */
+    bool quit(uint32_t _ThrdCount);
+
 // Data members
 private:
-    uint32_t mThreadCount;
     std::atomic_bool mRunning;
     blocking_deque<Runnable> mTaskQueue;
 };
@@ -220,8 +232,8 @@ private:
 
     // Data members
     public:
-        TimePoint when;
-        Runnable runnable;
+        TimePoint mWhen;
+        Runnable mRunnable;
     };
 
     ///////////////////////////////////////////////////////////////////////////
@@ -347,7 +359,7 @@ class ThreadPool final
 
 // Constructors
 public:
-    ThreadPool();
+    ThreadPool() = default;
 
 // Operations
 public:
