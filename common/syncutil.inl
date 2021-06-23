@@ -194,24 +194,24 @@ __INLINE__ int Epoll::wait(struct epoll_event* events, int count/* = 1*/, int ti
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Implementation of the EventFd class
+// Implementation of the Event class
 //
 
-__INLINE__ constexpr EventFd::EventFd(int eventFd/* = -1*/)
+__INLINE__ constexpr Event::Event(int eventFd/* = -1*/)
     : FileDescriptor(eventFd)
 {
 }
 
-__INLINE__ int EventFd::create(uint32_t initval/* = 0*/, int flags/* = EFD_NONBLOCK*/)
+__INLINE__ int Event::create(uint32_t initval/* = 0*/, int flags/* = EFD_NONBLOCK*/)
 {
     assert(isEmpty());
 
     mFd = ::eventfd(initval, flags);
-    _LogAssert(mFd == -1, "The EventFd create failed");
+    _LogAssert(mFd == -1, "The Event create failed");
     return mFd;
 }
 
-__INLINE__ void EventFd::notify() const
+__INLINE__ void Event::notify() const
 {
     assert(!isEmpty());
 
@@ -219,13 +219,13 @@ __INLINE__ void EventFd::notify() const
     write(&counter, sizeof(uint64_t));
 }
 
-__INLINE__ void EventFd::wait(int timeout/* = -1*/) const
+__INLINE__ void Event::wait(int timeout/* = -1*/) const
 {
     assert(!isEmpty());
 
     struct pollfd pfd = { mFd, POLLIN };
     const int result = ::poll(&pfd, 1, timeout);
-    _LogAssert(result == -1, "The EventFd wait failed");
+    _LogAssert(result == -1, "The Event wait failed");
 
     if (result > 0 && pfd.fd == mFd && (pfd.revents & POLLIN)) {
         uint64_t counter;

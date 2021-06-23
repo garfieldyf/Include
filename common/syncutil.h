@@ -21,7 +21,7 @@
 //
 // SpinMutex
 // Epoll
-// EventFd
+// Event
 // LocalSocket
 
 namespace stdutil {
@@ -173,27 +173,27 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Interface of the EventFd class
+// Interface of the Event class
 //
 
-class EventFd final : public FileDescriptor
+class Event final : public FileDescriptor
 {
 // Constructors
 public:
-    explicit constexpr EventFd(int eventFd = -1);
+    explicit constexpr Event(int eventFd = -1);
 
 // Operations
 public:
     /**
-     * Creates a new eventfd object.
-     * @param initval The initial counter of this eventfd.
+     * Creates a new event object.
+     * @param initval The initial counter of this event.
      * @param flags The flags to create.
-     * @return returns a new file descriptor of this object, -1 otherwise.
+     * @return returns a new file descriptor of this event, -1 otherwise.
      */
     int create(uint32_t initval = 0, int flags = EFD_NONBLOCK);
 
     /**
-     * Unblocks the thread that are waiting on the this eventfd.
+     * Unblocks the thread that are waiting on the this event.
      */
     void notify() const;
 
