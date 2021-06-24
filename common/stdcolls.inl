@@ -154,22 +154,27 @@ __INLINE__ typename _Blocking_container<_Container>::size_type _Blocking_contain
 }
 
 template <typename _Container> template <typename _Predicate>
+__INLINE__ void _Blocking_container<_Container>::_Pop(_Predicate _Pred)
+{
+    unique_lock _Lock(_Mymutex);
+
+    // Waiting forever, if _Mycont is empty.
+    _Mycond.wait(_Lock, [this] {
+        return !_Mycont.empty();
+    });
+
+    _Pred();
+}
+
+template <typename _Container> template <typename _Predicate>
 __INLINE__ bool _Blocking_container<_Container>::_Pop(uint32_t _Timeout, _Predicate _Pred)
 {
-    bool _Result;
-    const auto _Cond = [this]() {
-        return !_Mycont.empty();
-    };
-
     unique_lock _Lock(_Mymutex);
-    if (_Timeout == static_cast<uint32_t>(-1)) {
-        // Waiting forever, if _Mycont is empty.
-        _Mycond.wait(_Lock, _Cond);
-        _Result = true;
-    } else {
-        // Waiting for _Timeout milliseconds, if _Mycont is empty.
-        _Result = _Mycond.wait_for(_Lock, std::chrono::milliseconds(_Timeout), _Cond);
-    }
+
+    // Waiting for _Timeout milliseconds, if _Mycont is empty.
+    const bool _Result = _Mycond.wait_for(_Lock, std::chrono::milliseconds(_Timeout), [this] {
+        return !_Mycont.empty();
+    });
 
     // Popup the element from the _Mycont, if waiting successful.
     if (_Result) {
@@ -207,18 +212,36 @@ __INLINE__ void blocking_deque<_Ty, _Alloc>::push_back(_ValArgs&&... _Args)
 }
 
 template <typename _Ty, typename _Alloc>
-__INLINE__ bool blocking_deque<_Ty, _Alloc>::pop_front(value_type& _Val, uint32_t _Timeout/* = -1*/)
+__INLINE__ void blocking_deque<_Ty, _Alloc>::pop_front(value_type& _Val)
 {
-    return _Pop(_Timeout, [this, &_Val]() {
+    _Pop([this, &_Val] {
         _Val = std::move(_Mycont.front());
         _Mycont.pop_front();
     });
 }
 
 template <typename _Ty, typename _Alloc>
-__INLINE__ bool blocking_deque<_Ty, _Alloc>::pop_back(value_type& _Val, uint32_t _Timeout/* = -1*/)
+__INLINE__ bool blocking_deque<_Ty, _Alloc>::pop_front(value_type& _Val, uint32_t _Timeout)
 {
-    return _Pop(_Timeout, [this, &_Val]() {
+    return _Pop(_Timeout, [this, &_Val] {
+        _Val = std::move(_Mycont.front());
+        _Mycont.pop_front();
+    });
+}
+
+template <typename _Ty, typename _Alloc>
+__INLINE__ void blocking_deque<_Ty, _Alloc>::pop_back(value_type& _Val)
+{
+    _Pop([this, &_Val] {
+        _Val = std::move(_Mycont.back());
+        _Mycont.pop_back();
+    });
+}
+
+template <typename _Ty, typename _Alloc>
+__INLINE__ bool blocking_deque<_Ty, _Alloc>::pop_back(value_type& _Val, uint32_t _Timeout)
+{
+    return _Pop(_Timeout, [this, &_Val] {
         _Val = std::move(_Mycont.back());
         _Mycont.pop_back();
     });
@@ -314,9 +337,18 @@ __INLINE__ void priority_blocking_queue<_Ty, _Container, _Comparator>::push(_Val
 }
 
 template <typename _Ty, typename _Container, typename _Comparator>
-__INLINE__ bool priority_blocking_queue<_Ty, _Container, _Comparator>::pop(value_type& _Val, uint32_t _Timeout/* = -1*/)
+__INLINE__ void priority_blocking_queue<_Ty, _Container, _Comparator>::pop(value_type& _Val)
 {
-    return _Pop(_Timeout, [this, &_Val]() {
+    _Pop([this, &_Val] {
+        _Val = const_cast<value_type&&>(_Mycont.top());
+        _Mycont.pop();
+    });
+}
+
+template <typename _Ty, typename _Container, typename _Comparator>
+__INLINE__ bool priority_blocking_queue<_Ty, _Container, _Comparator>::pop(value_type& _Val, uint32_t _Timeout)
+{
+    return _Pop(_Timeout, [this, &_Val] {
         _Val = const_cast<value_type&&>(_Mycont.top());
         _Mycont.pop();
     });

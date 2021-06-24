@@ -182,6 +182,9 @@ protected:
     using unique_lock = std::unique_lock<std::mutex>;
 
     template <typename _Predicate>
+    void _Pop(_Predicate _Pred);
+
+    template <typename _Predicate>
     bool _Pop(uint32_t _Timeout, _Predicate _Pred);
 
 // Data members
@@ -223,24 +226,36 @@ public:
     void push_back(_ValArgs&&... _Args);
 
     /**
+     * Retrieves and removes the element at the beginning of this container, 
+     * waiting if necessary until an element to become available.
+     * @param _Val The _Val to store the returned element.
+     */
+    void pop_front(value_type& _Val);
+
+    /**
      * Retrieves and removes the element at the beginning of this container, waiting 
      * up to the specified _Timeout if necessary for an element to become available.
-     * @param _Val The _Val to store the returned result.
-     * @param _Timeout How long in milliseconds to wait before giving up, -1 causes
-     * wait to indefinitely.
+     * @param _Val The _Val to store the returned element.
+     * @param _Timeout How long in milliseconds to wait before giving up.
      * @return true if retrieve the element successful, false otherwise.
      */
-    bool pop_front(value_type& _Val, uint32_t _Timeout = -1);
+    bool pop_front(value_type& _Val, uint32_t _Timeout);
+
+    /**
+     * Retrieves and removes the element at the end of this container, 
+     * waiting if necessary until an element to become available.
+     * @param _Val The _Val to store the returned element.
+     */
+    void pop_back(value_type& _Val);
 
     /**
      * Retrieves and removes the element at the end of this container, waiting up 
      * to the specified _Timeout if necessary for an element to become available.
-     * @param _Val The _Val to store the returned result.
-     * @param _Timeout How long in milliseconds to wait before giving up, -1 causes
-     * wait to indefinitely.
+     * @param _Val The _Val to store the returned element.
+     * @param _Timeout How long in milliseconds to wait before giving up.
      * @return true if retrieve the element successful, false otherwise.
      */
-    bool pop_back(value_type& _Val, uint32_t _Timeout = -1);
+    bool pop_back(value_type& _Val, uint32_t _Timeout);
 
 // Implementation
 private:
@@ -349,14 +364,20 @@ public:
     void push(_ValArgs&&... _Args);
 
     /**
+     * Retrieves and removes the element on top of this container, 
+     * waiting if necessary until an element to become available.
+     * @param _Val The _Val to store the returned element.
+     */
+    void pop(value_type& _Val);
+
+    /**
      * Retrieves and removes the element on top of this container, waiting up to 
      * the specified _Timeout if necessary for an element to become available.
-     * @param _Val The _Val to store the returned result.
-     * @param _Timeout How long in milliseconds to wait before giving up, -1 causes
-     * wait to indefinitely.
+     * @param _Val The _Val to store the returned element.
+     * @param _Timeout How long in milliseconds to wait before giving up.
      * @return true if retrieve the element successful, false otherwise.
      */
-    bool pop(value_type& _Val, uint32_t _Timeout = -1);
+    bool pop(value_type& _Val, uint32_t _Timeout);
 
 // Implementation
 private:

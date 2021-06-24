@@ -83,9 +83,10 @@ __INLINE__ bool Looper::prepare()
 __INLINE__ void Looper::run()
 {
     Runnable task;
-    while (mTaskQueue.pop_front(task)) {    // might block
-        // Exit the run, if the task is empty.
+    while (true) {
+        mTaskQueue.pop_front(task);  // might block
         if (!task) {
+            // Exit the run, if the task is empty.
             break;
         }
 
